@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { parseISO, differenceInCalendarDays } from "date-fns";
 import { vehicles, bookings as seedBookings, customerById } from "@/lib/data";
 import { PL_MONTHS, PL_WD, fmtDate, toISODate } from "@/lib/dates";
@@ -28,11 +28,17 @@ const TYPE_STYLES: Record<
   },
 };
 
-const LABEL_W = 200;
 const DAY_MIN = 38;
 const LANE_H = 30;
+const MOBILE_SPAN = 7;
 
-// Rozkłada nakładające się wpisy na osobne podwiersze (lanes), żeby paski się nie nakładały.
+function addDays(d: Date, n: number) {
+  const r = new Date(d);
+  r.setDate(d.getDate() + n);
+  return r;
+}
+
+// Nakładające się wpisy trafiają w osobne podwiersze (lanes).
 function withLanes(list: Booking[]) {
   const sorted = [...list].sort((a, b) =>
     a.start < b.start ? -1 : a.start > b.start ? 1 : 0,
@@ -50,10 +56,23 @@ function withLanes(list: Booking[]) {
 }
 
 export default function Timeline() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   const [ym, setYm] = useState(() => {
     const d = new Date();
     return { y: d.getFullYear(), m: d.getMonth() };
   });
+  const [weekStart, setWeekStart] = useState<Date>(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  });
+
   const [bookings, setBookings] = useState<Booking[]>(seedBookings);
   const [selected, setSelected] = useState<Booking | null>(null);
   const [draft, setDraft] = useState<{ vehicleId: string; date: string } | null>(
@@ -65,20 +84,54 @@ export default function Timeline() {
     days: 3,
   });
 
-  const { y, m } = ym;
-  const daysInMonth = new Date(y, m + 1, 0).getDate();
-  const days = Array.from({ length: daysInMonth }, (_, i) => new Date(y, m, i + 1));
-  const first = new Date(y, m, 1);
-  const last = new Date(y, m, daysInMonth);
+  // Zakres widoku: mobile = 7 dni (tydzień), desktop = miesiąc.
+  let days: Date[];
+  let first: Date;
+  let last: Date;
+  let daysCount: number;
+  let headerLabel: string;
+  if (isMobile) {
+    daysCount = MOBILE_SPAN;
+    first = weekStart;
+    days = Array.from({ length: MOBILE_SPAN }, (_, i) => addDays(weekStart, i));
+    last = days[days.length - 1];
+    const a = first;
+    const b = last;
+    headerLabel =
+      a.getMonth() === b.getMonth()
+        ? `${a.getDate()}–${b.getDate()} ${PL_MONTHS[a.getMonth()].slice(0, 3)}`
+        : `${a.getDate()} ${PL_MONTHS[a.getMonth()].slice(0, 3)} – ${b.getDate()} ${PL_MONTHS[b.getMonth()].slice(0, 3)}`;
+  } else {
+    const { y, m } = ym;
+    daysCount = new Date(y, m + 1, 0).getDate();
+    first = new Date(y, m, 1);
+    days = Array.from({ length: daysCount }, (_, i) => new Date(y, m, i + 1));
+    last = new Date(y, m, daysCount);
+    headerLabel = `${PL_MONTHS[m]} ${y}`;
+  }
+
+  const LABEL_W = isMobile ? 104 : 200;
+  const gridCols = isMobile
+    ? `repeat(${daysCount}, minmax(0, 1fr))`
+    : `repeat(${daysCount}, minmax(${DAY_MIN}px, 1fr))`;
+  const outerStyle = isMobile
+    ? undefined
+    : { minWidth: LABEL_W + daysCount * DAY_MIN };
+
   const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
 
   const move = (delta: number) => {
-    const d = new Date(y, m + delta, 1);
-    setYm({ y: d.getFullYear(), m: d.getMonth() });
+    if (isMobile) {
+      setWeekStart(addDays(weekStart, delta * MOBILE_SPAN));
+    } else {
+      const d = new Date(ym.y, ym.m + delta, 1);
+      setYm({ y: d.getFullYear(), m: d.getMonth() });
+    }
   };
   const goToday = () => {
     const d = new Date();
-    setYm({ y: d.getFullYear(), m: d.getMonth() });
+    if (isMobile) setWeekStart(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
+    else setYm({ y: d.getFullYear(), m: d.getMonth() });
   };
 
   const visible = bookings.filter(
@@ -90,12 +143,10 @@ export default function Timeline() {
     setForm({ name: "", type: "reservation", days: 3 });
     setDraft({ vehicleId, date: toISODate(date) });
   };
-
   const addDraft = () => {
     if (!draft) return;
     const startD = parseISO(draft.date);
-    const end = new Date(startD);
-    end.setDate(startD.getDate() + Math.max(0, form.days - 1));
+    const end = addDays(startD, Math.max(0, form.days - 1));
     setBookings((prev) => [
       ...prev,
       {
@@ -111,7 +162,6 @@ export default function Timeline() {
     ]);
     setDraft(null);
   };
-
   const removeBooking = (id: string) => {
     setBookings((prev) => prev.filter((b) => b.id !== id));
     setSelected(null);
@@ -127,21 +177,19 @@ export default function Timeline() {
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => move(-1)}
-            aria-label="Poprzedni miesiąc"
+            aria-label="Poprzedni"
             className="grid size-9 place-items-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
           >
             <ChevronLeft className="size-4" />
           </button>
           <button
             onClick={() => move(1)}
-            aria-label="Następny miesiąc"
+            aria-label="Następny"
             className="grid size-9 place-items-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
           >
             <ChevronRight className="size-4" />
           </button>
-          <div className="ml-1 text-base font-semibold capitalize">
-            {PL_MONTHS[m]} {y}
-          </div>
+          <div className="ml-1 text-base font-semibold capitalize">{headerLabel}</div>
           <button
             onClick={goToday}
             className="ml-1 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-50"
@@ -162,27 +210,25 @@ export default function Timeline() {
             onClick={() => openDraft(vehicles[0].id, first)}
             className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
           >
-            <Plus className="size-4" /> Nowa rezerwacja
+            <Plus className="size-4" /> Nowa
           </button>
         </div>
       </div>
 
       {/* Timeline */}
       <div className="tl-scroll overflow-x-auto rounded-xl border border-zinc-200 bg-white">
-        <div style={{ minWidth: LABEL_W + daysInMonth * DAY_MIN }}>
+        <div style={outerStyle}>
           {/* header */}
           <div className="flex border-b border-zinc-200">
             <div
-              className="sticky left-0 z-30 flex items-center bg-zinc-50 px-4 text-xs font-medium text-zinc-500"
+              className="sticky left-0 z-30 flex items-center bg-zinc-50 px-3 text-xs font-medium text-zinc-500"
               style={{ width: LABEL_W, minWidth: LABEL_W }}
             >
               Pojazd
             </div>
             <div
               className="grid flex-1"
-              style={{
-                gridTemplateColumns: `repeat(${daysInMonth}, minmax(${DAY_MIN}px, 1fr))`,
-              }}
+              style={{ gridTemplateColumns: gridCols }}
             >
               {days.map((d, di) => (
                 <div
@@ -215,7 +261,7 @@ export default function Timeline() {
                 style={{ height: rowH }}
               >
                 <div
-                  className="sticky left-0 z-20 flex flex-col justify-center border-r border-zinc-200 bg-white px-4"
+                  className="sticky left-0 z-20 flex flex-col justify-center border-r border-zinc-200 bg-white px-3"
                   style={{ width: LABEL_W, minWidth: LABEL_W }}
                 >
                   <div className="flex items-center gap-2">
@@ -223,20 +269,20 @@ export default function Timeline() {
                       className="size-2 shrink-0 rounded-full"
                       style={{ background: v.color }}
                     />
-                    <span className="truncate text-sm font-medium text-zinc-800">
+                    <span className="truncate text-[13px] font-medium text-zinc-800">
                       {v.name}
                     </span>
                   </div>
                   {v.plate && (
-                    <span className="pl-4 text-[11px] text-zinc-400">{v.plate}</span>
+                    <span className="truncate pl-4 text-[11px] text-zinc-400">
+                      {v.plate}
+                    </span>
                   )}
                 </div>
                 <div className="relative flex-1">
                   <div
                     className="absolute inset-0 grid"
-                    style={{
-                      gridTemplateColumns: `repeat(${daysInMonth}, minmax(${DAY_MIN}px, 1fr))`,
-                    }}
+                    style={{ gridTemplateColumns: gridCols }}
                   >
                     {days.map((d, di) => (
                       <button
@@ -268,8 +314,8 @@ export default function Timeline() {
                         title={b.notes}
                         style={{
                           position: "absolute",
-                          left: `calc(${(offset / daysInMonth) * 100}% + 2px)`,
-                          width: `calc(${(span / daysInMonth) * 100}% - 4px)`,
+                          left: `calc(${(offset / daysCount) * 100}% + 2px)`,
+                          width: `calc(${(span / daysCount) * 100}% - 4px)`,
                           top: b.lane * LANE_H + 4,
                           height: LANE_H - 8,
                         }}
@@ -290,7 +336,9 @@ export default function Timeline() {
         </div>
       </div>
       <p className="mt-2 text-xs text-zinc-400">
-        Nakładające się wpisy na jednym aucie układają się w osobnych podwierszach.
+        {isMobile
+          ? "Widok tygodnia — przewijaj strzałkami. Nakładki układają się w podwierszach."
+          : "Nakładające się wpisy na jednym aucie układają się w osobnych podwierszach."}
       </p>
 
       {(selected || draft) && (
