@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV } from "@/lib/nav";
+import { vehicles } from "@/lib/data";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -33,7 +34,7 @@ export default function Sidebar() {
         })}
       </nav>
       <div className="border-t border-zinc-800 p-4 text-xs text-zinc-500">
-        13 pojazdów · sezon 2026
+        {vehicles.length} pojazdów · sezon 2026
       </div>
     </aside>
   );

@@ -1,17 +1,11 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { parseISO, differenceInCalendarDays } from "date-fns";
 import { vehicles, bookings as seedBookings, customerById } from "@/lib/data";
 import { PL_MONTHS, PL_WD, fmtDate, toISODate } from "@/lib/dates";
 import type { Booking, BookingType } from "@/lib/types";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  X,
-  Trash2,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, X, Trash2 } from "lucide-react";
 
 const TYPE_STYLES: Record<
   BookingType,
@@ -34,6 +28,27 @@ const TYPE_STYLES: Record<
   },
 };
 
+const LABEL_W = 200;
+const DAY_MIN = 38;
+const LANE_H = 30;
+
+// Rozkłada nakładające się wpisy na osobne podwiersze (lanes), żeby paski się nie nakładały.
+function withLanes(list: Booking[]) {
+  const sorted = [...list].sort((a, b) =>
+    a.start < b.start ? -1 : a.start > b.start ? 1 : 0,
+  );
+  const laneEnd: number[] = [];
+  const rows = sorted.map((b) => {
+    const s = parseISO(b.start).getTime();
+    const e = parseISO(b.end).getTime();
+    let lane = laneEnd.findIndex((end) => end < s);
+    if (lane === -1) lane = laneEnd.length;
+    laneEnd[lane] = e;
+    return { ...b, lane };
+  });
+  return { rows, lanes: Math.max(1, laneEnd.length) };
+}
+
 export default function Timeline() {
   const [ym, setYm] = useState(() => {
     const d = new Date();
@@ -44,13 +59,18 @@ export default function Timeline() {
   const [draft, setDraft] = useState<{ vehicleId: string; date: string } | null>(
     null,
   );
-  const [form, setForm] = useState({ name: "", type: "reservation" as BookingType, days: 3 });
+  const [form, setForm] = useState({
+    name: "",
+    type: "reservation" as BookingType,
+    days: 3,
+  });
 
   const { y, m } = ym;
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   const days = Array.from({ length: daysInMonth }, (_, i) => new Date(y, m, i + 1));
   const first = new Date(y, m, 1);
   const last = new Date(y, m, daysInMonth);
+  const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
 
   const move = (delta: number) => {
     const d = new Date(y, m + delta, 1);
@@ -60,7 +80,6 @@ export default function Timeline() {
     const d = new Date();
     setYm({ y: d.getFullYear(), m: d.getMonth() });
   };
-  const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
 
   const visible = bookings.filter(
     (b) => parseISO(b.start) <= last && parseISO(b.end) >= first,
@@ -97,6 +116,9 @@ export default function Timeline() {
     setBookings((prev) => prev.filter((b) => b.id !== id));
     setSelected(null);
   };
+
+  const inputCls =
+    "mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-base outline-none focus:border-zinc-400 md:text-sm";
 
   return (
     <div>
@@ -145,105 +167,130 @@ export default function Timeline() {
         </div>
       </div>
 
-      {/* Timeline grid */}
+      {/* Timeline */}
       <div className="tl-scroll overflow-x-auto rounded-xl border border-zinc-200 bg-white">
-        <div
-          className="grid min-w-max"
-          style={{
-            gridTemplateColumns: `200px repeat(${daysInMonth}, minmax(38px, 1fr))`,
-          }}
-        >
-          {/* corner */}
-          <div
-            style={{ gridColumn: 1, gridRow: 1 }}
-            className="sticky left-0 z-30 flex items-center border-b border-r border-zinc-200 bg-zinc-50 px-4 py-2 text-xs font-medium text-zinc-500"
-          >
-            Pojazd
-          </div>
-          {/* day headers */}
-          {days.map((d, di) => (
+        <div style={{ minWidth: LABEL_W + daysInMonth * DAY_MIN }}>
+          {/* header */}
+          <div className="flex border-b border-zinc-200">
             <div
-              key={`h${di}`}
-              style={{ gridColumn: 2 + di, gridRow: 1 }}
-              className={`border-b border-r border-zinc-200 py-1.5 text-center ${
-                isWeekend(d) ? "bg-zinc-100" : "bg-zinc-50"
-              }`}
+              className="sticky left-0 z-30 flex items-center bg-zinc-50 px-4 text-xs font-medium text-zinc-500"
+              style={{ width: LABEL_W, minWidth: LABEL_W }}
             >
-              <div className="text-[10px] leading-tight text-zinc-400">
-                {PL_WD[d.getDay()]}
-              </div>
-              <div className="text-xs font-medium leading-tight text-zinc-700">
-                {d.getDate()}
-              </div>
+              Pojazd
             </div>
-          ))}
+            <div
+              className="grid flex-1"
+              style={{
+                gridTemplateColumns: `repeat(${daysInMonth}, minmax(${DAY_MIN}px, 1fr))`,
+              }}
+            >
+              {days.map((d, di) => (
+                <div
+                  key={di}
+                  className={`border-r border-zinc-100 py-1.5 text-center ${
+                    isWeekend(d) ? "bg-zinc-100" : "bg-zinc-50"
+                  }`}
+                >
+                  <div className="text-[10px] leading-tight text-zinc-400">
+                    {PL_WD[d.getDay()]}
+                  </div>
+                  <div className="text-xs font-medium leading-tight text-zinc-700">
+                    {d.getDate()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* rows */}
-          {vehicles.map((v, vi) => (
-            <Fragment key={v.id}>
+          {vehicles.map((v) => {
+            const { rows, lanes } = withLanes(
+              visible.filter((b) => b.vehicleId === v.id),
+            );
+            const rowH = lanes * LANE_H + 8;
+            return (
               <div
-                style={{ gridColumn: 1, gridRow: 2 + vi }}
-                className="sticky left-0 z-20 flex flex-col justify-center border-b border-r border-zinc-200 bg-white px-4 py-2"
+                key={v.id}
+                className="flex border-b border-zinc-100"
+                style={{ height: rowH }}
               >
-                <div className="flex items-center gap-2">
-                  <span
-                    className="size-2 shrink-0 rounded-full"
-                    style={{ background: v.color }}
-                  />
-                  <span className="truncate text-sm font-medium text-zinc-800">
-                    {v.name}
-                  </span>
+                <div
+                  className="sticky left-0 z-20 flex flex-col justify-center border-r border-zinc-200 bg-white px-4"
+                  style={{ width: LABEL_W, minWidth: LABEL_W }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="size-2 shrink-0 rounded-full"
+                      style={{ background: v.color }}
+                    />
+                    <span className="truncate text-sm font-medium text-zinc-800">
+                      {v.name}
+                    </span>
+                  </div>
+                  {v.plate && (
+                    <span className="pl-4 text-[11px] text-zinc-400">{v.plate}</span>
+                  )}
                 </div>
-                <span className="pl-4 text-[11px] text-zinc-400">{v.plate}</span>
+                <div className="relative flex-1">
+                  <div
+                    className="absolute inset-0 grid"
+                    style={{
+                      gridTemplateColumns: `repeat(${daysInMonth}, minmax(${DAY_MIN}px, 1fr))`,
+                    }}
+                  >
+                    {days.map((d, di) => (
+                      <button
+                        key={di}
+                        onClick={() => openDraft(v.id, d)}
+                        className={`border-r border-zinc-100 ${
+                          isWeekend(d) ? "bg-zinc-50" : "bg-white"
+                        } hover:bg-blue-50/60`}
+                      />
+                    ))}
+                  </div>
+                  {rows.map((b) => {
+                    const bStart = parseISO(b.start);
+                    const bEnd = parseISO(b.end);
+                    const sC = bStart < first ? first : bStart;
+                    const eC = bEnd > last ? last : bEnd;
+                    const offset = differenceInCalendarDays(sC, first);
+                    const span = differenceInCalendarDays(eC, sC) + 1;
+                    const clipL = bStart < first;
+                    const clipR = bEnd > last;
+                    const s = TYPE_STYLES[b.type];
+                    return (
+                      <button
+                        key={b.id}
+                        onClick={() => {
+                          setDraft(null);
+                          setSelected(b);
+                        }}
+                        title={b.notes}
+                        style={{
+                          position: "absolute",
+                          left: `calc(${(offset / daysInMonth) * 100}% + 2px)`,
+                          width: `calc(${(span / daysInMonth) * 100}% - 4px)`,
+                          top: b.lane * LANE_H + 4,
+                          height: LANE_H - 8,
+                        }}
+                        className={`z-10 flex items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-md border px-2 text-xs font-medium ${s.bar} ${
+                          clipL ? "rounded-l-none" : ""
+                        } ${clipR ? "rounded-r-none" : ""}`}
+                      >
+                        <span className="truncate">
+                          {customerById(b.customerId)?.name ?? b.notes}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              {days.map((d, di) => (
-                <button
-                  key={`${v.id}-${di}`}
-                  onClick={() => openDraft(v.id, d)}
-                  style={{ gridColumn: 2 + di, gridRow: 2 + vi }}
-                  className={`h-12 border-b border-r border-zinc-100 ${
-                    isWeekend(d) ? "bg-zinc-50" : "bg-white"
-                  } hover:bg-blue-50/60`}
-                />
-              ))}
-              {visible
-                .filter((b) => b.vehicleId === v.id)
-                .map((b) => {
-                  const bStart = parseISO(b.start);
-                  const bEnd = parseISO(b.end);
-                  const startClamped = bStart < first ? first : bStart;
-                  const endClamped = bEnd > last ? last : bEnd;
-                  const offset = differenceInCalendarDays(startClamped, first);
-                  const span = differenceInCalendarDays(endClamped, startClamped) + 1;
-                  const clipL = bStart < first;
-                  const clipR = bEnd > last;
-                  const s = TYPE_STYLES[b.type];
-                  return (
-                    <button
-                      key={b.id}
-                      onClick={() => {
-                        setDraft(null);
-                        setSelected(b);
-                      }}
-                      style={{ gridColumn: `${2 + offset} / span ${span}`, gridRow: 2 + vi }}
-                      className={`relative z-10 m-1 flex h-10 items-center self-center overflow-hidden text-ellipsis whitespace-nowrap rounded-md border px-2 text-xs font-medium ${s.bar} ${
-                        clipL ? "rounded-l-none" : ""
-                      } ${clipR ? "rounded-r-none" : ""}`}
-                      title={b.notes}
-                    >
-                      {clipL && <span className="mr-1">◂</span>}
-                      <span className="truncate">
-                        {customerById(b.customerId)?.name ?? b.notes}
-                      </span>
-                    </button>
-                  );
-                })}
-            </Fragment>
-          ))}
+            );
+          })}
         </div>
       </div>
       <p className="mt-2 text-xs text-zinc-400">
-        Dane przykładowe z importu RentHelp. Zapis na żywo podłączymy do Supabase w kroku 2.
+        Nakładające się wpisy na jednym aucie układają się w osobnych podwierszach.
       </p>
 
       {(selected || draft) && (
@@ -256,7 +303,6 @@ export default function Timeline() {
         />
       )}
 
-      {/* Detail drawer */}
       {selected && (
         <Drawer onClose={() => setSelected(null)} title="Szczegóły wpisu">
           <DetailRow label="Typ" value={TYPE_STYLES[selected.type].label} />
@@ -271,10 +317,16 @@ export default function Timeline() {
           <DetailRow label="Od" value={fmtDate(selected.start)} />
           <DetailRow label="Do" value={fmtDate(selected.end)} />
           {selected.total != null && (
-            <DetailRow label="Kwota" value={`${selected.total.toLocaleString("pl-PL")} ISK`} />
+            <DetailRow
+              label="Kwota"
+              value={`${selected.total.toLocaleString("pl-PL")} ISK`}
+            />
           )}
           {selected.deposit != null && (
-            <DetailRow label="Kaucja" value={`${selected.deposit.toLocaleString("pl-PL")} ISK`} />
+            <DetailRow
+              label="Kaucja"
+              value={`${selected.deposit.toLocaleString("pl-PL")} ISK`}
+            />
           )}
           {selected.notes && <DetailRow label="Notatka" value={selected.notes} />}
           <button
@@ -286,7 +338,6 @@ export default function Timeline() {
         </Drawer>
       )}
 
-      {/* New draft drawer */}
       {draft && (
         <Drawer onClose={() => setDraft(null)} title="Nowa rezerwacja">
           <DetailRow
@@ -299,13 +350,13 @@ export default function Timeline() {
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             placeholder="np. Jan Kowalski"
-            className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-base outline-none focus:border-zinc-400 md:text-sm"
+            className={inputCls}
           />
           <label className="mt-3 block text-xs font-medium text-zinc-500">Typ</label>
           <select
             value={form.type}
             onChange={(e) => setForm({ ...form, type: e.target.value as BookingType })}
-            className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-base outline-none focus:border-zinc-400 md:text-sm"
+            className={inputCls}
           >
             <option value="reservation">Rezerwacja</option>
             <option value="block">Blokada</option>
@@ -317,7 +368,7 @@ export default function Timeline() {
             min={1}
             value={form.days}
             onChange={(e) => setForm({ ...form, days: Number(e.target.value) })}
-            className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-base outline-none focus:border-zinc-400 md:text-sm"
+            className={inputCls}
           />
           <button
             onClick={addDraft}
