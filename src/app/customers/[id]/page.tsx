@@ -3,8 +3,9 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { customers, bookings, vehicleById } from "@/lib/data";
-import { contractsForCustomer, type Contract } from "@/lib/contract";
+import { useData } from "@/components/DataProvider";
+import { fetchContracts } from "@/lib/db";
+import type { Contract } from "@/lib/contract";
 import { fmtDate } from "@/lib/dates";
 import { ArrowLeft, FileText } from "lucide-react";
 
@@ -17,12 +18,13 @@ const STATUS = {
 export default function CustomerProfile() {
   const params = useParams<{ id: string }>();
   const id = params.id;
+  const { customers, bookings, vehicleById } = useData();
   const customer = customers.find((c) => c.id === id);
   const custBookings = bookings.filter((b) => b.customerId === id);
   const [contracts, setContracts] = useState<Contract[]>([]);
 
   useEffect(() => {
-    setContracts(contractsForCustomer(id));
+    fetchContracts(id).then(setContracts);
   }, [id]);
 
   if (!customer) {

@@ -1,4 +1,6 @@
-import { bookings, vehicleById, customerById } from "@/lib/data";
+"use client";
+
+import { useData } from "@/components/DataProvider";
 import { fmtDate } from "@/lib/dates";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import type { BookingType, BookingStatus } from "@/lib/types";
@@ -22,6 +24,7 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
 };
 
 export default function BookingsPage() {
+  const { bookings, vehicleById, customerById } = useData();
   const rows = [...bookings].sort((a, b) => (a.start < b.start ? 1 : -1));
   return (
     <div className="p-6">

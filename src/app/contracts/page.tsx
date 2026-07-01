@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { customers, bookings, vehicleById } from "@/lib/data";
-import { TEMPLATES, buildFilled, saveContract, makeNumber } from "@/lib/contract";
+import { useData } from "@/components/DataProvider";
+import { TEMPLATES, buildFilled, makeNumber } from "@/lib/contract";
+import { insertContract } from "@/lib/db";
 import { fmtDate } from "@/lib/dates";
 import { Send, Printer, Check } from "lucide-react";
 
@@ -11,6 +12,7 @@ const inputCls =
   "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-base outline-none focus:border-zinc-400 md:text-sm";
 
 export default function ContractsPage() {
+  const { customers, bookings, vehicleById } = useData();
   const [templateId, setTemplateId] = useState(TEMPLATES[0].id);
   const [customerId, setCustomerId] = useState("");
   const [bookingId, setBookingId] = useState("");
@@ -29,19 +31,17 @@ export default function ContractsPage() {
     [template, customer, vehicle, booking, employee, today],
   );
 
-  const send = () => {
+  const send = async () => {
     if (!customer) return;
     const number = makeNumber();
     const content = buildFilled(template, { number, customer, vehicle, booking, employee, date: today });
-    saveContract({
-      id: `k-${Date.now()}`,
+    await insertContract({
       number,
       templateId: template.id,
       templateName: template.name,
       customerId: customer.id,
       vehicleId: vehicle?.id,
       bookingId: booking?.id,
-      createdAt: new Date().toISOString(),
       status: "sent",
       content,
     });

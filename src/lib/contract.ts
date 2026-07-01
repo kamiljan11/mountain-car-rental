@@ -309,5 +309,5 @@ export function contractsForCustomer(id: string) {
 }
 
 export function makeNumber() {
-  return `${getContracts().length + 1}/06/2026`;
+  return `${Math.floor(Math.random() * 9000) + 1000}/07/2026`;
 }

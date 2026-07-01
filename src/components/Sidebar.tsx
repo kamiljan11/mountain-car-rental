@@ -2,11 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { NAV } from "@/lib/nav";
-import { vehicles } from "@/lib/data";
+import { useData } from "@/components/DataProvider";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { vehicles } = useData();
+
+  const logout = async () => {
+    await fetch("/api/logout", { method: "POST" });
+    window.location.href = "/login";
+  };
   return (
     <aside className="hidden w-60 shrink-0 flex-col bg-zinc-900 text-zinc-100 md:flex">
       <div className="border-b border-zinc-800 px-5 py-5">
@@ -33,8 +40,17 @@ export default function Sidebar() {
           );
         })}
       </nav>
-      <div className="border-t border-zinc-800 p-4 text-xs text-zinc-500">
-        {vehicles.length} pojazdów · sezon 2026
+      <div className="border-t border-zinc-800 p-3">
+        <button
+          onClick={logout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-800"
+        >
+          <LogOut className="size-4" />
+          Wyloguj
+        </button>
+        <div className="px-3 pt-2 text-xs text-zinc-500">
+          {vehicles.length} pojazdów · sezon 2026
+        </div>
       </div>
     </aside>
   );

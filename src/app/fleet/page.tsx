@@ -1,6 +1,6 @@
 "use client";
 
-import { vehicles } from "@/lib/data";
+import { useData } from "@/components/DataProvider";
 import { fmtDate } from "@/lib/dates";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 
@@ -18,6 +18,7 @@ function Expiry({ iso }: { iso?: string }) {
 }
 
 export default function FleetPage() {
+  const { vehicles } = useData();
   return (
     <div className="p-6">
       <h1 className="mb-1 text-xl font-semibold tracking-tight">Flota</h1>
@@ -51,11 +52,13 @@ export default function FleetPage() {
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-zinc-600">{v.year}</td>
+                <td className="px-4 py-3 text-zinc-600">{v.year ?? "—"}</td>
                 <td className="px-4 py-3 text-zinc-600">
-                  {v.mileage?.toLocaleString("pl-PL")} km
+                  {v.mileage ? `${v.mileage.toLocaleString("pl-PL")} km` : "—"}
                 </td>
-                <td className="px-4 py-3 text-zinc-600">{v.dailyRate?.toLocaleString("pl-PL")} ISK</td>
+                <td className="px-4 py-3 text-zinc-600">
+                  {v.dailyRate != null ? `${v.dailyRate.toLocaleString("pl-PL")} ISK` : "—"}
+                </td>
                 <td className="px-4 py-3">
                   <Expiry iso={v.ocExpiry} />
                 </td>

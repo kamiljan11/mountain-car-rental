@@ -1,13 +1,16 @@
+"use client";
+
 import Link from "next/link";
-import { customers, bookings } from "@/lib/data";
+import { useData } from "@/components/DataProvider";
 
 export default function CustomersPage() {
+  const { customers, bookings } = useData();
   const count = (id: string) => bookings.filter((b) => b.customerId === id).length;
   return (
     <div className="p-6">
       <h1 className="mb-1 text-xl font-semibold tracking-tight">Klienci</h1>
       <p className="mb-5 text-sm text-zinc-500">
-        {customers.length} klientów zaimportowanych z RentHelp. Kliknij, aby otworzyć profil.
+        {customers.length} klientów. Kliknij, aby otworzyć profil.
       </p>
       <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
         <table className="w-full min-w-[640px] text-sm">

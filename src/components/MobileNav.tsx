@@ -3,12 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { NAV } from "@/lib/nav";
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+
+  const logout = async () => {
+    await fetch("/api/logout", { method: "POST" });
+    window.location.href = "/login";
+  };
 
   return (
     <div className="md:hidden">
@@ -58,6 +63,13 @@ export default function MobileNav() {
                 );
               })}
             </nav>
+            <button
+              onClick={logout}
+              className="mt-auto flex items-center gap-3 rounded-lg px-3 py-3 text-base text-zinc-200 hover:bg-zinc-800"
+            >
+              <LogOut className="size-5" />
+              Wyloguj
+            </button>
           </div>
         </div>
       )}
