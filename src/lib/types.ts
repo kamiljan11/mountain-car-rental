@@ -28,6 +28,8 @@ export interface Customer {
   phone?: string;
   email?: string;
   license?: string;
+  id_number?: string;
+  address?: string;
   source?: string;
 }
 
@@ -43,6 +45,7 @@ export interface Booking {
   total?: number;
   deposit?: number;
   platform?: string;
+  external_ref?: string;
   notes?: string;
 }
 

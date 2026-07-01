@@ -55,7 +55,7 @@ export default function FleetPage() {
                 <td className="px-4 py-3 text-zinc-600">
                   {v.mileage?.toLocaleString("pl-PL")} km
                 </td>
-                <td className="px-4 py-3 text-zinc-600">{v.dailyRate} zł</td>
+                <td className="px-4 py-3 text-zinc-600">{v.dailyRate?.toLocaleString("pl-PL")} ISK</td>
                 <td className="px-4 py-3">
                   <Expiry iso={v.ocExpiry} />
                 </td>

@@ -64,7 +64,7 @@ export default function BookingsPage() {
                   <td className="px-4 py-3 text-zinc-600">{fmtDate(b.end)}</td>
                   <td className="px-4 py-3 text-zinc-600">{days}</td>
                   <td className="px-4 py-3 text-zinc-600">
-                    {b.total != null ? `${b.total} zł` : "—"}
+                    {b.total != null ? `${b.total.toLocaleString("pl-PL")} ISK` : "—"}
                   </td>
                   <td className="px-4 py-3 text-zinc-500">{STATUS_LABEL[b.status]}</td>
                 </tr>

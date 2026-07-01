@@ -68,9 +68,10 @@ export default function CustomerProfile() {
                 </span>
                 <span className="text-xs text-zinc-400">{fmtDate(k.createdAt.slice(0, 10))}</span>
               </summary>
-              <pre className="whitespace-pre-wrap border-t border-zinc-100 px-4 py-3 font-sans text-[12px] leading-relaxed text-zinc-700">
-                {k.content}
-              </pre>
+              <div
+                className="contract border-t border-zinc-100 px-4 py-3"
+                dangerouslySetInnerHTML={{ __html: k.content }}
+              />
             </details>
           ))}
         </div>
@@ -91,7 +92,7 @@ export default function CustomerProfile() {
                 <tr key={b.id}>
                   <td className="px-4 py-3 font-medium text-zinc-900">{vehicleById(b.vehicleId)?.name}</td>
                   <td className="px-4 py-3 text-zinc-600">{fmtDate(b.start)} — {fmtDate(b.end)}</td>
-                  <td className="px-4 py-3 text-zinc-600">{b.total != null ? `${b.total} zł` : "—"}</td>
+                  <td className="px-4 py-3 text-zinc-600">{b.total != null ? `${b.total.toLocaleString("pl-PL")} ISK` : "—"}</td>
                 </tr>
               ))
             )}

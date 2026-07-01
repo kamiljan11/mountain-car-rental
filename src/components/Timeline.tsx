@@ -268,10 +268,10 @@ export default function Timeline() {
           <DetailRow label="Od" value={fmtDate(selected.start)} />
           <DetailRow label="Do" value={fmtDate(selected.end)} />
           {selected.total != null && (
-            <DetailRow label="Kwota" value={`${selected.total} zł`} />
+            <DetailRow label="Kwota" value={`${selected.total.toLocaleString("pl-PL")} ISK`} />
           )}
           {selected.deposit != null && (
-            <DetailRow label="Kaucja" value={`${selected.deposit} zł`} />
+            <DetailRow label="Kaucja" value={`${selected.deposit.toLocaleString("pl-PL")} ISK`} />
           )}
           {selected.notes && <DetailRow label="Notatka" value={selected.notes} />}
           <button

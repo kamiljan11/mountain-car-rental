@@ -114,8 +114,8 @@ export default function ContractsPage() {
           )}
         </div>
 
-        <div id="contract-print" className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <pre className="whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-zinc-800">{preview}</pre>
+        <div id="contract-print" className="max-h-[70vh] overflow-y-auto rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <div className="contract" dangerouslySetInnerHTML={{ __html: preview }} />
         </div>
       </div>
     </div>
