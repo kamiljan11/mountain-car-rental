@@ -3,11 +3,12 @@ import { fmtDate } from "./dates";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 
 export const COMPANY = {
-  name: "Mountain Car Rental",
-  nip: "6007230140",
-  address: "Skógarhlíð 10, 105 Reykjavík, Islandia",
-  phone: "+354 778 8585",
-  email: "info@mountaincar.is",
+  legalName: "Mountain All Service ehf.",
+  brand: "Mountain Car Rental",
+  kennitala: "6907250450",
+  vat: "158052",
+  address: "Njarðarbraut 3i, 260 Njarðvík, Islandia",
+  email: "mountainallservice@gmail.com",
   web: "https://mountaincar.is",
 };
 
@@ -150,7 +151,7 @@ const UMOWA = `
   </div>
   <div>
     <h3>Wynajmujący</h3>
-    <p>{{FIRMA}}<br/>{{FIRMA_ADRES}}<br/>NIP: {{FIRMA_NIP}}<br/>{{FIRMA_WWW}}<br/>{{FIRMA_EMAIL}}<br/>tel.: {{FIRMA_TEL}}</p>
+    <p><strong>{{FIRMA_LEGAL}}</strong> — marka {{FIRMA}}<br/>{{FIRMA_ADRES}}<br/>Kennitala: {{FIRMA_KT}} · VSK-nr: {{FIRMA_VAT}}<br/>{{FIRMA_WWW}}<br/>{{FIRMA_EMAIL}}</p>
   </div>
 </div>
 <h2>Przedmiot umowy</h2>
@@ -168,7 +169,7 @@ const UMOWA = `
 <p>Kwota za okres wypożyczenia: <span class="amount">{{KWOTA}}</span> ({{STAWKA}} / doba)</p>
 <p class="total">Kwota całkowita do zapłaty: {{KWOTA}}</p>
 <p class="muted">(data i podpis Najemcy oznacza akceptację OWU stanowiących załącznik do umowy)</p>
-<p>w imieniu {{FIRMA}}: {{PRACOWNIK}}, dnia {{DATA_ZAWARCIA}}</p>
+<p>w imieniu {{FIRMA_LEGAL}}: {{PRACOWNIK}}, dnia {{DATA_ZAWARCIA}}</p>
 <div class="sign"><span>data i podpis Najemcy</span><span>podpis Wynajmującego</span></div>
 ${OWU}`;
 
@@ -182,7 +183,7 @@ const WYDANIE = `
   <tr><td>VIN</td><td>{{VIN}}</td></tr>
 </table>
 <div class="parties">
-  <div><h3>Wynajmujący</h3><p>{{FIRMA}}<br/>NIP: {{FIRMA_NIP}}<br/>{{FIRMA_ADRES}}<br/>{{FIRMA_TEL}} · {{FIRMA_EMAIL}}</p></div>
+  <div><h3>Wynajmujący</h3><p>{{FIRMA_LEGAL}}<br/>Kennitala: {{FIRMA_KT}} · VSK-nr: {{FIRMA_VAT}}<br/>{{FIRMA_ADRES}}<br/>{{FIRMA_EMAIL}}</p></div>
   <div><h3>Najemca</h3><p>{{NAJEMCA}}<br/>PESEL: {{NAJEMCA_PESEL}}<br/>Prawo jazdy: {{NAJEMCA_PJ}}<br/>{{NAJEMCA_TEL}} · {{NAJEMCA_EMAIL}}</p></div>
 </div>
 <h2>Stan pojazdu przy wydaniu</h2>
@@ -209,7 +210,7 @@ const ZWROT = `
   <tr><td>VIN</td><td>{{VIN}}</td></tr>
 </table>
 <div class="parties">
-  <div><h3>Wynajmujący</h3><p>{{FIRMA}}<br/>NIP: {{FIRMA_NIP}}<br/>{{FIRMA_TEL}} · {{FIRMA_EMAIL}}</p></div>
+  <div><h3>Wynajmujący</h3><p>{{FIRMA_LEGAL}}<br/>Kennitala: {{FIRMA_KT}} · VSK-nr: {{FIRMA_VAT}}<br/>{{FIRMA_EMAIL}}</p></div>
   <div><h3>Najemca</h3><p>{{NAJEMCA}}<br/>{{NAJEMCA_TEL}} · {{NAJEMCA_EMAIL}}</p></div>
 </div>
 <h2>Stan pojazdu przy zwrocie</h2>
@@ -254,12 +255,13 @@ export function buildFilled(
     REZ: rez,
     DATA_ZAWARCIA: ctx.date,
     DATA_PROTOKOL: ctx.date,
-    FIRMA: COMPANY.name,
+    FIRMA: COMPANY.brand,
+    FIRMA_LEGAL: COMPANY.legalName,
+    FIRMA_KT: COMPANY.kennitala,
+    FIRMA_VAT: COMPANY.vat,
     FIRMA_ADRES: COMPANY.address,
-    FIRMA_NIP: COMPANY.nip,
     FIRMA_WWW: COMPANY.web,
     FIRMA_EMAIL: COMPANY.email,
-    FIRMA_TEL: COMPANY.phone,
     NAJEMCA: customer?.name ?? DASH,
     NAJEMCA_ADRES: customer?.address ?? DASH,
     NAJEMCA_DOK: DASH,
