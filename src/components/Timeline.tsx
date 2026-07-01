@@ -35,7 +35,10 @@ const TYPE_STYLES: Record<
 };
 
 export default function Timeline() {
-  const [ym, setYm] = useState({ y: 2026, m: 8 }); // wrzesień 2026 — tam są dane
+  const [ym, setYm] = useState(() => {
+    const d = new Date();
+    return { y: d.getFullYear(), m: d.getMonth() };
+  });
   const [bookings, setBookings] = useState<Booking[]>(seedBookings);
   const [selected, setSelected] = useState<Booking | null>(null);
   const [draft, setDraft] = useState<{ vehicleId: string; date: string } | null>(
