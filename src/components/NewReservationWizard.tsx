@@ -137,13 +137,11 @@ export default function NewReservationWizard({
       deposit: depositNum || undefined,
       notes: notes || undefined,
     };
-    if (editBooking) {
-      await updateBooking(editBooking.id, payload);
-    } else {
-      await addBooking({ ...payload, status: "confirmed" });
-    }
+    const ok = editBooking
+      ? await updateBooking(editBooking.id, payload)
+      : await addBooking({ ...payload, status: "confirmed" });
     setSubmitting(false);
-    setDone(true);
+    if (ok) setDone(true);
   };
 
   const createCustomer = async () => {
@@ -154,6 +152,7 @@ export default function NewReservationWizard({
       phone: newCustomer.phone.trim() || undefined,
       source: "Panel",
     });
+    if (!c) return;
     setCustomerId(c.id);
     setShowNewCustomer(false);
     setNewCustomer({ name: "", email: "", phone: "" });

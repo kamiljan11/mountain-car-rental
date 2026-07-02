@@ -174,8 +174,8 @@ export default function FleetPage() {
           vehicle={editing}
           onClose={() => setEditing(null)}
           onSubmit={async (patch) => {
-            await updateVehicle(editing.id, patch);
-            setEditing(null);
+            const ok = await updateVehicle(editing.id, patch);
+            if (ok) setEditing(null);
           }}
         />
       )}

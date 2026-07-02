@@ -89,6 +89,7 @@ export default function CustomersPage() {
           onClose={() => setShowAdd(false)}
           onSubmit={async (patch) => {
             const c = await addCustomer(patch);
+            if (!c) return;
             setShowAdd(false);
             router.push(`/customers/${c.id}`);
           }}

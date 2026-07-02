@@ -317,8 +317,8 @@ export default function CustomerProfile() {
           initial={customer}
           onClose={() => setEditing(false)}
           onSubmit={async (patch) => {
-            await updateCustomer(id, patch);
-            setEditing(false);
+            const ok = await updateCustomer(id, patch);
+            if (ok) setEditing(false);
           }}
         />
       )}

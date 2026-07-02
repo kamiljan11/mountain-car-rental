@@ -167,7 +167,7 @@ export async function insertBooking(b: Omit<Booking, "id">): Promise<Booking> {
     .single();
   if (error) {
     console.error(error);
-    return { ...b, id: `local-${Math.round(Math.random() * 1e9)}` };
+    throw new Error("Nie udało się zapisać rezerwacji.");
   }
   return toBooking(data);
 }
@@ -206,7 +206,10 @@ export async function deleteBookingDb(id: string): Promise<void> {
   await requireSession();
   if (!supabase) return;
   const { error } = await supabase.from("bookings").delete().eq("id", id);
-  if (error) console.error(error);
+  if (error) {
+    console.error(error);
+    throw new Error("Nie udało się usunąć wpisu.");
+  }
 }
 
 function customerRow(c: Partial<Omit<Customer, "id">>) {
@@ -238,7 +241,7 @@ export async function insertCustomer(c: Omit<Customer, "id">): Promise<Customer>
     .single();
   if (error) {
     console.error(error);
-    return { ...c, id: `local-${Math.round(Math.random() * 1e9)}` };
+    throw new Error("Nie udało się dodać klienta.");
   }
   return toCustomer(data);
 }
@@ -266,7 +269,10 @@ export async function deleteCustomerDb(id: string): Promise<void> {
   await requireSession();
   if (!supabase) return;
   const { error } = await supabase.from("customers").delete().eq("id", id);
-  if (error) console.error(error);
+  if (error) {
+    console.error(error);
+    throw new Error("Nie udało się usunąć klienta.");
+  }
 }
 
 export async function fetchCustomerDocuments(customerId: string): Promise<CustomerDocument[]> {
