@@ -8,7 +8,7 @@ export const COMPANY = {
   brand: "Mountain Car Rental",
   kennitala: "6907250450",
   vat: "158052",
-  address: "Njarðarbraut 3i, 260 Njarðvík, Islandia",
+  address: "Njarðarbraut 6i, 260 Njarðvík, Islandia",
   email: "mountainallservice@gmail.com",
   web: "https://mountaincar.is",
 };

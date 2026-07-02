@@ -3,7 +3,7 @@ const company = [
   { label: "Podmiot / nazwa formalna", value: "Mountain All Service ehf." },
   { label: "Kennitala", value: "6907250450" },
   { label: "VSK-nr (VAT)", value: "158052" },
-  { label: "Adres", value: "Njarðarbraut 3i, 260 Njarðvík" },
+  { label: "Adres", value: "Njarðarbraut 6i, 260 Njarðvík" },
   { label: "E-mail", value: "mountainallservice@gmail.com" },
   { label: "Strona", value: "mountaincar.is" },
 ];

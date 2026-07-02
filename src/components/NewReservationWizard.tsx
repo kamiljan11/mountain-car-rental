@@ -19,7 +19,7 @@ import {
 const STEPS = ["Termin i pojazd", "Oferta", "Klient", "Podsumowanie"];
 
 const LOCATIONS = [
-  "Biuro — Reykjavik, Skogarhlid 10",
+  "Biuro — Njarðvík, Njarðarbraut 6i",
   "Lotnisko Keflavik — Keflavikurflugvollur",
 ];
 
