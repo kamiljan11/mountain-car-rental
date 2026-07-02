@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import { useData } from "@/components/DataProvider";
 import { fmtDate, toISODate } from "@/lib/dates";
-import type { BookingType } from "@/lib/types";
+import type { Booking, BookingType } from "@/lib/types";
 import {
   X,
   Check,
@@ -42,36 +42,42 @@ const labelCls = "mb-1.5 block text-xs font-medium text-zinc-600";
 export default function NewReservationWizard({
   initialVehicleId,
   initialDate,
+  editBooking,
   onClose,
 }: {
   initialVehicleId?: string;
   initialDate?: string;
+  editBooking?: Booking;
   onClose: () => void;
 }) {
-  const { vehicles, customers, bookings, addBooking, addCustomer } = useData();
+  const { vehicles, customers, bookings, addBooking, updateBooking, addCustomer } = useData();
 
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
 
   const today = toISODate(new Date());
-  const [vehicleId, setVehicleId] = useState(initialVehicleId ?? vehicles[0]?.id ?? "");
-  const [type, setType] = useState<BookingType>("reservation");
-  const [start, setStart] = useState(initialDate ?? today);
-  const [end, setEnd] = useState(addDays(initialDate ?? today, 2));
+  const [vehicleId, setVehicleId] = useState(
+    editBooking?.vehicleId ?? initialVehicleId ?? vehicles[0]?.id ?? "",
+  );
+  const [type, setType] = useState<BookingType>(editBooking?.type ?? "reservation");
+  const [start, setStart] = useState(editBooking?.start ?? initialDate ?? today);
+  const [end, setEnd] = useState(
+    editBooking?.end ?? addDays(initialDate ?? today, 2),
+  );
   const [location, setLocation] = useState(LOCATIONS[0]);
 
   // Trzymane jako tekst (nie number) — pole jest type="text", żeby dało się
   // wpisać przecinek/kropkę dziesiętną; parsowanie dopiero przy użyciu wartości.
-  const [dailyRate, setDailyRate] = useState("0");
-  const [deposit, setDeposit] = useState("0");
+  const [dailyRate, setDailyRate] = useState(String(editBooking?.dailyRate ?? 0));
+  const [deposit, setDeposit] = useState(String(editBooking?.deposit ?? 0));
 
-  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [customerId, setCustomerId] = useState<string | null>(editBooking?.customerId ?? null);
   const [customerSearch, setCustomerSearch] = useState("");
   const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [newCustomer, setNewCustomer] = useState({ name: "", email: "", phone: "" });
 
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState(editBooking?.notes ?? "");
 
   const vehicle = vehicles.find((v) => v.id === vehicleId);
   const days = Math.max(
@@ -86,12 +92,13 @@ export default function NewReservationWizard({
     if (!vehicleId || !start || !end) return [];
     return bookings.filter(
       (b) =>
+        b.id !== editBooking?.id &&
         b.vehicleId === vehicleId &&
         b.status !== "cancelled" &&
         parseISO(b.start) <= parseISO(end) &&
         parseISO(b.end) >= parseISO(start),
     );
-  }, [bookings, vehicleId, start, end]);
+  }, [bookings, vehicleId, start, end, editBooking?.id]);
 
   const customerMatches = useMemo(() => {
     const q = customerSearch.trim().toLowerCase();
@@ -119,18 +126,22 @@ export default function NewReservationWizard({
 
   const submit = async () => {
     setSubmitting(true);
-    await addBooking({
+    const payload = {
       vehicleId,
       customerId: type === "reservation" ? customerId : null,
       type,
-      status: "confirmed",
       start,
       end,
       dailyRate: rateNum || undefined,
       total: total || undefined,
       deposit: depositNum || undefined,
       notes: notes || undefined,
-    });
+    };
+    if (editBooking) {
+      await updateBooking(editBooking.id, payload);
+    } else {
+      await addBooking({ ...payload, status: "confirmed" });
+    }
     setSubmitting(false);
     setDone(true);
   };
@@ -155,7 +166,7 @@ export default function NewReservationWizard({
         {/* header */}
         <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4">
           <h2 className="text-base font-semibold text-zinc-900">
-            {done ? "Gotowe" : "Nowa pozycja w kalendarzu"}
+            {done ? "Gotowe" : editBooking ? "Edytuj wpis" : "Nowa pozycja w kalendarzu"}
           </h2>
           <button
             onClick={onClose}
@@ -172,7 +183,7 @@ export default function NewReservationWizard({
               <Check className="size-8" />
             </div>
             <h3 className="text-lg font-semibold text-zinc-900">
-              {TYPE_LABEL[type]} dodana
+              {TYPE_LABEL[type]} {editBooking ? "zapisana" : "dodana"}
             </h3>
             <p className="mt-1 text-sm text-zinc-500">
               {vehicle?.name} · {fmtDate(start)} – {fmtDate(end)}
@@ -616,7 +627,7 @@ export default function NewReservationWizard({
                   className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
                 >
                   <Check className="size-4" />
-                  {submitting ? "Zapisywanie…" : "Potwierdź"}
+                  {submitting ? "Zapisywanie…" : editBooking ? "Zapisz zmiany" : "Potwierdź"}
                 </button>
               )}
             </div>

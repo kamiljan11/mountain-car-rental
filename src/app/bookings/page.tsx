@@ -5,10 +5,11 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useData } from "@/components/DataProvider";
 import { fmtDate } from "@/lib/dates";
+import { isk } from "@/lib/contract";
 import { differenceInCalendarDays, parseISO } from "date-fns";
-import type { BookingType, BookingStatus } from "@/lib/types";
+import type { Booking, BookingType, BookingStatus } from "@/lib/types";
 import NewReservationWizard from "@/components/NewReservationWizard";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Pencil } from "lucide-react";
 
 const TYPE_LABEL: Record<BookingType, string> = {
   reservation: "Rezerwacja",
@@ -36,6 +37,7 @@ function BookingsContent() {
   const filtered = customerId ? bookings.filter((b) => b.customerId === customerId) : bookings;
   const rows = [...filtered].sort((a, b) => (a.start < b.start ? 1 : -1));
   const [showWizard, setShowWizard] = useState(false);
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
 
   return (
     <div className="p-6">
@@ -77,12 +79,13 @@ function BookingsContent() {
               <th className="px-4 py-3 font-medium">Dni</th>
               <th className="px-4 py-3 font-medium">Kwota</th>
               <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium" />
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-center text-zinc-400">
+                <td colSpan={9} className="px-4 py-6 text-center text-zinc-400">
                   Brak rezerwacji spełniających kryteria.
                 </td>
               </tr>
@@ -106,10 +109,17 @@ function BookingsContent() {
                     <td className="px-4 py-3 text-zinc-600">{fmtDate(b.start)}</td>
                     <td className="px-4 py-3 text-zinc-600">{fmtDate(b.end)}</td>
                     <td className="px-4 py-3 text-zinc-600">{days}</td>
-                    <td className="px-4 py-3 text-zinc-600">
-                      {b.total != null ? `${b.total.toLocaleString("pl-PL")} ISK` : "—"}
-                    </td>
+                    <td className="px-4 py-3 text-zinc-600">{isk(b.total)}</td>
                     <td className="px-4 py-3 text-zinc-500">{STATUS_LABEL[b.status]}</td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => setEditingBooking(b)}
+                        aria-label="Edytuj"
+                        className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+                      >
+                        <Pencil className="size-4" />
+                      </button>
+                    </td>
                   </tr>
                 );
               })
@@ -119,6 +129,12 @@ function BookingsContent() {
       </div>
 
       {showWizard && <NewReservationWizard onClose={() => setShowWizard(false)} />}
+      {editingBooking && (
+        <NewReservationWizard
+          editBooking={editingBooking}
+          onClose={() => setEditingBooking(null)}
+        />
+      )}
     </div>
   );
 }

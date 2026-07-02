@@ -14,7 +14,7 @@ import NewReservationWizard from "@/components/NewReservationWizard";
 import { useIsMobile } from "@/lib/useIsMobile";
 import { PL_MONTHS, PL_WD, fmtDate, toISODate } from "@/lib/dates";
 import type { Booking, BookingType } from "@/lib/types";
-import { ChevronLeft, ChevronRight, Plus, X, Trash2, FileSignature } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, X, Trash2, FileSignature, Pencil } from "lucide-react";
 
 const TYPE_STYLES: Record<
   BookingType,
@@ -102,6 +102,7 @@ export default function Timeline() {
   const [draft, setDraft] = useState<{ vehicleId: string; date: string } | null>(
     null,
   );
+  const [editing, setEditing] = useState<Booking | null>(null);
 
   const days = useMemo(
     () => Array.from({ length: dayCount }, (_, i) => addDays(start, i)),
@@ -462,6 +463,15 @@ export default function Timeline() {
           {selected.notes && <DetailRow label="Notatka" value={selected.notes} />}
 
           <div className="mt-6 space-y-2">
+            <button
+              onClick={() => {
+                setEditing(selected);
+                setSelected(null);
+              }}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            >
+              <Pencil className="size-4" /> Edytuj wpis
+            </button>
             {selected.type === "reservation" && selected.customerId && (
               <Link
                 href={`/contracts?customerId=${selected.customerId}&bookingId=${selected.id}`}
@@ -489,6 +499,10 @@ export default function Timeline() {
           initialDate={draft.date}
           onClose={() => setDraft(null)}
         />
+      )}
+
+      {editing && (
+        <NewReservationWizard editBooking={editing} onClose={() => setEditing(null)} />
       )}
     </div>
   );

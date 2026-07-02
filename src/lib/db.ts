@@ -112,6 +112,36 @@ export async function fetchAll(): Promise<{
   };
 }
 
+export async function updateVehicle(
+  id: string,
+  v: Partial<Omit<Vehicle, "id">>,
+): Promise<Vehicle | null> {
+  if (!supabase) return null;
+  const row: Record<string, unknown> = {};
+  if (v.name !== undefined) row.name = v.name;
+  if (v.plate !== undefined) row.registration = v.plate;
+  if (v.vin !== undefined) row.vin = v.vin ?? null;
+  if (v.year !== undefined) row.year = v.year ?? null;
+  if (v.mileage !== undefined) row.mileage = v.mileage ?? null;
+  if (v.dailyRate !== undefined) row.daily_rate = v.dailyRate ?? null;
+  if (v.color !== undefined) row.color = v.color;
+  if (v.status !== undefined) row.status = v.status;
+  if (v.ocExpiry !== undefined) row.insurance_oc_expiry = v.ocExpiry ?? null;
+  if (v.inspectionExpiry !== undefined) row.inspection_expiry = v.inspectionExpiry ?? null;
+  if (v.notes !== undefined) row.notes = v.notes ?? null;
+  const { data, error } = await supabase
+    .from("vehicles")
+    .update(row)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) {
+    console.error(error);
+    return null;
+  }
+  return toVehicle(data);
+}
+
 export async function insertBooking(b: Omit<Booking, "id">): Promise<Booking> {
   if (!supabase) return { ...b, id: `local-${Math.round(Math.random() * 1e9)}` };
   const { data, error } = await supabase
@@ -133,6 +163,35 @@ export async function insertBooking(b: Omit<Booking, "id">): Promise<Booking> {
   if (error) {
     console.error(error);
     return { ...b, id: `local-${Math.round(Math.random() * 1e9)}` };
+  }
+  return toBooking(data);
+}
+
+export async function updateBooking(
+  id: string,
+  b: Partial<Omit<Booking, "id">>,
+): Promise<Booking | null> {
+  if (!supabase) return null;
+  const row: Record<string, unknown> = {};
+  if (b.vehicleId !== undefined) row.vehicle_id = b.vehicleId;
+  if (b.customerId !== undefined) row.customer_id = b.customerId ?? null;
+  if (b.type !== undefined) row.type = b.type;
+  if (b.status !== undefined) row.status = b.status;
+  if (b.start !== undefined) row.start_at = b.start;
+  if (b.end !== undefined) row.end_at = b.end;
+  if (b.dailyRate !== undefined) row.daily_rate = b.dailyRate ?? null;
+  if (b.total !== undefined) row.total_price = b.total ?? null;
+  if (b.deposit !== undefined) row.deposit = b.deposit ?? null;
+  if (b.notes !== undefined) row.notes = b.notes ?? null;
+  const { data, error } = await supabase
+    .from("bookings")
+    .update(row)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) {
+    console.error(error);
+    return null;
   }
   return toBooking(data);
 }

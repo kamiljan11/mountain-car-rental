@@ -9,10 +9,12 @@ import {
 import {
   fetchAll,
   insertBooking,
+  updateBooking as updateBookingDb,
   deleteBookingDb,
   insertCustomer,
   updateCustomer as updateCustomerDb,
   deleteCustomerDb,
+  updateVehicle as updateVehicleDb,
 } from "@/lib/db";
 import type { Vehicle, Customer, Booking } from "@/lib/types";
 
@@ -22,10 +24,12 @@ type Ctx = {
   bookings: Booking[];
   loaded: boolean;
   addBooking: (b: Omit<Booking, "id">) => Promise<void>;
+  updateBooking: (id: string, patch: Partial<Omit<Booking, "id">>) => Promise<void>;
   removeBooking: (id: string) => Promise<void>;
   addCustomer: (c: Omit<Customer, "id">) => Promise<Customer>;
   updateCustomer: (id: string, patch: Partial<Omit<Customer, "id">>) => Promise<void>;
   removeCustomer: (id: string) => Promise<void>;
+  updateVehicle: (id: string, patch: Partial<Omit<Vehicle, "id">>) => Promise<void>;
   vehicleById: (id: string) => Vehicle | undefined;
   customerById: (id?: string | null) => Customer | undefined;
 };
@@ -79,6 +83,10 @@ export default function DataProvider({
       const nb = await insertBooking(b);
       setBookings((prev) => [...prev, nb]);
     },
+    updateBooking: async (id, patch) => {
+      setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, ...patch } : b)));
+      await updateBookingDb(id, patch);
+    },
     removeBooking: async (id) => {
       setBookings((prev) => prev.filter((x) => x.id !== id));
       await deleteBookingDb(id);
@@ -95,6 +103,10 @@ export default function DataProvider({
     removeCustomer: async (id) => {
       setCustomers((prev) => prev.filter((c) => c.id !== id));
       await deleteCustomerDb(id);
+    },
+    updateVehicle: async (id, patch) => {
+      setVehicles((prev) => prev.map((v) => (v.id === id ? { ...v, ...patch } : v)));
+      await updateVehicleDb(id, patch);
     },
     vehicleById: (id) => maps.v.get(id),
     customerById: (id) => (id ? maps.c.get(id) : undefined),

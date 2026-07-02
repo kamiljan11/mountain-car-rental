@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useData } from "@/components/DataProvider";
 import { PL_MONTHS, fmtDate } from "@/lib/dates";
 import { differenceInCalendarDays, parseISO } from "date-fns";
-import type { Booking } from "@/lib/types";
+import type { Booking, Vehicle } from "@/lib/types";
+import VehicleFormModal from "@/components/VehicleFormModal";
+import { isk } from "@/lib/contract";
+import { Pencil } from "lucide-react";
 
 function Expiry({ iso }: { iso?: string }) {
   if (!iso) return <span className="text-zinc-400">—</span>;
@@ -63,7 +66,8 @@ function UtilizationRing({ percent }: { percent: number }) {
 }
 
 export default function FleetPage() {
-  const { vehicles, bookings } = useData();
+  const { vehicles, bookings, updateVehicle } = useData();
+  const [editing, setEditing] = useState<Vehicle | null>(null);
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -102,6 +106,7 @@ export default function FleetPage() {
               <th className="px-4 py-3 font-medium">OC</th>
               <th className="px-4 py-3 font-medium">Przegląd</th>
               <th className="px-4 py-3 font-medium">Wykorzystanie</th>
+              <th className="px-4 py-3 font-medium" />
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
@@ -123,9 +128,7 @@ export default function FleetPage() {
                 <td className="px-4 py-3 text-zinc-600">
                   {v.mileage ? `${v.mileage.toLocaleString("pl-PL")} km` : "—"}
                 </td>
-                <td className="px-4 py-3 text-zinc-600">
-                  {v.dailyRate != null ? `${v.dailyRate.toLocaleString("pl-PL")} ISK` : "—"}
-                </td>
+                <td className="px-4 py-3 text-zinc-600">{isk(v.dailyRate)}</td>
                 <td className="px-4 py-3">
                   <Expiry iso={v.ocExpiry} />
                 </td>
@@ -135,11 +138,31 @@ export default function FleetPage() {
                 <td className="px-4 py-3">
                   <UtilizationRing percent={utilization.get(v.id) ?? 0} />
                 </td>
+                <td className="px-4 py-3 text-right">
+                  <button
+                    onClick={() => setEditing(v)}
+                    aria-label="Edytuj pojazd"
+                    className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+                  >
+                    <Pencil className="size-4" />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {editing && (
+        <VehicleFormModal
+          vehicle={editing}
+          onClose={() => setEditing(null)}
+          onSubmit={async (patch) => {
+            await updateVehicle(editing.id, patch);
+            setEditing(null);
+          }}
+        />
+      )}
     </div>
   );
 }
