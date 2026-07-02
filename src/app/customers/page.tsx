@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useData } from "@/components/DataProvider";
 import CustomerFormModal from "@/components/CustomerFormModal";
+import { useSort } from "@/lib/useSort";
+import SortableTh from "@/components/SortableTh";
 import { Plus, ShieldAlert } from "lucide-react";
 
 export default function CustomersPage() {
@@ -12,6 +14,19 @@ export default function CustomersPage() {
   const router = useRouter();
   const [showAdd, setShowAdd] = useState(false);
   const count = (id: string) => bookings.filter((b) => b.customerId === id).length;
+
+  const { sorted: rows, sortKey, sortDir, toggleSort } = useSort(
+    customers,
+    {
+      name: (c) => c.name,
+      phone: (c) => c.phone ?? "",
+      email: (c) => c.email ?? "",
+      source: (c) => c.source ?? "",
+      bookings: (c) => count(c.id),
+    },
+    "name",
+  );
+
   return (
     <div className="p-6">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
@@ -32,15 +47,15 @@ export default function CustomersPage() {
         <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-zinc-50 text-left text-xs uppercase tracking-wide text-zinc-500">
             <tr>
-              <th className="px-4 py-3 font-medium">Klient</th>
-              <th className="px-4 py-3 font-medium">Telefon</th>
-              <th className="px-4 py-3 font-medium">E-mail</th>
-              <th className="px-4 py-3 font-medium">Źródło</th>
-              <th className="px-4 py-3 font-medium">Rezerwacje</th>
+              <SortableTh label="Klient" sortKey="name" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Telefon" sortKey="phone" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="E-mail" sortKey="email" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Źródło" sortKey="source" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Rezerwacje" sortKey="bookings" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
-            {customers.map((c) => (
+            {rows.map((c) => (
               <tr key={c.id} className="hover:bg-zinc-50">
                 <td className="p-0">
                   <Link

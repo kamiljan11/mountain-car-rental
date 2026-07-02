@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { useData } from "@/components/DataProvider";
 import { PL_MONTHS, fmtDate } from "@/lib/dates";
+import { useSort } from "@/lib/useSort";
+import SortableTh from "@/components/SortableTh";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import type { Booking, Vehicle } from "@/lib/types";
 import VehicleFormModal from "@/components/VehicleFormModal";
@@ -88,6 +90,20 @@ export default function FleetPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vehicles, bookings]);
 
+  const { sorted: sortedVehicles, sortKey, sortDir, toggleSort } = useSort(
+    vehicles,
+    {
+      name: (v) => v.name,
+      year: (v) => v.year ?? -1,
+      mileage: (v) => v.mileage ?? -1,
+      dailyRate: (v) => v.dailyRate ?? -1,
+      ocExpiry: (v) => v.ocExpiry ?? "",
+      inspectionExpiry: (v) => v.inspectionExpiry ?? "",
+      utilization: (v) => utilization.get(v.id) ?? -1,
+    },
+    "name",
+  );
+
   return (
     <div className="p-6">
       <h1 className="mb-1 text-xl font-semibold tracking-tight">Flota</h1>
@@ -99,18 +115,18 @@ export default function FleetPage() {
         <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-zinc-50 text-left text-xs uppercase tracking-wide text-zinc-500">
             <tr>
-              <th className="px-4 py-3 font-medium">Pojazd</th>
-              <th className="px-4 py-3 font-medium">Rok</th>
-              <th className="px-4 py-3 font-medium">Przebieg</th>
-              <th className="px-4 py-3 font-medium">Stawka/doba</th>
-              <th className="px-4 py-3 font-medium">OC</th>
-              <th className="px-4 py-3 font-medium">Przegląd</th>
-              <th className="px-4 py-3 font-medium">Wykorzystanie</th>
+              <SortableTh label="Pojazd" sortKey="name" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Rok" sortKey="year" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Przebieg" sortKey="mileage" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Stawka/doba" sortKey="dailyRate" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="OC" sortKey="ocExpiry" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Przegląd" sortKey="inspectionExpiry" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Wykorzystanie" sortKey="utilization" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
               <th className="px-4 py-3 font-medium" />
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
-            {vehicles.map((v) => (
+            {sortedVehicles.map((v) => (
               <tr key={v.id} className="hover:bg-zinc-50">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2.5">

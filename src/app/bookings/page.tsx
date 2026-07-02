@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { useData } from "@/components/DataProvider";
 import { fmtDate } from "@/lib/dates";
 import { isk } from "@/lib/contract";
+import { useSort } from "@/lib/useSort";
+import SortableTh from "@/components/SortableTh";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import type { Booking, BookingType, BookingStatus } from "@/lib/types";
 import NewReservationWizard from "@/components/NewReservationWizard";
@@ -35,9 +37,24 @@ function BookingsContent() {
   const customerId = searchParams.get("customerId");
   const filterCustomer = customerId ? customerById(customerId) : undefined;
   const filtered = customerId ? bookings.filter((b) => b.customerId === customerId) : bookings;
-  const rows = [...filtered].sort((a, b) => (a.start < b.start ? 1 : -1));
   const [showWizard, setShowWizard] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
+
+  const { sorted: rows, sortKey, sortDir, toggleSort } = useSort(
+    filtered,
+    {
+      vehicle: (b) => vehicleById(b.vehicleId)?.name ?? "",
+      customer: (b) => customerById(b.customerId)?.name ?? b.notes ?? "",
+      type: (b) => TYPE_LABEL[b.type],
+      start: (b) => b.start,
+      end: (b) => b.end,
+      days: (b) => differenceInCalendarDays(parseISO(b.end), parseISO(b.start)),
+      total: (b) => b.total ?? -1,
+      status: (b) => STATUS_LABEL[b.status],
+    },
+    "start",
+    "desc",
+  );
 
   return (
     <div className="p-6">
@@ -71,14 +88,14 @@ function BookingsContent() {
         <table className="w-full min-w-[720px] text-sm">
           <thead className="bg-zinc-50 text-left text-xs uppercase tracking-wide text-zinc-500">
             <tr>
-              <th className="px-4 py-3 font-medium">Pojazd</th>
-              <th className="px-4 py-3 font-medium">Klient / opis</th>
-              <th className="px-4 py-3 font-medium">Typ</th>
-              <th className="px-4 py-3 font-medium">Od</th>
-              <th className="px-4 py-3 font-medium">Do</th>
-              <th className="px-4 py-3 font-medium">Dni</th>
-              <th className="px-4 py-3 font-medium">Kwota</th>
-              <th className="px-4 py-3 font-medium">Status</th>
+              <SortableTh label="Pojazd" sortKey="vehicle" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Klient / opis" sortKey="customer" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Typ" sortKey="type" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Od" sortKey="start" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Do" sortKey="end" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Dni" sortKey="days" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Kwota" sortKey="total" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Status" sortKey="status" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
               <th className="px-4 py-3 font-medium" />
             </tr>
           </thead>
