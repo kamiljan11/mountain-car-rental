@@ -9,6 +9,7 @@ import { insertContract, fetchCustomerDocuments } from "@/lib/db";
 import { fmtDate } from "@/lib/dates";
 import type { Customer, CustomerDocument } from "@/lib/types";
 import { isCompanyCustomer, DOC_TYPES } from "@/lib/types";
+import { useToast } from "@/components/Toast";
 import { Send, Printer, Check, TriangleAlert } from "lucide-react";
 
 const inputCls =
@@ -35,12 +36,12 @@ function missingCustomerFields(customer: Customer | undefined, hasIdentityDoc: b
 function ContractsContent() {
   const { customers, bookings, vehicleById } = useData();
   const searchParams = useSearchParams();
+  const showToast = useToast();
   const [templateId, setTemplateId] = useState(TEMPLATES[0].id);
   const [customerId, setCustomerId] = useState(searchParams.get("customerId") ?? "");
   const [bookingId, setBookingId] = useState(searchParams.get("bookingId") ?? "");
   const [employee, setEmployee] = useState("");
   const [sentTo, setSentTo] = useState<{ name: string; id: string } | null>(null);
-  const [sendError, setSendError] = useState("");
   const [documents, setDocuments] = useState<CustomerDocument[]>([]);
 
   const template = TEMPLATES.find((t) => t.id === templateId)!;
@@ -79,7 +80,6 @@ function ContractsContent() {
 
   const send = async () => {
     if (!customer) return;
-    setSendError("");
     const number = makeNumber();
     const content = buildFilled(template, {
       number,
@@ -101,7 +101,7 @@ function ContractsContent() {
       content,
     });
     if (!saved) {
-      setSendError("Nie udało się zapisać umowy. Spróbuj ponownie.");
+      showToast("error", "Nie udało się zapisać umowy. Spróbuj ponownie.");
       return;
     }
     setSentTo({ name: customer.name, id: customer.id });
@@ -185,11 +185,6 @@ function ContractsContent() {
             <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
               <Check className="size-4" /> Wysłano do {sentTo.name}.
               <Link href={`/customers/${sentTo.id}`} className="font-medium underline">Zobacz profil</Link>
-            </div>
-          )}
-          {sendError && (
-            <div className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              <TriangleAlert className="size-4" /> {sendError}
             </div>
           )}
         </div>

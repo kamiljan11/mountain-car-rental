@@ -9,6 +9,29 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
+/* Płynne przejście między stronami (Chrome/Edge — inne przeglądarki po
+   prostu ignorują tę regułę, więc to czyste wzbogacenie, nie zależność). */
+@view-transition {
+  navigation: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
 .tl-scroll {
   scrollbar-width: thin;
   scrollbar-color: #d4d4d8 transparent;
