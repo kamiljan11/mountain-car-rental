@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { NAV } from "@/lib/nav";
 import { useData } from "@/components/DataProvider";
+import InstallAppButton from "@/components/InstallAppButton";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -41,6 +42,7 @@ export default function Sidebar() {
         })}
       </nav>
       <div className="border-t border-zinc-800 p-3">
+        <InstallAppButton className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-800" />
         <button
           onClick={logout}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-800"

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, LogOut } from "lucide-react";
 import { NAV } from "@/lib/nav";
+import InstallAppButton from "@/components/InstallAppButton";
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
@@ -63,13 +64,16 @@ export default function MobileNav() {
                 );
               })}
             </nav>
-            <button
-              onClick={logout}
-              className="mt-auto flex items-center gap-3 rounded-lg px-3 py-3 text-base text-zinc-200 hover:bg-zinc-800"
-            >
-              <LogOut className="size-5" />
-              Wyloguj
-            </button>
+            <div className="mt-auto">
+              <InstallAppButton className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-base text-zinc-200 hover:bg-zinc-800" />
+              <button
+                onClick={logout}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-base text-zinc-200 hover:bg-zinc-800"
+              >
+                <LogOut className="size-5" />
+                Wyloguj
+              </button>
+            </div>
           </div>
         </div>
       )}
