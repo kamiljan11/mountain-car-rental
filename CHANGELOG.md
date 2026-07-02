@@ -10,5 +10,9 @@
 - Contracts: company-vs-individual template block, identity-document lookup from real records, missing-data warning before sending, deep-linkable from a booking's "Podgląd umowy".
 - Mobile optimization pass: touch targets, input types/autocomplete across forms.
 - Code health pass: fixed a price-input bug (decimal entry was silently stripped), an open-redirect in the post-login redirect, two silent-failure UI bugs (contract send / document upload showing success when the save failed), and a stale-data race when switching customers on the contracts page.
+- Mobile: fixed landscape phones incorrectly getting the desktop layout, condensed the mobile calendar further to fit more on one screen.
+- Editing: bookings and vehicles can now be edited from the calendar, the bookings list, and the fleet list (not just created once).
+- Sorting: bookings, fleet, and customers tables all support click-to-sort columns.
+- Visual polish: toast notifications (replacing inline error banners), a top loading bar during initial data fetch, native View Transitions between pages — all respecting `prefers-reduced-motion`.
 
 Needs `supabase/migrations/20260702100554_customer_profile.sql` applied in the Supabase SQL editor before company fields/documents/suspect persist in production.
