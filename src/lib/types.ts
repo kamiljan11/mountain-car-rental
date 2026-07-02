@@ -31,6 +31,22 @@ export interface Customer {
   id_number?: string;
   address?: string;
   source?: string;
+  companyName?: string;
+  nip?: string;
+  companyAddress?: string;
+  companyEmail?: string;
+  companyPhone?: string;
+  notes?: string;
+  suspect?: boolean;
+}
+
+export interface CustomerDocument {
+  id: string;
+  customerId: string;
+  docType: string;
+  docNumber?: string;
+  issuedAt?: string;
+  expiresAt?: string;
 }
 
 export interface Booking {

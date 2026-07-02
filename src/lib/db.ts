@@ -4,7 +4,7 @@ import {
   customers as seedCustomers,
   bookings as seedBookings,
 } from "./data";
-import type { Vehicle, Customer, Booking } from "./types";
+import type { Vehicle, Customer, Booking, CustomerDocument } from "./types";
 import type { Contract } from "./contract";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -34,6 +34,23 @@ function toCustomer(r: any): Customer {
     id_number: r.id_number ?? undefined,
     address: r.address ?? undefined,
     source: r.source ?? undefined,
+    companyName: r.company_name ?? undefined,
+    nip: r.nip ?? undefined,
+    companyAddress: r.company_address ?? undefined,
+    companyEmail: r.company_email ?? undefined,
+    companyPhone: r.company_phone ?? undefined,
+    notes: r.notes ?? undefined,
+    suspect: r.is_suspect ?? false,
+  };
+}
+function toCustomerDocument(r: any): CustomerDocument {
+  return {
+    id: r.id,
+    customerId: r.customer_id,
+    docType: r.doc_type,
+    docNumber: r.doc_number ?? undefined,
+    issuedAt: r.issued_at ?? undefined,
+    expiresAt: r.expires_at ?? undefined,
   };
 }
 function toBooking(r: any): Booking {
@@ -126,19 +143,30 @@ export async function deleteBookingDb(id: string): Promise<void> {
   if (error) console.error(error);
 }
 
+function customerRow(c: Partial<Omit<Customer, "id">>) {
+  return {
+    ...(c.name !== undefined && { full_name: c.name }),
+    ...(c.phone !== undefined && { phone: c.phone ?? null }),
+    ...(c.email !== undefined && { email: c.email ?? null }),
+    ...(c.license !== undefined && { license_number: c.license ?? null }),
+    ...(c.id_number !== undefined && { id_number: c.id_number ?? null }),
+    ...(c.address !== undefined && { address: c.address ?? null }),
+    ...(c.source !== undefined && { source: c.source ?? "Panel" }),
+    ...(c.companyName !== undefined && { company_name: c.companyName ?? null }),
+    ...(c.nip !== undefined && { nip: c.nip ?? null }),
+    ...(c.companyAddress !== undefined && { company_address: c.companyAddress ?? null }),
+    ...(c.companyEmail !== undefined && { company_email: c.companyEmail ?? null }),
+    ...(c.companyPhone !== undefined && { company_phone: c.companyPhone ?? null }),
+    ...(c.notes !== undefined && { notes: c.notes ?? null }),
+    ...(c.suspect !== undefined && { is_suspect: c.suspect }),
+  };
+}
+
 export async function insertCustomer(c: Omit<Customer, "id">): Promise<Customer> {
   if (!supabase) return { ...c, id: `local-${Math.round(Math.random() * 1e9)}` };
   const { data, error } = await supabase
     .from("customers")
-    .insert({
-      full_name: c.name,
-      phone: c.phone ?? null,
-      email: c.email ?? null,
-      license_number: c.license ?? null,
-      id_number: c.id_number ?? null,
-      address: c.address ?? null,
-      source: c.source ?? "Panel",
-    })
+    .insert({ source: "Panel", ...customerRow(c) })
     .select()
     .single();
   if (error) {
@@ -146,6 +174,72 @@ export async function insertCustomer(c: Omit<Customer, "id">): Promise<Customer>
     return { ...c, id: `local-${Math.round(Math.random() * 1e9)}` };
   }
   return toCustomer(data);
+}
+
+export async function updateCustomer(
+  id: string,
+  patch: Partial<Omit<Customer, "id">>,
+): Promise<Customer | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("customers")
+    .update(customerRow(patch))
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) {
+    console.error(error);
+    return null;
+  }
+  return toCustomer(data);
+}
+
+export async function deleteCustomerDb(id: string): Promise<void> {
+  if (!supabase) return;
+  const { error } = await supabase.from("customers").delete().eq("id", id);
+  if (error) console.error(error);
+}
+
+export async function fetchCustomerDocuments(customerId: string): Promise<CustomerDocument[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("customer_documents")
+    .select("*")
+    .eq("customer_id", customerId)
+    .order("created_at");
+  if (error) {
+    console.error(error);
+    return [];
+  }
+  return (data ?? []).map(toCustomerDocument);
+}
+
+export async function insertCustomerDocument(
+  d: Omit<CustomerDocument, "id">,
+): Promise<CustomerDocument | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("customer_documents")
+    .insert({
+      customer_id: d.customerId,
+      doc_type: d.docType,
+      doc_number: d.docNumber ?? null,
+      issued_at: d.issuedAt ?? null,
+      expires_at: d.expiresAt ?? null,
+    })
+    .select()
+    .single();
+  if (error) {
+    console.error(error);
+    return null;
+  }
+  return toCustomerDocument(data);
+}
+
+export async function deleteCustomerDocument(id: string): Promise<void> {
+  if (!supabase) return;
+  const { error } = await supabase.from("customer_documents").delete().eq("id", id);
+  if (error) console.error(error);
 }
 
 export async function fetchContracts(customerId?: string): Promise<Contract[]> {

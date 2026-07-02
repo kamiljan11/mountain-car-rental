@@ -6,7 +6,14 @@ import {
   customers as seedCustomers,
   bookings as seedBookings,
 } from "@/lib/data";
-import { fetchAll, insertBooking, deleteBookingDb, insertCustomer } from "@/lib/db";
+import {
+  fetchAll,
+  insertBooking,
+  deleteBookingDb,
+  insertCustomer,
+  updateCustomer as updateCustomerDb,
+  deleteCustomerDb,
+} from "@/lib/db";
 import type { Vehicle, Customer, Booking } from "@/lib/types";
 
 type Ctx = {
@@ -17,6 +24,8 @@ type Ctx = {
   addBooking: (b: Omit<Booking, "id">) => Promise<void>;
   removeBooking: (id: string) => Promise<void>;
   addCustomer: (c: Omit<Customer, "id">) => Promise<Customer>;
+  updateCustomer: (id: string, patch: Partial<Omit<Customer, "id">>) => Promise<void>;
+  removeCustomer: (id: string) => Promise<void>;
   vehicleById: (id: string) => Vehicle | undefined;
   customerById: (id?: string | null) => Customer | undefined;
 };
@@ -78,6 +87,14 @@ export default function DataProvider({
       const nc = await insertCustomer(c);
       setCustomers((prev) => [...prev, nc]);
       return nc;
+    },
+    updateCustomer: async (id, patch) => {
+      setCustomers((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+      await updateCustomerDb(id, patch);
+    },
+    removeCustomer: async (id) => {
+      setCustomers((prev) => prev.filter((c) => c.id !== id));
+      await deleteCustomerDb(id);
     },
     vehicleById: (id) => maps.v.get(id),
     customerById: (id) => (id ? maps.c.get(id) : undefined),
