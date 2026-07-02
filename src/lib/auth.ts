@@ -5,7 +5,8 @@ const enc = new TextEncoder();
 const dec = new TextDecoder();
 
 export const AUTH_COOKIE = "mcr_session";
-export const AUTH_MAX_AGE = 60 * 60 * 24 * 30; // 30 dni
+// Panel wewnętrzny, jeden zaufany użytkownik — długa sesja, żeby logowanie nie znikało.
+export const AUTH_MAX_AGE = 60 * 60 * 24 * 365; // 365 dni
 
 function secret() {
   return process.env.APP_AUTH_SECRET || "dev-insecure-secret-change-me";
