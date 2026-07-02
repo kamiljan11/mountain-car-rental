@@ -15,3 +15,4 @@
 - Sorting: bookings, fleet, and customers tables all support click-to-sort columns.
 - Visual polish: toast notifications (replacing inline error banners), a top loading bar during initial data fetch, native View Transitions between pages — all respecting `prefers-reduced-motion`.
 - Applied `20260702100554_customer_profile.sql` to production (company fields, `is_suspect`, `customer_documents` table + RLS) via the Supabase Management API.
+- Bookings: added a month filter (prev/next nav, defaults to all months), combinable with the existing customer filter. Fixed a stale-closure bug in the shared `useSort` hook found while testing it (rapid clicks could drop a sort-direction toggle).
