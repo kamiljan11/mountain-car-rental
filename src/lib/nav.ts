@@ -1,4 +1,5 @@
 import {
+  LayoutDashboard,
   CalendarDays,
   ListChecks,
   Car,
@@ -8,6 +9,7 @@ import {
 } from "lucide-react";
 
 export const NAV = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/", label: "Kalendarz", icon: CalendarDays },
   { href: "/bookings", label: "Rezerwacje", icon: ListChecks },
   { href: "/fleet", label: "Flota", icon: Car },
