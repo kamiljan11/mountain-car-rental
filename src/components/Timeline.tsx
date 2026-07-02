@@ -77,10 +77,11 @@ export default function Timeline() {
   const isMobile = useIsMobile();
 
   const DAY_W = isMobile ? 44 : 40;
-  const LABEL_W = isMobile ? 92 : 176;
-  // Nieco wyższe paski na mobile — łatwiej trafić palcem, przy zachowaniu
-  // gęstości widoku wielu pojazdów naraz (pełne 44px zajęłoby zbyt dużo miejsca).
-  const LANE_H = isMobile ? 36 : 30;
+  const LABEL_W = isMobile ? 84 : 176;
+  // Wyższe paski niż na desktopie — łatwiej trafić palcem — ale przycięte
+  // względem pierwszej mobilnej wersji (36px), żeby zmieściło się więcej
+  // wierszy pojazdów naraz na jednym ekranie.
+  const LANE_H = isMobile ? 32 : 30;
 
   // Ciągły pas czasu: `start` to pierwszy renderowany dzień, `dayCount` — ile dni.
   const [start, setStart] = useState<Date>(() =>
@@ -198,7 +199,7 @@ export default function Timeline() {
     [vehicles, bookings, start, last],
   );
   const rowH =
-    Math.max(1, ...vehicleRows.map((r) => r.lanes)) * LANE_H + 8;
+    Math.max(1, ...vehicleRows.map((r) => r.lanes)) * LANE_H + (isMobile ? 6 : 8);
 
   const openDraft = (vehicleId: string, date: Date) => {
     setSelected(null);
@@ -207,7 +208,7 @@ export default function Timeline() {
 
   return (
     <div>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+      <div className={`flex flex-wrap items-center justify-between gap-2 ${isMobile ? "mb-2" : "mb-3"}`}>
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => move(-1)}
@@ -223,17 +224,19 @@ export default function Timeline() {
           >
             <ChevronRight className="size-4" />
           </button>
-          <div className="ml-1 min-w-[9.5rem] text-base font-semibold capitalize">
+          <div
+            className={`ml-1 text-base font-semibold capitalize ${isMobile ? "" : "min-w-[9.5rem]"}`}
+          >
             {PL_MONTHS[viewMonth.m]} {viewMonth.y}
           </div>
           <button
             onClick={goToday}
-            className="ml-1 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-600 hover:bg-zinc-50"
+            className="ml-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-3 text-sm text-zinc-600 hover:bg-zinc-50"
           >
             Dziś
           </button>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <div className="hidden items-center gap-3 text-xs text-zinc-500 sm:flex">
             {(["reservation", "block", "service"] as BookingType[]).map((t) => (
               <span key={t} className="inline-flex items-center gap-1.5">
@@ -246,9 +249,10 @@ export default function Timeline() {
             onClick={() =>
               vehicles[0] && openDraft(vehicles[0].id, midnight(new Date()))
             }
+            aria-label="Nowa"
             className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-3 text-sm font-medium text-white hover:bg-zinc-800"
           >
-            <Plus className="size-4" /> Nowa
+            <Plus className="size-4" /> {!isMobile && "Nowa"}
           </button>
         </div>
       </div>
@@ -281,7 +285,7 @@ export default function Timeline() {
                 return (
                   <div
                     key={di}
-                    className={`py-1.5 text-center ${
+                    className={`${isMobile ? "py-1" : "py-1.5"} text-center ${
                       first ? "border-l border-zinc-300" : "border-r border-zinc-100"
                     } ${wknd ? "bg-zinc-100" : "bg-zinc-50"}`}
                   >
@@ -418,7 +422,7 @@ export default function Timeline() {
           </div>
         </div>
       </div>
-      <p className="mt-2 text-xs text-zinc-400">
+      <p className="mt-2 hidden text-xs text-zinc-400 sm:block">
         Przewijaj w bok (myszką, gładzikiem lub palcem) — pas czasu ładuje kolejne
         miesiące bez końca. Nakładające się wpisy układają się w podwierszach.
       </p>
