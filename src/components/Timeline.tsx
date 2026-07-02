@@ -11,6 +11,7 @@ import { parseISO, differenceInCalendarDays } from "date-fns";
 import Link from "next/link";
 import { useData } from "@/components/DataProvider";
 import NewReservationWizard from "@/components/NewReservationWizard";
+import { useIsMobile } from "@/lib/useIsMobile";
 import { PL_MONTHS, PL_WD, fmtDate, toISODate } from "@/lib/dates";
 import type { Booking, BookingType } from "@/lib/types";
 import { ChevronLeft, ChevronRight, Plus, X, Trash2, FileSignature } from "lucide-react";
@@ -73,13 +74,7 @@ function withLanes(list: Booking[]) {
 export default function Timeline() {
   const { vehicles, bookings, removeBooking, customerById } = useData();
 
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 768);
-    onResize();
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+  const isMobile = useIsMobile();
 
   const DAY_W = isMobile ? 44 : 40;
   const LABEL_W = isMobile ? 92 : 176;

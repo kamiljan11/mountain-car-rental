@@ -16,7 +16,7 @@ export default function Sidebar() {
     window.location.href = "/login";
   };
   return (
-    <aside className="hidden w-60 shrink-0 flex-col bg-zinc-900 text-zinc-100 md:flex">
+    <aside className="flex w-60 shrink-0 flex-col bg-zinc-900 text-zinc-100">
       <div className="border-b border-zinc-800 px-5 py-5">
         <div className="text-sm font-semibold tracking-tight">Mountain Car Rental</div>
         <div className="text-xs text-zinc-400">Rental Manager</div>

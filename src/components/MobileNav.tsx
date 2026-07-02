@@ -17,7 +17,7 @@ export default function MobileNav() {
   };
 
   return (
-    <div className="md:hidden">
+    <div>
       <div className="flex items-center justify-between bg-zinc-900 px-4 py-3 text-zinc-100">
         <div className="text-sm font-semibold tracking-tight">Mountain Car Rental</div>
         <button
