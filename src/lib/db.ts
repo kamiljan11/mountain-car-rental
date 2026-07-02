@@ -1,4 +1,6 @@
-import { supabase } from "./supabase";
+import "server-only";
+import { supabaseAdmin as supabase } from "./supabase-admin";
+import { requireSession } from "./auth";
 import {
   vehicles as seedVehicles,
   customers as seedCustomers,
@@ -90,6 +92,7 @@ export async function fetchAll(): Promise<{
   customers: Customer[];
   bookings: Booking[];
 }> {
+  await requireSession();
   const fallback = {
     vehicles: seedVehicles,
     customers: seedCustomers,
@@ -116,6 +119,7 @@ export async function updateVehicle(
   id: string,
   v: Partial<Omit<Vehicle, "id">>,
 ): Promise<Vehicle | null> {
+  await requireSession();
   if (!supabase) return null;
   const row: Record<string, unknown> = {};
   if (v.name !== undefined) row.name = v.name;
@@ -143,6 +147,7 @@ export async function updateVehicle(
 }
 
 export async function insertBooking(b: Omit<Booking, "id">): Promise<Booking> {
+  await requireSession();
   if (!supabase) return { ...b, id: `local-${Math.round(Math.random() * 1e9)}` };
   const { data, error } = await supabase
     .from("bookings")
@@ -171,6 +176,7 @@ export async function updateBooking(
   id: string,
   b: Partial<Omit<Booking, "id">>,
 ): Promise<Booking | null> {
+  await requireSession();
   if (!supabase) return null;
   const row: Record<string, unknown> = {};
   if (b.vehicleId !== undefined) row.vehicle_id = b.vehicleId;
@@ -197,6 +203,7 @@ export async function updateBooking(
 }
 
 export async function deleteBookingDb(id: string): Promise<void> {
+  await requireSession();
   if (!supabase) return;
   const { error } = await supabase.from("bookings").delete().eq("id", id);
   if (error) console.error(error);
@@ -222,6 +229,7 @@ function customerRow(c: Partial<Omit<Customer, "id">>) {
 }
 
 export async function insertCustomer(c: Omit<Customer, "id">): Promise<Customer> {
+  await requireSession();
   if (!supabase) return { ...c, id: `local-${Math.round(Math.random() * 1e9)}` };
   const { data, error } = await supabase
     .from("customers")
@@ -239,6 +247,7 @@ export async function updateCustomer(
   id: string,
   patch: Partial<Omit<Customer, "id">>,
 ): Promise<Customer | null> {
+  await requireSession();
   if (!supabase) return null;
   const { data, error } = await supabase
     .from("customers")
@@ -254,12 +263,14 @@ export async function updateCustomer(
 }
 
 export async function deleteCustomerDb(id: string): Promise<void> {
+  await requireSession();
   if (!supabase) return;
   const { error } = await supabase.from("customers").delete().eq("id", id);
   if (error) console.error(error);
 }
 
 export async function fetchCustomerDocuments(customerId: string): Promise<CustomerDocument[]> {
+  await requireSession();
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("customer_documents")
@@ -276,6 +287,7 @@ export async function fetchCustomerDocuments(customerId: string): Promise<Custom
 export async function insertCustomerDocument(
   d: Omit<CustomerDocument, "id">,
 ): Promise<CustomerDocument | null> {
+  await requireSession();
   if (!supabase) return null;
   const { data, error } = await supabase
     .from("customer_documents")
@@ -296,12 +308,14 @@ export async function insertCustomerDocument(
 }
 
 export async function deleteCustomerDocument(id: string): Promise<void> {
+  await requireSession();
   if (!supabase) return;
   const { error } = await supabase.from("customer_documents").delete().eq("id", id);
   if (error) console.error(error);
 }
 
 export async function fetchContracts(customerId?: string): Promise<Contract[]> {
+  await requireSession();
   if (!supabase) return [];
   let qb = supabase
     .from("contracts")
@@ -319,6 +333,7 @@ export async function fetchContracts(customerId?: string): Promise<Contract[]> {
 export async function insertContract(
   c: Omit<Contract, "id" | "createdAt">,
 ): Promise<Contract | null> {
+  await requireSession();
   if (!supabase) return null;
   const { data, error } = await supabase
     .from("contracts")

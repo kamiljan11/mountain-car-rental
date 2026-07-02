@@ -1,6 +1,8 @@
 // Lekka sesja oparta o podpisane ciasteczko (HMAC-SHA256, Web Crypto — działa
 // zarówno w runtime Node, jak i edge). Nie trzyma nic po stronie serwera.
 
+import { cookies } from "next/headers";
+
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
@@ -65,4 +67,21 @@ export async function verifySession(
   } catch {
     return null;
   }
+}
+
+// Do użytku w Server Components / Server Actions (nie w middleware/proxy —
+// tam czytaj ciasteczko wprost z `request.cookies`, żeby uniknąć next/headers).
+export async function getSession(): Promise<{ u: string } | null> {
+  const jar = await cookies();
+  return verifySession(jar.get(AUTH_COOKIE)?.value);
+}
+
+// Warstwa dostępu do danych (db.ts) wywołuje to na starcie każdej funkcji —
+// to jest rzeczywista bramka, nie tylko strona logowania. Rzuca zamiast
+// przekierowywać, bo wołający to zwykle Server Action z komponentu klienckiego,
+// nie renderowana strona.
+export async function requireSession(): Promise<{ u: string }> {
+  const session = await getSession();
+  if (!session) throw new Error("Unauthorized");
+  return session;
 }

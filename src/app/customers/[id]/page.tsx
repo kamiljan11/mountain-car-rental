@@ -5,11 +5,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useData } from "@/components/DataProvider";
 import {
-  fetchContracts,
-  fetchCustomerDocuments,
-  insertCustomerDocument,
-  deleteCustomerDocument,
-} from "@/lib/db";
+  fetchContractsAction as fetchContracts,
+  fetchCustomerDocumentsAction as fetchCustomerDocuments,
+  insertCustomerDocumentAction as insertCustomerDocument,
+  deleteCustomerDocumentAction as deleteCustomerDocument,
+} from "@/lib/actions";
 import { isk, type Contract } from "@/lib/contract";
 import { DOC_TYPES, isCompanyCustomer, type CustomerDocument, type DocType } from "@/lib/types";
 import { fmtDate } from "@/lib/dates";

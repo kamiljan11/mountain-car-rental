@@ -7,15 +7,15 @@ import {
   bookings as seedBookings,
 } from "@/lib/data";
 import {
-  fetchAll,
-  insertBooking,
-  updateBooking as updateBookingDb,
-  deleteBookingDb,
-  insertCustomer,
-  updateCustomer as updateCustomerDb,
-  deleteCustomerDb,
-  updateVehicle as updateVehicleDb,
-} from "@/lib/db";
+  fetchAllAction as fetchAll,
+  insertBookingAction as insertBooking,
+  updateBookingAction as updateBookingDb,
+  deleteBookingAction as deleteBookingDb,
+  insertCustomerAction as insertCustomer,
+  updateCustomerAction as updateCustomerDb,
+  deleteCustomerAction as deleteCustomerDb,
+  updateVehicleAction as updateVehicleDb,
+} from "@/lib/actions";
 import type { Vehicle, Customer, Booking } from "@/lib/types";
 
 type Ctx = {

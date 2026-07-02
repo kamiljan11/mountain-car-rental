@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useData } from "@/components/DataProvider";
 import { TEMPLATES, buildFilled, makeNumber } from "@/lib/contract";
-import { insertContract, fetchCustomerDocuments } from "@/lib/db";
+import { insertContractAction as insertContract, fetchCustomerDocumentsAction as fetchCustomerDocuments } from "@/lib/actions";
 import { fmtDate } from "@/lib/dates";
 import type { Customer, CustomerDocument } from "@/lib/types";
 import { isCompanyCustomer, DOC_TYPES } from "@/lib/types";

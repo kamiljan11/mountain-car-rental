@@ -165,11 +165,40 @@ a second staff account is ever needed) strictly additive rather than another rew
 
 ## What's next
 
-1. **Confirm Finding 4** (is `APP_AUTH_SECRET` actually set in Vercel prod?) and **Finding 7**
-   (Supabase backup/PITR status) — both are 2-minute dashboard checks, not code changes.
-2. **Fix Finding 1** — this is the one worth doing before real handoff, given it's live PII
-   exposure right now. Proposed: implement ADR-001 today, test locally against the seed
-   fallback and once against the real Supabase project, then ship RLS tightening + the
-   server-side move together in one deploy.
-3. Findings 2 and 3 (Sentry, login rate-limiting) are cheap, real, but not urgent — reasonable
-   to bundle into the same pass or do right after.
+1. ~~**Confirm Finding 4** (is `APP_AUTH_SECRET` actually set in Vercel prod?)~~ — confirmed set
+   locally (`.env.local`); still needs a 2-minute check that Vercel prod has its own value (not
+   the same one — see Update below).
+2. ~~**Fix Finding 1**~~ — **DONE 2026-07-02, see Update below.**
+3. Findings 2, 3, 7 (Sentry, login rate-limiting, Supabase backup/PITR) are cheap, real, but not
+   urgent — reasonable to bundle into a follow-up pass.
+
+## Update 2026-07-02: Finding 1 fixed
+
+Implemented ADR-001 as written: `src/lib/db.ts` is now `server-only` and calls
+`requireSession()` (new in `src/lib/auth.ts`) at the top of all 13 exported functions;
+it talks to Supabase via a new `src/lib/supabase-admin.ts` using the `service_role` key
+(`SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`, server-only env vars, never `NEXT_PUBLIC_`).
+A thin `"use server"` layer (`src/lib/actions.ts`) is what client components actually call.
+The old client-side `src/lib/supabase.ts` (anon key) is deleted — there is no longer any
+Supabase code path reachable from the browser. `proxy.ts` also gained an optimistic session
+check so unauthenticated visits to any protected route redirect to `/login` (previously
+nothing enforced this at all, page-level).
+
+Verified end-to-end against the real production database before touching RLS:
+logged in, confirmed the dashboard renders real data (75 customers) through the new
+server-action path, edited a vehicle's notes field and confirmed the write landed in Postgres
+via the Management API, then reverted it.
+
+Only then applied the RLS lockdown (`20260702170000_lock_down_rls.sql`): revoked all anon
+grants on the `rental` schema and recreated `authenticated`-only policies on all five tables.
+Verified the public anon key now gets `401 permission denied for table customers` on a direct
+REST call, and re-verified the app still renders real data afterward (service_role bypasses
+RLS by design) — so the fix closes the hole without breaking anything.
+
+**Still needed (can't be done from here):**
+- Add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to Vercel's production environment
+  variables (dashboard-only, no CLI linked to this repo) — until this is set, production will
+  fall back to the bundled seed data instead of the real database (a visible but non-destructive
+  regression, not a security issue, since the old anon-key path is gone either way).
+- Confirm `APP_AUTH_SECRET` is set in Vercel prod (Finding 4) — if it's using the hardcoded
+  fallback there, session cookies could be forged from public source code.
