@@ -10,8 +10,10 @@ export function useSort<T>(
   initialKey: string,
   initialDir: "asc" | "desc" = "asc",
 ) {
-  const [sortKey, setSortKey] = useState(initialKey);
-  const [sortDir, setSortDir] = useState<"asc" | "desc">(initialDir);
+  const [{ key: sortKey, dir: sortDir }, setSort] = useState<{
+    key: string;
+    dir: "asc" | "desc";
+  }>({ key: initialKey, dir: initialDir });
 
   const sorted = useMemo(() => {
     const get = extractors[sortKey];
@@ -28,11 +30,10 @@ export function useSort<T>(
   }, [items, extractors, sortKey, sortDir]);
 
   const toggleSort = (key: string) => {
-    if (key === sortKey) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
+    setSort((prev) => ({
+      key,
+      dir: prev.key === key ? (prev.dir === "asc" ? "desc" : "asc") : "asc",
+    }));
   };
 
   return { sorted, sortKey, sortDir, toggleSort };

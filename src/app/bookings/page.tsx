@@ -4,14 +4,14 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useData } from "@/components/DataProvider";
-import { fmtDate } from "@/lib/dates";
+import { fmtDate, monthLabel } from "@/lib/dates";
 import { isk } from "@/lib/contract";
 import { useSort } from "@/lib/useSort";
 import SortableTh from "@/components/SortableTh";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import type { Booking, BookingType, BookingStatus } from "@/lib/types";
 import NewReservationWizard from "@/components/NewReservationWizard";
-import { Plus, X, Pencil } from "lucide-react";
+import { Plus, X, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
 
 const TYPE_LABEL: Record<BookingType, string> = {
   reservation: "Rezerwacja",
@@ -31,14 +31,36 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
   cancelled: "anulowana",
 };
 
+type MonthKey = { y: number; m: number };
+
+function overlapsMonth(b: Booking, { y, m }: MonthKey) {
+  const monthStart = new Date(y, m, 1);
+  const monthEnd = new Date(y, m + 1, 0, 23, 59, 59, 999);
+  return parseISO(b.end) >= monthStart && parseISO(b.start) <= monthEnd;
+}
+
 function BookingsContent() {
   const { bookings, vehicleById, customerById } = useData();
   const searchParams = useSearchParams();
   const customerId = searchParams.get("customerId");
   const filterCustomer = customerId ? customerById(customerId) : undefined;
-  const filtered = customerId ? bookings.filter((b) => b.customerId === customerId) : bookings;
   const [showWizard, setShowWizard] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
+  const [monthFilter, setMonthFilter] = useState<MonthKey | null>(null);
+
+  const today = new Date();
+  const shownMonth = monthFilter ?? { y: today.getFullYear(), m: today.getMonth() };
+  const moveMonth = (delta: number) => {
+    setMonthFilter((prev) => {
+      const base = prev ?? { y: today.getFullYear(), m: today.getMonth() };
+      const d = new Date(base.y, base.m + delta, 1);
+      return { y: d.getFullYear(), m: d.getMonth() };
+    });
+  };
+
+  const filtered = bookings
+    .filter((b) => !customerId || b.customerId === customerId)
+    .filter((b) => !monthFilter || overlapsMonth(b, monthFilter));
 
   const { sorted: rows, sortKey, sortDir, toggleSort } = useSort(
     filtered,
@@ -71,6 +93,45 @@ function BookingsContent() {
         >
           <Plus className="size-4" /> Nowa rezerwacja
         </button>
+      </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setMonthFilter(null)}
+          className={`rounded-lg border px-3 py-3 text-sm font-medium sm:py-2 ${
+            monthFilter === null
+              ? "border-zinc-900 bg-zinc-900 text-white"
+              : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+          }`}
+        >
+          Wszystkie miesiące
+        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => moveMonth(-1)}
+            aria-label="Poprzedni miesiąc"
+            className="grid size-11 shrink-0 place-items-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 sm:size-9"
+          >
+            <ChevronLeft className="size-4" />
+          </button>
+          <button
+            onClick={() => setMonthFilter(shownMonth)}
+            className={`min-w-[9.5rem] rounded-lg border px-3 py-3 text-center text-sm font-medium capitalize sm:py-2 ${
+              monthFilter
+                ? "border-zinc-900 bg-zinc-900 text-white"
+                : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+            }`}
+          >
+            {monthLabel(shownMonth.y, shownMonth.m)}
+          </button>
+          <button
+            onClick={() => moveMonth(1)}
+            aria-label="Następny miesiąc"
+            className="grid size-11 shrink-0 place-items-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 sm:size-9"
+          >
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
       </div>
 
       {customerId && (
