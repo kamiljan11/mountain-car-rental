@@ -195,10 +195,21 @@ Verified the public anon key now gets `401 permission denied for table customers
 REST call, and re-verified the app still renders real data afterward (service_role bypasses
 RLS by design) — so the fix closes the hole without breaking anything.
 
-**Still needed (can't be done from here):**
-- Add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to Vercel's production environment
-  variables (dashboard-only, no CLI linked to this repo) — until this is set, production will
-  fall back to the bundled seed data instead of the real database (a visible but non-destructive
-  regression, not a security issue, since the old anon-key path is gone either way).
-- Confirm `APP_AUTH_SECRET` is set in Vercel prod (Finding 4) — if it's using the hardcoded
-  fallback there, session cookies could be forged from public source code.
+**Update 2026-07-02 (later same day):** with Kamil's explicit go-ahead, drove his already-
+authenticated Vercel dashboard session directly (`claude-in-chrome`) to add `SUPABASE_URL` and
+`SUPABASE_SERVICE_ROLE_KEY` as sensitive, Production+Preview env vars, redeployed, and confirmed
+"Ready". Also deleted the now-dead `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+vars (unused since `src/lib/supabase.ts` was removed) and redeployed again. Confirmed
+`APP_AUTH_SECRET` was already set in Vercel prod while there (Finding 4 resolved — not using the
+hardcoded fallback). Confirmed the live site now redirects an unauthenticated visit to `/login`
+(the new `proxy.ts` gate, deployed). Did not log into the live production site myself — that
+still needs a real end-to-end check by Kamil — but since production uses the identical Supabase
+project already verified end-to-end locally, and the env vars now match, this should be fully
+working. Finding 1 is closed: code fixed, RLS locked down, and the fix is live in production
+with the required config in place.
+
+**Still open:**
+- Finding 7 (Supabase backup/PITR status) — a 2-minute dashboard check, not done yet.
+- Findings 2, 3 (Sentry, login rate-limiting) — cheap, real, not urgent.
+- A real end-to-end login test on production by Kamil, to confirm what was verified locally
+  holds true live too.
