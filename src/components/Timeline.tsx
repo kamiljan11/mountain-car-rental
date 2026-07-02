@@ -9,6 +9,7 @@ import {
 } from "react";
 import { parseISO, differenceInCalendarDays } from "date-fns";
 import { useData } from "@/components/DataProvider";
+import NewReservationWizard from "@/components/NewReservationWizard";
 import { PL_MONTHS, PL_WD, fmtDate, toISODate } from "@/lib/dates";
 import type { Booking, BookingType } from "@/lib/types";
 import { ChevronLeft, ChevronRight, Plus, X, Trash2 } from "lucide-react";
@@ -103,11 +104,6 @@ export default function Timeline() {
   const [draft, setDraft] = useState<{ vehicleId: string; date: string } | null>(
     null,
   );
-  const [form, setForm] = useState({
-    name: "",
-    type: "reservation" as BookingType,
-    days: 3,
-  });
 
   const days = useMemo(
     () => Array.from({ length: dayCount }, (_, i) => addDays(start, i)),
@@ -209,27 +205,8 @@ export default function Timeline() {
 
   const openDraft = (vehicleId: string, date: Date) => {
     setSelected(null);
-    setForm({ name: "", type: "reservation", days: 3 });
     setDraft({ vehicleId, date: toISODate(date) });
   };
-  const addDraft = () => {
-    if (!draft) return;
-    const startD = parseISO(draft.date);
-    const end = addDays(startD, Math.max(0, form.days - 1));
-    addBooking({
-      vehicleId: draft.vehicleId,
-      customerId: null,
-      type: form.type,
-      status: "confirmed",
-      start: draft.date,
-      end: toISODate(end),
-      notes: form.name || TYPE_STYLES[form.type].label,
-    });
-    setDraft(null);
-  };
-
-  const inputCls =
-    "mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-base outline-none focus:border-zinc-400 md:text-sm";
 
   return (
     <div>
@@ -449,13 +426,10 @@ export default function Timeline() {
         miesiące bez końca. Nakładające się wpisy układają się w podwierszach.
       </p>
 
-      {(selected || draft) && (
+      {selected && (
         <div
           className="fixed inset-0 z-40 bg-zinc-900/20"
-          onClick={() => {
-            setSelected(null);
-            setDraft(null);
-          }}
+          onClick={() => setSelected(null)}
         />
       )}
 
@@ -498,50 +472,11 @@ export default function Timeline() {
       )}
 
       {draft && (
-        <Drawer onClose={() => setDraft(null)} title="Nowa rezerwacja">
-          <DetailRow
-            label="Pojazd"
-            value={vehicles.find((v) => v.id === draft.vehicleId)?.name ?? "—"}
-          />
-          <DetailRow label="Data od" value={fmtDate(draft.date)} />
-          <label className="mt-4 block text-xs font-medium text-zinc-500">
-            Klient / opis
-          </label>
-          <input
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            placeholder="np. Jan Kowalski"
-            className={inputCls}
-          />
-          <label className="mt-3 block text-xs font-medium text-zinc-500">Typ</label>
-          <select
-            value={form.type}
-            onChange={(e) =>
-              setForm({ ...form, type: e.target.value as BookingType })
-            }
-            className={inputCls}
-          >
-            <option value="reservation">Rezerwacja</option>
-            <option value="block">Blokada</option>
-            <option value="service">Serwis</option>
-          </select>
-          <label className="mt-3 block text-xs font-medium text-zinc-500">
-            Liczba dni
-          </label>
-          <input
-            type="number"
-            min={1}
-            value={form.days}
-            onChange={(e) => setForm({ ...form, days: Number(e.target.value) })}
-            className={inputCls}
-          />
-          <button
-            onClick={addDraft}
-            className="mt-6 w-full rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-          >
-            Dodaj do kalendarza
-          </button>
-        </Drawer>
+        <NewReservationWizard
+          initialVehicleId={draft.vehicleId}
+          initialDate={draft.date}
+          onClose={() => setDraft(null)}
+        />
       )}
     </div>
   );

@@ -126,6 +126,28 @@ export async function deleteBookingDb(id: string): Promise<void> {
   if (error) console.error(error);
 }
 
+export async function insertCustomer(c: Omit<Customer, "id">): Promise<Customer> {
+  if (!supabase) return { ...c, id: `local-${Math.round(Math.random() * 1e9)}` };
+  const { data, error } = await supabase
+    .from("customers")
+    .insert({
+      full_name: c.name,
+      phone: c.phone ?? null,
+      email: c.email ?? null,
+      license_number: c.license ?? null,
+      id_number: c.id_number ?? null,
+      address: c.address ?? null,
+      source: c.source ?? "Panel",
+    })
+    .select()
+    .single();
+  if (error) {
+    console.error(error);
+    return { ...c, id: `local-${Math.round(Math.random() * 1e9)}` };
+  }
+  return toCustomer(data);
+}
+
 export async function fetchContracts(customerId?: string): Promise<Contract[]> {
   if (!supabase) return [];
   let qb = supabase

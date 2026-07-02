@@ -6,7 +6,7 @@ import {
   customers as seedCustomers,
   bookings as seedBookings,
 } from "@/lib/data";
-import { fetchAll, insertBooking, deleteBookingDb } from "@/lib/db";
+import { fetchAll, insertBooking, deleteBookingDb, insertCustomer } from "@/lib/db";
 import type { Vehicle, Customer, Booking } from "@/lib/types";
 
 type Ctx = {
@@ -16,6 +16,7 @@ type Ctx = {
   loaded: boolean;
   addBooking: (b: Omit<Booking, "id">) => Promise<void>;
   removeBooking: (id: string) => Promise<void>;
+  addCustomer: (c: Omit<Customer, "id">) => Promise<Customer>;
   vehicleById: (id: string) => Vehicle | undefined;
   customerById: (id?: string | null) => Customer | undefined;
 };
@@ -72,6 +73,11 @@ export default function DataProvider({
     removeBooking: async (id) => {
       setBookings((prev) => prev.filter((x) => x.id !== id));
       await deleteBookingDb(id);
+    },
+    addCustomer: async (c) => {
+      const nc = await insertCustomer(c);
+      setCustomers((prev) => [...prev, nc]);
+      return nc;
     },
     vehicleById: (id) => maps.v.get(id),
     customerById: (id) => (id ? maps.c.get(id) : undefined),
