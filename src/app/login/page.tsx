@@ -177,7 +177,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShow((s) => !s)}
                   aria-label={show ? "Ukryj hasło" : "Pokaż hasło"}
-                  className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+                  className="absolute right-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
                 >
                   {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
@@ -187,7 +187,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-3 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-60"
             >
               {loading && <Loader2 className="size-4 animate-spin" />}
               {loading ? "Logowanie…" : "Zaloguj się"}

@@ -48,7 +48,7 @@ function TabBtn({
   return (
     <button
       onClick={onClick}
-      className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+      className={`-mb-px border-b-2 px-3 py-3 text-sm font-medium transition-colors ${
         active
           ? "border-zinc-900 text-zinc-900"
           : "border-transparent text-zinc-500 hover:text-zinc-800"
@@ -107,7 +107,7 @@ function NotesEditor({
       <button
         onClick={save}
         disabled={saving || draft === initialNotes}
-        className="rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-40"
+        className="rounded-lg bg-zinc-900 px-3 py-3 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-40"
       >
         {saving ? "Zapisywanie…" : "Dodaj notatkę"}
       </button>
@@ -160,7 +160,7 @@ export default function CustomerProfile() {
     <div className="p-6">
       <Link
         href="/customers"
-        className="mb-4 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-800"
+        className="-ml-2 mb-2 inline-flex items-center gap-1 rounded-lg px-2 py-3 text-sm text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
       >
         <ArrowLeft className="size-4" /> Klienci
       </Link>
@@ -182,26 +182,26 @@ export default function CustomerProfile() {
         <div className="flex flex-wrap gap-2">
           <Link
             href={`/bookings?customerId=${id}`}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
           >
             <ListChecks className="size-4" /> Zobacz rezerwacje
           </Link>
           <button
             onClick={() => setEditing(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
           >
             <Pencil className="size-4" /> Edytuj klienta
           </button>
           <button
             onClick={toggleSuspect}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
           >
             <ShieldAlert className="size-4" />
             {customer.suspect ? "Odznacz podejrzanego" : "Oznacz jako podejrzany"}
           </button>
           <button
             onClick={onDelete}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-3 text-sm font-medium text-red-700 hover:bg-red-100"
           >
             <Trash2 className="size-4" /> Usuń klienta
           </button>
@@ -434,13 +434,13 @@ function DocumentsTab({
             <button
               onClick={add}
               disabled={saving}
-              className="rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-40"
+              className="rounded-lg bg-zinc-900 px-3 py-3 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-40"
             >
               {saving ? "Zapisywanie…" : "Zapisz dokument"}
             </button>
             <button
               onClick={() => setAdding(false)}
-              className="rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+              className="rounded-lg border border-zinc-200 px-3 py-3 text-sm font-medium text-zinc-600 hover:bg-zinc-50"
             >
               Anuluj
             </button>
@@ -449,7 +449,7 @@ function DocumentsTab({
       ) : (
         <button
           onClick={() => setAdding(true)}
-          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
         >
           <Plus className="size-4" /> Dodaj dokument
         </button>

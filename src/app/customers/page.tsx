@@ -23,7 +23,7 @@ export default function CustomersPage() {
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-3 text-sm font-medium text-white hover:bg-zinc-800"
         >
           <Plus className="size-4" /> Nowy klient
         </button>
@@ -42,10 +42,10 @@ export default function CustomersPage() {
           <tbody className="divide-y divide-zinc-100">
             {customers.map((c) => (
               <tr key={c.id} className="hover:bg-zinc-50">
-                <td className="px-4 py-3">
+                <td className="p-0">
                   <Link
                     href={`/customers/${c.id}`}
-                    className="inline-flex items-center gap-1.5 font-medium text-zinc-900 hover:underline"
+                    className="flex items-center gap-1.5 px-4 py-3 font-medium text-zinc-900 hover:underline"
                   >
                     {c.name}
                     {c.suspect && (

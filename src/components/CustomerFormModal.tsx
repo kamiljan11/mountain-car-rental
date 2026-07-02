@@ -68,7 +68,7 @@ export default function CustomerFormModal({
           <button
             onClick={onClose}
             aria-label="Zamknij"
-            className="grid size-8 place-items-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+            className="grid size-11 place-items-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
           >
             <X className="size-4" />
           </button>
@@ -80,19 +80,42 @@ export default function CustomerFormModal({
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <label className={labelCls}>Imię i nazwisko</label>
-                <input value={form.name} onChange={set("name")} className={inputCls} autoFocus />
+                <input
+                  value={form.name}
+                  onChange={set("name")}
+                  className={inputCls}
+                  autoFocus
+                  autoComplete="name"
+                />
               </div>
               <div>
                 <label className={labelCls}>Telefon</label>
-                <input value={form.phone} onChange={set("phone")} className={inputCls} />
+                <input
+                  type="tel"
+                  autoComplete="tel"
+                  value={form.phone}
+                  onChange={set("phone")}
+                  className={inputCls}
+                />
               </div>
               <div>
                 <label className={labelCls}>E-mail</label>
-                <input value={form.email} onChange={set("email")} className={inputCls} />
+                <input
+                  type="email"
+                  autoComplete="email"
+                  value={form.email}
+                  onChange={set("email")}
+                  className={inputCls}
+                />
               </div>
               <div className="sm:col-span-2">
                 <label className={labelCls}>Adres</label>
-                <input value={form.address} onChange={set("address")} className={inputCls} />
+                <input
+                  value={form.address}
+                  onChange={set("address")}
+                  className={inputCls}
+                  autoComplete="street-address"
+                />
               </div>
               <div>
                 <label className={labelCls}>PESEL</label>
@@ -120,7 +143,12 @@ export default function CustomerFormModal({
               </div>
               <div>
                 <label className={labelCls}>Telefon firmy</label>
-                <input value={form.companyPhone} onChange={set("companyPhone")} className={inputCls} />
+                <input
+                  type="tel"
+                  value={form.companyPhone}
+                  onChange={set("companyPhone")}
+                  className={inputCls}
+                />
               </div>
               <div className="sm:col-span-2">
                 <label className={labelCls}>Adres firmy</label>
@@ -128,7 +156,12 @@ export default function CustomerFormModal({
               </div>
               <div className="sm:col-span-2">
                 <label className={labelCls}>E-mail firmy</label>
-                <input value={form.companyEmail} onChange={set("companyEmail")} className={inputCls} />
+                <input
+                  type="email"
+                  value={form.companyEmail}
+                  onChange={set("companyEmail")}
+                  className={inputCls}
+                />
               </div>
             </div>
           </div>
@@ -137,14 +170,14 @@ export default function CustomerFormModal({
         <div className="flex justify-end gap-2 border-t border-zinc-100 px-5 py-4">
           <button
             onClick={onClose}
-            className="rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+            className="rounded-lg border border-zinc-200 px-3 py-3 text-sm font-medium text-zinc-600 hover:bg-zinc-50"
           >
             Anuluj
           </button>
           <button
             onClick={save}
             disabled={saving || !form.name.trim()}
-            className="rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-40"
+            className="rounded-lg bg-zinc-900 px-3 py-3 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-40"
           >
             {saving ? "Zapisywanie…" : submitLabel}
           </button>

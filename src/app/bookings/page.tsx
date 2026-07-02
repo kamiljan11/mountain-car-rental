@@ -48,7 +48,7 @@ function BookingsContent() {
         </div>
         <button
           onClick={() => setShowWizard(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-3 text-sm font-medium text-white hover:bg-zinc-800"
         >
           <Plus className="size-4" /> Nowa rezerwacja
         </button>

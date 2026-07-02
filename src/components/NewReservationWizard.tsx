@@ -157,7 +157,7 @@ export default function NewReservationWizard({
           <button
             onClick={onClose}
             aria-label="Zamknij"
-            className="grid size-8 place-items-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+            className="grid size-11 place-items-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
           >
             <X className="size-4" />
           </button>
@@ -228,7 +228,7 @@ export default function NewReservationWizard({
                           <button
                             key={t}
                             onClick={() => setType(t)}
-                            className={`rounded-lg border px-2 py-2 text-sm font-medium transition-colors ${
+                            className={`rounded-lg border px-2 py-3 text-sm font-medium transition-colors ${
                               type === t
                                 ? "border-zinc-900 bg-zinc-900 text-white"
                                 : "border-zinc-200 text-zinc-600 hover:bg-zinc-50"
@@ -329,8 +329,8 @@ export default function NewReservationWizard({
                     <div>
                       <label className={labelCls}>Cena za dzień (ISK)</label>
                       <input
-                        type="number"
-                        min={0}
+                        type="text"
+                        inputMode="decimal"
                         value={dailyRate}
                         onChange={(e) =>
                           setDailyRate(e.target.value === "" ? "" : Number(e.target.value))
@@ -341,8 +341,8 @@ export default function NewReservationWizard({
                     <div>
                       <label className={labelCls}>Kaucja (ISK)</label>
                       <input
-                        type="number"
-                        min={0}
+                        type="text"
+                        inputMode="decimal"
                         value={deposit}
                         onChange={(e) =>
                           setDeposit(e.target.value === "" ? "" : Number(e.target.value))
@@ -387,6 +387,7 @@ export default function NewReservationWizard({
                       <label className={labelCls}>Imię i nazwisko</label>
                       <input
                         autoFocus
+                        autoComplete="name"
                         value={newCustomer.name}
                         onChange={(e) =>
                           setNewCustomer({ ...newCustomer, name: e.target.value })
@@ -398,6 +399,8 @@ export default function NewReservationWizard({
                     <div>
                       <label className={labelCls}>Telefon</label>
                       <input
+                        type="tel"
+                        autoComplete="tel"
                         value={newCustomer.phone}
                         onChange={(e) =>
                           setNewCustomer({ ...newCustomer, phone: e.target.value })
@@ -410,6 +413,7 @@ export default function NewReservationWizard({
                       <label className={labelCls}>E-mail</label>
                       <input
                         type="email"
+                        autoComplete="email"
                         value={newCustomer.email}
                         onChange={(e) =>
                           setNewCustomer({ ...newCustomer, email: e.target.value })
@@ -594,7 +598,7 @@ export default function NewReservationWizard({
               <button
                 onClick={back}
                 disabled={step === 0}
-                className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50 disabled:opacity-0"
+                className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 px-3 py-3 text-sm text-zinc-600 hover:bg-zinc-50 disabled:opacity-0"
               >
                 <ChevronLeft className="size-4" /> Wstecz
               </button>
@@ -602,7 +606,7 @@ export default function NewReservationWizard({
                 <button
                   onClick={next}
                   disabled={!canNext}
-                  className="inline-flex items-center gap-1 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-40"
+                  className="inline-flex items-center gap-1 rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-40"
                 >
                   Dalej <ChevronRight className="size-4" />
                 </button>
@@ -610,7 +614,7 @@ export default function NewReservationWizard({
                 <button
                   onClick={submit}
                   disabled={submitting}
-                  className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
                 >
                   <Check className="size-4" />
                   {submitting ? "Zapisywanie…" : "Potwierdź"}

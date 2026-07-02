@@ -11,7 +11,7 @@ import type { Customer, CustomerDocument } from "@/lib/types";
 import { Send, Printer, Check, TriangleAlert } from "lucide-react";
 
 const inputCls =
-  "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-base outline-none focus:border-zinc-400 md:text-sm";
+  "w-full rounded-lg border border-zinc-200 bg-white px-3 py-3 text-base outline-none focus:border-zinc-400 md:text-sm md:py-2.5";
 
 const REQUIRED_FIELDS: { key: keyof Customer; label: string }[] = [
   { key: "email", label: "Adres email" },
@@ -153,13 +153,13 @@ function ContractsContent() {
             <button
               onClick={send}
               disabled={!customer}
-              className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-40"
+              className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-3 py-3 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-40"
             >
               <Send className="size-4" /> Wyślij do klienta
             </button>
             <button
               onClick={() => window.print()}
-              className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
+              className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-3 text-sm text-zinc-600 hover:bg-zinc-50"
             >
               <Printer className="size-4" /> Drukuj / PDF
             </button>

@@ -36,7 +36,6 @@ const TYPE_STYLES: Record<
   },
 };
 
-const LANE_H = 30;
 const CHUNK = 30; // ile dni doładowujemy przy każdym dojściu do krawędzi
 const INITIAL_DAYS = 120;
 const BACK_BUFFER = 21; // ile dni wstecz od dziś na starcie
@@ -84,6 +83,9 @@ export default function Timeline() {
 
   const DAY_W = isMobile ? 44 : 40;
   const LABEL_W = isMobile ? 92 : 176;
+  // Nieco wyższe paski na mobile — łatwiej trafić palcem, przy zachowaniu
+  // gęstości widoku wielu pojazdów naraz (pełne 44px zajęłoby zbyt dużo miejsca).
+  const LANE_H = isMobile ? 36 : 30;
 
   // Ciągły pas czasu: `start` to pierwszy renderowany dzień, `dayCount` — ile dni.
   const [start, setStart] = useState<Date>(() =>
@@ -215,14 +217,14 @@ export default function Timeline() {
           <button
             onClick={() => move(-1)}
             aria-label="Wstecz"
-            className="grid size-9 place-items-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+            className="grid size-11 place-items-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
           >
             <ChevronLeft className="size-4" />
           </button>
           <button
             onClick={() => move(1)}
             aria-label="Dalej"
-            className="grid size-9 place-items-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+            className="grid size-11 place-items-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
           >
             <ChevronRight className="size-4" />
           </button>
@@ -231,7 +233,7 @@ export default function Timeline() {
           </div>
           <button
             onClick={goToday}
-            className="ml-1 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-50"
+            className="ml-1 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-600 hover:bg-zinc-50"
           >
             Dziś
           </button>
@@ -249,7 +251,7 @@ export default function Timeline() {
             onClick={() =>
               vehicles[0] && openDraft(vehicles[0].id, midnight(new Date()))
             }
-            className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-3 text-sm font-medium text-white hover:bg-zinc-800"
           >
             <Plus className="size-4" /> Nowa
           </button>
@@ -464,7 +466,7 @@ export default function Timeline() {
             {selected.type === "reservation" && selected.customerId && (
               <Link
                 href={`/contracts?customerId=${selected.customerId}&bookingId=${selected.id}`}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
               >
                 <FileSignature className="size-4" /> Podgląd umowy
               </Link>
@@ -474,7 +476,7 @@ export default function Timeline() {
                 removeBooking(selected.id);
                 setSelected(null);
               }}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-3 text-sm font-medium text-red-700 hover:bg-red-100"
             >
               <Trash2 className="size-4" /> Usuń wpis
             </button>
@@ -509,7 +511,7 @@ function Drawer({
         <button
           onClick={onClose}
           aria-label="Zamknij"
-          className="grid size-8 place-items-center rounded-lg text-zinc-500 hover:bg-zinc-100"
+          className="grid size-11 place-items-center rounded-lg text-zinc-500 hover:bg-zinc-100"
         >
           <X className="size-4" />
         </button>
