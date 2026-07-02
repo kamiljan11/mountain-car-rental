@@ -19,11 +19,11 @@ function Expiry({ iso }: { iso?: string }) {
   return <span className={`rounded px-1.5 py-0.5 text-xs ${cls}`}>{txt}</span>;
 }
 
-function monthUtilization(vehicleId: string, bookings: Booking[], monthStart: Date, monthEnd: Date) {
+function monthUtilization(vehicleBookings: Booking[], monthStart: Date, monthEnd: Date) {
   const daysInMonth = monthEnd.getDate();
   const occupied = new Array(daysInMonth).fill(false);
-  for (const b of bookings) {
-    if (b.vehicleId !== vehicleId || b.status === "cancelled") continue;
+  for (const b of vehicleBookings) {
+    if (b.status === "cancelled") continue;
     const s = parseISO(b.start);
     const e = parseISO(b.end);
     if (e < monthStart || s > monthEnd) continue;
@@ -70,8 +70,16 @@ export default function FleetPage() {
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
   const utilization = useMemo(() => {
+    const byVehicle = new Map<string, Booking[]>();
+    for (const b of bookings) {
+      const list = byVehicle.get(b.vehicleId);
+      if (list) list.push(b);
+      else byVehicle.set(b.vehicleId, [b]);
+    }
     const map = new Map<string, number>();
-    for (const v of vehicles) map.set(v.id, monthUtilization(v.id, bookings, monthStart, monthEnd));
+    for (const v of vehicles) {
+      map.set(v.id, monthUtilization(byVehicle.get(v.id) ?? [], monthStart, monthEnd));
+    }
     return map;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vehicles, bookings]);

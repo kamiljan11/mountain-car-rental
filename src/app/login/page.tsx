@@ -27,11 +27,18 @@ declare global {
   }
 }
 
+function isSafeNextPath(path: string): boolean {
+  // Musi być ścieżką względną tego samego originu — nie protokołem-względnym
+  // ("//evil.com") ani ukośnikiem wstecznym ("/\evil.com", normalizowanym przez
+  // niektóre przeglądarki do "//evil.com") — inaczej to open redirect.
+  return path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/\\");
+}
+
 function goToNext() {
   const nextParam = new URLSearchParams(window.location.search).get("next") || "/";
   // Twarda nawigacja przez granicę auth — pewne odświeżenie sesji i shellu,
   // bez ryzyka odbicia przez zprefetchowany (niezalogowany) RSC.
-  window.location.assign(nextParam.startsWith("/") ? nextParam : "/");
+  window.location.assign(isSafeNextPath(nextParam) ? nextParam : "/");
 }
 
 export default function LoginPage() {

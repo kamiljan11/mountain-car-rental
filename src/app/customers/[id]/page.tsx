@@ -10,8 +10,8 @@ import {
   insertCustomerDocument,
   deleteCustomerDocument,
 } from "@/lib/db";
-import type { Contract } from "@/lib/contract";
-import type { CustomerDocument } from "@/lib/types";
+import { isk, type Contract } from "@/lib/contract";
+import { DOC_TYPES, isCompanyCustomer, type CustomerDocument, type DocType } from "@/lib/types";
 import { fmtDate } from "@/lib/dates";
 import CustomerFormModal from "@/components/CustomerFormModal";
 import {
@@ -29,8 +29,6 @@ const STATUS = {
   signed: { label: "podpisana", cls: "bg-green-100 text-green-700" },
   draft: { label: "szkic", cls: "bg-zinc-100 text-zinc-600" },
 } as const;
-
-const DOC_TYPES = ["Dowód osobisty", "Prawo jazdy", "Paszport", "Inny"];
 
 const inputCls =
   "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10";
@@ -142,7 +140,7 @@ export default function CustomerProfile() {
     );
   }
 
-  const isCompany = !!customer.companyName;
+  const isCompany = isCompanyCustomer(customer);
 
   const saveNotes = async (notes: string) => {
     await updateCustomer(id, { notes });
@@ -299,7 +297,7 @@ export default function CustomerProfile() {
                       <tr key={b.id}>
                         <td className="px-4 py-3 font-medium text-zinc-900">{vehicleById(b.vehicleId)?.name}</td>
                         <td className="px-4 py-3 text-zinc-600">{fmtDate(b.start)} — {fmtDate(b.end)}</td>
-                        <td className="px-4 py-3 text-zinc-600">{b.total != null ? `${b.total.toLocaleString("pl-PL")} ISK` : "—"}</td>
+                        <td className="px-4 py-3 text-zinc-600">{isk(b.total)}</td>
                       </tr>
                     ))
                   )}
@@ -338,14 +336,16 @@ function DocumentsTab({
   setDocuments: React.Dispatch<React.SetStateAction<CustomerDocument[]>>;
 }) {
   const [adding, setAdding] = useState(false);
-  const [docType, setDocType] = useState(DOC_TYPES[0]);
+  const [docType, setDocType] = useState<DocType>(DOC_TYPES[0]);
   const [docNumber, setDocNumber] = useState("");
   const [issuedAt, setIssuedAt] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const add = async () => {
     setSaving(true);
+    setError("");
     const doc = await insertCustomerDocument({
       customerId,
       docType,
@@ -353,8 +353,12 @@ function DocumentsTab({
       issuedAt: issuedAt || undefined,
       expiresAt: expiresAt || undefined,
     });
-    if (doc) setDocuments((prev) => [...prev, doc]);
     setSaving(false);
+    if (!doc) {
+      setError("Nie udało się zapisać dokumentu. Spróbuj ponownie.");
+      return;
+    }
+    setDocuments((prev) => [...prev, doc]);
     setAdding(false);
     setDocNumber("");
     setIssuedAt("");
@@ -410,9 +414,18 @@ function DocumentsTab({
 
       {adding ? (
         <div className="mt-3 grid grid-cols-1 gap-3 rounded-xl border border-zinc-200 bg-white p-4 sm:grid-cols-4">
+          {error && (
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 sm:col-span-4">
+              {error}
+            </p>
+          )}
           <div>
             <label className={labelCls}>Rodzaj</label>
-            <select value={docType} onChange={(e) => setDocType(e.target.value)} className={inputCls}>
+            <select
+              value={docType}
+              onChange={(e) => setDocType(e.target.value as DocType)}
+              className={inputCls}
+            >
               {DOC_TYPES.map((t) => (
                 <option key={t} value={t}>{t}</option>
               ))}

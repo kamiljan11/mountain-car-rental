@@ -40,13 +40,26 @@ export interface Customer {
   suspect?: boolean;
 }
 
+export const DOC_TYPES = ["Dowód osobisty", "Prawo jazdy", "Paszport", "Inny"] as const;
+export type DocType = (typeof DOC_TYPES)[number];
+
 export interface CustomerDocument {
   id: string;
   customerId: string;
-  docType: string;
+  docType: DocType;
   docNumber?: string;
   issuedAt?: string;
   expiresAt?: string;
+}
+
+// Klient firmowy wg RentHelp = ma wypełnioną nazwę firmy; ta sama reguła
+// używana wszędzie (profil klienta, generator umów), żeby nie rozjeżdżały się
+// osobne kopie tego samego warunku. Type predicate — zawęża do "companyName
+// na pewno jest" w gałęzi if, bez rzutowań w miejscach użycia.
+export function isCompanyCustomer(
+  customer?: Customer,
+): customer is Customer & { companyName: string } {
+  return !!customer?.companyName;
 }
 
 export interface Booking {

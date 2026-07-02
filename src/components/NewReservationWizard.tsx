@@ -61,8 +61,10 @@ export default function NewReservationWizard({
   const [end, setEnd] = useState(addDays(initialDate ?? today, 2));
   const [location, setLocation] = useState(LOCATIONS[0]);
 
-  const [dailyRate, setDailyRate] = useState<number | "">(0);
-  const [deposit, setDeposit] = useState<number | "">(0);
+  // Trzymane jako tekst (nie number) — pole jest type="text", żeby dało się
+  // wpisać przecinek/kropkę dziesiętną; parsowanie dopiero przy użyciu wartości.
+  const [dailyRate, setDailyRate] = useState("0");
+  const [deposit, setDeposit] = useState("0");
 
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [customerSearch, setCustomerSearch] = useState("");
@@ -76,7 +78,8 @@ export default function NewReservationWizard({
     1,
     differenceInCalendarDays(parseISO(end || start), parseISO(start)) + 1,
   );
-  const rateNum = typeof dailyRate === "number" ? dailyRate : 0;
+  const rateNum = Number(dailyRate.replace(",", ".")) || 0;
+  const depositNum = Number(deposit.replace(",", ".")) || 0;
   const total = rateNum * days;
 
   const conflicts = useMemo(() => {
@@ -125,7 +128,7 @@ export default function NewReservationWizard({
       end,
       dailyRate: rateNum || undefined,
       total: total || undefined,
-      deposit: typeof deposit === "number" && deposit ? deposit : undefined,
+      deposit: depositNum || undefined,
       notes: notes || undefined,
     });
     setSubmitting(false);
@@ -332,9 +335,7 @@ export default function NewReservationWizard({
                         type="text"
                         inputMode="decimal"
                         value={dailyRate}
-                        onChange={(e) =>
-                          setDailyRate(e.target.value === "" ? "" : Number(e.target.value))
-                        }
+                        onChange={(e) => setDailyRate(e.target.value)}
                         className={inputCls}
                       />
                     </div>
@@ -344,9 +345,7 @@ export default function NewReservationWizard({
                         type="text"
                         inputMode="decimal"
                         value={deposit}
-                        onChange={(e) =>
-                          setDeposit(e.target.value === "" ? "" : Number(e.target.value))
-                        }
+                        onChange={(e) => setDeposit(e.target.value)}
                         className={inputCls}
                       />
                     </div>
@@ -570,11 +569,11 @@ export default function NewReservationWizard({
                         {rateNum.toLocaleString("pl-PL")} ISK
                       </span>
                     </div>
-                    {typeof deposit === "number" && deposit > 0 && (
+                    {depositNum > 0 && (
                       <div className="mt-1.5 flex items-center justify-between text-sm">
                         <span className="text-zinc-500">Kaucja</span>
                         <span className="text-zinc-800">
-                          {deposit.toLocaleString("pl-PL")} ISK
+                          {depositNum.toLocaleString("pl-PL")} ISK
                         </span>
                       </div>
                     )}

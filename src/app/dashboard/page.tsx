@@ -5,6 +5,7 @@ import Link from "next/link";
 import { parseISO, differenceInCalendarDays } from "date-fns";
 import { useData } from "@/components/DataProvider";
 import { fmtDate, toISODate } from "@/lib/dates";
+import { isk } from "@/lib/contract";
 import type { Booking, BookingType } from "@/lib/types";
 import NewReservationWizard from "@/components/NewReservationWizard";
 import {
@@ -91,11 +92,10 @@ export default function DashboardPage() {
     const revenue = monthReservations.reduce((sum, b) => sum + (b.total ?? 0), 0);
     return {
       busyToday: busyToday.size,
-      fleetSize: vehicles.length,
       monthReservations: monthReservations.length,
       revenue,
     };
-  }, [bookings, vehicles.length, today]);
+  }, [bookings, today]);
 
   const pickups = bookings
     .filter((b) => b.status !== "cancelled" && b.start === today)
@@ -135,7 +135,7 @@ export default function DashboardPage() {
         <StatCard
           icon={Car}
           label="Zajęte dziś"
-          value={`${stats.busyToday} / ${stats.fleetSize}`}
+          value={`${stats.busyToday} / ${vehicles.length}`}
           sub="pojazdów w użyciu"
         />
         <StatCard
@@ -146,7 +146,7 @@ export default function DashboardPage() {
         <StatCard
           icon={Wallet}
           label="Przychód w tym miesiącu"
-          value={`${stats.revenue.toLocaleString("pl-PL")} ISK`}
+          value={isk(stats.revenue)}
         />
         <StatCard icon={Users} label="Klienci łącznie" value={String(customers.length)} />
       </div>

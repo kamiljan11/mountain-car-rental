@@ -1,4 +1,5 @@
 import type { Customer, Vehicle, Booking, CustomerDocument } from "./types";
+import { isCompanyCustomer, DOC_TYPES } from "./types";
 import { fmtDate } from "./dates";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 
@@ -31,7 +32,7 @@ export interface Contract {
   content: string;
 }
 
-function isk(v?: number | null) {
+export function isk(v?: number | null) {
   if (v == null) return "—";
   return Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " ISK";
 }
@@ -237,7 +238,7 @@ const DASH = "————";
 function najemcaBlock(customer: Customer | undefined, identityDoc?: string) {
   const dokumentTozsamosci = identityDoc ?? DASH;
   const persona = `Imię i nazwisko: ${customer?.name ?? DASH}<br/>Adres: ${customer?.address ?? DASH}<br/>Dokument tożsamości: ${dokumentTozsamosci}<br/>PESEL: ${customer?.id_number ?? DASH}<br/>Prawo jazdy: ${customer?.license ?? DASH}<br/>Tel.: ${customer?.phone ?? DASH}<br/>${customer?.email ?? DASH}`;
-  if (!customer?.companyName) {
+  if (!isCompanyCustomer(customer)) {
     return `<p>${persona}</p>`;
   }
   return `<p><strong>${customer.companyName}</strong><br/>NIP: ${customer.nip ?? DASH}<br/>Adres firmy: ${customer.companyAddress ?? DASH}<br/>${customer.companyEmail ?? DASH} · ${customer.companyPhone ?? DASH}</p>
@@ -263,7 +264,7 @@ export function buildFilled(
       ? String(differenceInCalendarDays(parseISO(booking.end), parseISO(booking.start)) + 1)
       : DASH;
   const rez = booking?.external_ref ? ` · rezerwacja ${booking.external_ref}` : "";
-  const identityDoc = ctx.documents?.find((d) => d.docType === "Dowód osobisty")?.docNumber;
+  const identityDoc = ctx.documents?.find((d) => d.docType === DOC_TYPES[0])?.docNumber;
   const map: Record<string, string> = {
     NUMER: ctx.number,
     REZ: rez,
@@ -277,8 +278,6 @@ export function buildFilled(
     FIRMA_WWW: COMPANY.web,
     FIRMA_EMAIL: COMPANY.email,
     NAJEMCA: customer?.name ?? DASH,
-    NAJEMCA_ADRES: customer?.address ?? DASH,
-    NAJEMCA_DOK: identityDoc ?? DASH,
     NAJEMCA_PESEL: customer?.id_number ?? DASH,
     NAJEMCA_PJ: customer?.license ?? DASH,
     NAJEMCA_TEL: customer?.phone ?? DASH,

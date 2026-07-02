@@ -8,11 +8,14 @@ import { TEMPLATES, buildFilled, makeNumber } from "@/lib/contract";
 import { insertContract, fetchCustomerDocuments } from "@/lib/db";
 import { fmtDate } from "@/lib/dates";
 import type { Customer, CustomerDocument } from "@/lib/types";
+import { isCompanyCustomer, DOC_TYPES } from "@/lib/types";
 import { Send, Printer, Check, TriangleAlert } from "lucide-react";
 
 const inputCls =
   "w-full rounded-lg border border-zinc-200 bg-white px-3 py-3 text-base outline-none focus:border-zinc-400 md:text-sm md:py-2.5";
 
+// Zawsze wymagane od osoby faktycznie odbierającej/prowadzącej pojazd —
+// niezależnie od tego, czy rezerwuje jako firma czy prywatnie.
 const REQUIRED_FIELDS: { key: keyof Customer; label: string }[] = [
   { key: "email", label: "Adres email" },
   { key: "phone", label: "Numer telefonu" },
@@ -24,6 +27,7 @@ const REQUIRED_FIELDS: { key: keyof Customer; label: string }[] = [
 function missingCustomerFields(customer: Customer | undefined, hasIdentityDoc: boolean) {
   if (!customer) return [];
   const missing = REQUIRED_FIELDS.filter((f) => !customer[f.key]).map((f) => f.label);
+  if (isCompanyCustomer(customer) && !customer.nip) missing.push("NIP firmy");
   if (!hasIdentityDoc) missing.push("Dokument tożsamości (dowód osobisty)");
   return missing;
 }
@@ -36,6 +40,7 @@ function ContractsContent() {
   const [bookingId, setBookingId] = useState(searchParams.get("bookingId") ?? "");
   const [employee, setEmployee] = useState("");
   const [sentTo, setSentTo] = useState<{ name: string; id: string } | null>(null);
+  const [sendError, setSendError] = useState("");
   const [documents, setDocuments] = useState<CustomerDocument[]>([]);
 
   const template = TEMPLATES.find((t) => t.id === templateId)!;
@@ -46,13 +51,19 @@ function ContractsContent() {
 
   useEffect(() => {
     if (!customerId) return;
-    fetchCustomerDocuments(customerId).then(setDocuments);
+    let alive = true;
+    fetchCustomerDocuments(customerId).then((docs) => {
+      if (alive) setDocuments(docs);
+    });
+    return () => {
+      alive = false;
+    };
   }, [customerId]);
 
   const activeDocuments = customerId ? documents : [];
   const missing = missingCustomerFields(
     customer,
-    activeDocuments.some((d) => d.docType === "Dowód osobisty"),
+    activeDocuments.some((d) => d.docType === DOC_TYPES[0]),
   );
 
   const today = new Date().toLocaleDateString("pl-PL");
@@ -68,6 +79,7 @@ function ContractsContent() {
 
   const send = async () => {
     if (!customer) return;
+    setSendError("");
     const number = makeNumber();
     const content = buildFilled(template, {
       number,
@@ -78,7 +90,7 @@ function ContractsContent() {
       date: today,
       documents: activeDocuments,
     });
-    await insertContract({
+    const saved = await insertContract({
       number,
       templateId: template.id,
       templateName: template.name,
@@ -88,6 +100,10 @@ function ContractsContent() {
       status: "sent",
       content,
     });
+    if (!saved) {
+      setSendError("Nie udało się zapisać umowy. Spróbuj ponownie.");
+      return;
+    }
     setSentTo({ name: customer.name, id: customer.id });
   };
 
@@ -169,6 +185,11 @@ function ContractsContent() {
             <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
               <Check className="size-4" /> Wysłano do {sentTo.name}.
               <Link href={`/customers/${sentTo.id}`} className="font-medium underline">Zobacz profil</Link>
+            </div>
+          )}
+          {sendError && (
+            <div className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <TriangleAlert className="size-4" /> {sendError}
             </div>
           )}
         </div>

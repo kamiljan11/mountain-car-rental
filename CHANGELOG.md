@@ -1,0 +1,14 @@
+# Changelog
+
+## 2026-07-02
+- Login: 365-day sessions, Sign in with Google (restricted to the one admin account).
+- PWA: installable on Android/desktop (manifest, icons, service worker, install button).
+- Bookings: working "Nowa rezerwacja" button on the list page.
+- New Dashboard page: today's pickups/returns, bookings needing confirmation, next 7 days, month stats.
+- Fleet: per-vehicle monthly utilization rings.
+- Customers: company/individual profile split, notes, ID documents, suspect flag, edit/delete, reservation filter link.
+- Contracts: company-vs-individual template block, identity-document lookup from real records, missing-data warning before sending, deep-linkable from a booking's "Podgląd umowy".
+- Mobile optimization pass: touch targets, input types/autocomplete across forms.
+- Code health pass: fixed a price-input bug (decimal entry was silently stripped), an open-redirect in the post-login redirect, two silent-failure UI bugs (contract send / document upload showing success when the save failed), and a stale-data race when switching customers on the contracts page.
+
+Needs `supabase/migrations/20260702100554_customer_profile.sql` applied in the Supabase SQL editor before company fields/documents/suspect persist in production.
