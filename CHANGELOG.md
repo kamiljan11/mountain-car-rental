@@ -14,5 +14,4 @@
 - Editing: bookings and vehicles can now be edited from the calendar, the bookings list, and the fleet list (not just created once).
 - Sorting: bookings, fleet, and customers tables all support click-to-sort columns.
 - Visual polish: toast notifications (replacing inline error banners), a top loading bar during initial data fetch, native View Transitions between pages — all respecting `prefers-reduced-motion`.
-
-Needs `supabase/migrations/20260702100554_customer_profile.sql` applied in the Supabase SQL editor before company fields/documents/suspect persist in production.
+- Applied `20260702100554_customer_profile.sql` to production (company fields, `is_suspect`, `customer_documents` table + RLS) via the Supabase Management API.
