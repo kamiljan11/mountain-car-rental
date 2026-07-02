@@ -8,11 +8,12 @@ import {
   useState,
 } from "react";
 import { parseISO, differenceInCalendarDays } from "date-fns";
+import Link from "next/link";
 import { useData } from "@/components/DataProvider";
 import NewReservationWizard from "@/components/NewReservationWizard";
 import { PL_MONTHS, PL_WD, fmtDate, toISODate } from "@/lib/dates";
 import type { Booking, BookingType } from "@/lib/types";
-import { ChevronLeft, ChevronRight, Plus, X, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, X, Trash2, FileSignature } from "lucide-react";
 
 const TYPE_STYLES: Record<
   BookingType,
@@ -71,8 +72,7 @@ function withLanes(list: Booking[]) {
 }
 
 export default function Timeline() {
-  const { vehicles, bookings, addBooking, removeBooking, customerById } =
-    useData();
+  const { vehicles, bookings, removeBooking, customerById } = useData();
 
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
@@ -459,15 +459,26 @@ export default function Timeline() {
             />
           )}
           {selected.notes && <DetailRow label="Notatka" value={selected.notes} />}
-          <button
-            onClick={() => {
-              removeBooking(selected.id);
-              setSelected(null);
-            }}
-            className="mt-6 inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
-          >
-            <Trash2 className="size-4" /> Usuń wpis
-          </button>
+
+          <div className="mt-6 space-y-2">
+            {selected.type === "reservation" && selected.customerId && (
+              <Link
+                href={`/contracts?customerId=${selected.customerId}&bookingId=${selected.id}`}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+              >
+                <FileSignature className="size-4" /> Podgląd umowy
+              </Link>
+            )}
+            <button
+              onClick={() => {
+                removeBooking(selected.id);
+                setSelected(null);
+              }}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+            >
+              <Trash2 className="size-4" /> Usuń wpis
+            </button>
+          </div>
         </Drawer>
       )}
 

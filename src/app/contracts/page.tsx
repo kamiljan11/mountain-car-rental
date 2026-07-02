@@ -1,23 +1,42 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useData } from "@/components/DataProvider";
 import { TEMPLATES, buildFilled, makeNumber } from "@/lib/contract";
-import { insertContract } from "@/lib/db";
+import { insertContract, fetchCustomerDocuments } from "@/lib/db";
 import { fmtDate } from "@/lib/dates";
-import { Send, Printer, Check } from "lucide-react";
+import type { Customer, CustomerDocument } from "@/lib/types";
+import { Send, Printer, Check, TriangleAlert } from "lucide-react";
 
 const inputCls =
   "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-base outline-none focus:border-zinc-400 md:text-sm";
 
-export default function ContractsPage() {
+const REQUIRED_FIELDS: { key: keyof Customer; label: string }[] = [
+  { key: "email", label: "Adres email" },
+  { key: "phone", label: "Numer telefonu" },
+  { key: "address", label: "Adres" },
+  { key: "id_number", label: "PESEL" },
+  { key: "license", label: "Prawo jazdy" },
+];
+
+function missingCustomerFields(customer: Customer | undefined, hasIdentityDoc: boolean) {
+  if (!customer) return [];
+  const missing = REQUIRED_FIELDS.filter((f) => !customer[f.key]).map((f) => f.label);
+  if (!hasIdentityDoc) missing.push("Dokument tożsamości (dowód osobisty)");
+  return missing;
+}
+
+function ContractsContent() {
   const { customers, bookings, vehicleById } = useData();
+  const searchParams = useSearchParams();
   const [templateId, setTemplateId] = useState(TEMPLATES[0].id);
-  const [customerId, setCustomerId] = useState("");
-  const [bookingId, setBookingId] = useState("");
+  const [customerId, setCustomerId] = useState(searchParams.get("customerId") ?? "");
+  const [bookingId, setBookingId] = useState(searchParams.get("bookingId") ?? "");
   const [employee, setEmployee] = useState("");
   const [sentTo, setSentTo] = useState<{ name: string; id: string } | null>(null);
+  const [documents, setDocuments] = useState<CustomerDocument[]>([]);
 
   const template = TEMPLATES.find((t) => t.id === templateId)!;
   const customer = customers.find((c) => c.id === customerId);
@@ -25,16 +44,40 @@ export default function ContractsPage() {
   const booking = custBookings.find((b) => b.id === bookingId);
   const vehicle = booking ? vehicleById(booking.vehicleId) : undefined;
 
-  const today = new Date().toLocaleDateString("pl-PL");
-  const preview = useMemo(
-    () => buildFilled(template, { number: "RT/2026/____", customer, vehicle, booking, employee, date: today }),
-    [template, customer, vehicle, booking, employee, today],
+  useEffect(() => {
+    if (!customerId) return;
+    fetchCustomerDocuments(customerId).then(setDocuments);
+  }, [customerId]);
+
+  const activeDocuments = customerId ? documents : [];
+  const missing = missingCustomerFields(
+    customer,
+    activeDocuments.some((d) => d.docType === "Dowód osobisty"),
   );
+
+  const today = new Date().toLocaleDateString("pl-PL");
+  const preview = buildFilled(template, {
+    number: "RT/2026/____",
+    customer,
+    vehicle,
+    booking,
+    employee,
+    date: today,
+    documents: activeDocuments,
+  });
 
   const send = async () => {
     if (!customer) return;
     const number = makeNumber();
-    const content = buildFilled(template, { number, customer, vehicle, booking, employee, date: today });
+    const content = buildFilled(template, {
+      number,
+      customer,
+      vehicle,
+      booking,
+      employee,
+      date: today,
+      documents: activeDocuments,
+    });
     await insertContract({
       number,
       templateId: template.id,
@@ -90,6 +133,22 @@ export default function ContractsPage() {
             <input value={employee} onChange={(e) => setEmployee(e.target.value)} placeholder="np. Gosia" className={inputCls} />
           </Field>
 
+          {customer && missing.length > 0 && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800">
+              <div className="flex items-center gap-1.5 font-medium">
+                <TriangleAlert className="size-4" /> Brakujące dane klienta
+              </div>
+              <ul className="mt-1 list-inside list-disc text-xs text-amber-700">
+                {missing.map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+              </ul>
+              <Link href={`/customers/${customer.id}`} className="mt-1 inline-block text-xs font-medium underline">
+                Uzupełnij w profilu klienta
+              </Link>
+            </div>
+          )}
+
           <div className="flex gap-2 pt-1">
             <button
               onClick={send}
@@ -119,6 +178,14 @@ export default function ContractsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ContractsPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-zinc-400">Ładowanie…</div>}>
+      <ContractsContent />
+    </Suspense>
   );
 }
 

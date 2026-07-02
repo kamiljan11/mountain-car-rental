@@ -1,4 +1,4 @@
-import type { Customer, Vehicle, Booking } from "./types";
+import type { Customer, Vehicle, Booking, CustomerDocument } from "./types";
 import { fmtDate } from "./dates";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 
@@ -147,7 +147,7 @@ const UMOWA = `
 <div class="parties">
   <div>
     <h3>Najemca</h3>
-    <p>{{NAJEMCA}}<br/>{{NAJEMCA_ADRES}}<br/>Dokument tożsamości: {{NAJEMCA_DOK}}<br/>PESEL: {{NAJEMCA_PESEL}}<br/>Prawo jazdy: {{NAJEMCA_PJ}}<br/>Tel.: {{NAJEMCA_TEL}}<br/>{{NAJEMCA_EMAIL}}</p>
+    {{NAJEMCA_BLOK}}
   </div>
   <div>
     <h3>Wynajmujący</h3>
@@ -171,6 +171,7 @@ const UMOWA = `
 <p class="muted">(data i podpis Najemcy oznacza akceptację OWU stanowiących załącznik do umowy)</p>
 <p>w imieniu {{FIRMA_LEGAL}}: {{PRACOWNIK}}, dnia {{DATA_ZAWARCIA}}</p>
 <div class="sign"><span>data i podpis Najemcy</span><span>podpis Wynajmującego</span></div>
+<p class="muted footer">Wygenerowano w systemie {{FIRMA}} · {{FIRMA_WWW}}</p>
 ${OWU}`;
 
 const WYDANIE = `
@@ -233,6 +234,17 @@ export const TEMPLATES: ContractTemplate[] = [
 
 const DASH = "————";
 
+function najemcaBlock(customer: Customer | undefined, identityDoc?: string) {
+  const dokumentTozsamosci = identityDoc ?? DASH;
+  const persona = `Imię i nazwisko: ${customer?.name ?? DASH}<br/>Adres: ${customer?.address ?? DASH}<br/>Dokument tożsamości: ${dokumentTozsamosci}<br/>PESEL: ${customer?.id_number ?? DASH}<br/>Prawo jazdy: ${customer?.license ?? DASH}<br/>Tel.: ${customer?.phone ?? DASH}<br/>${customer?.email ?? DASH}`;
+  if (!customer?.companyName) {
+    return `<p>${persona}</p>`;
+  }
+  return `<p><strong>${customer.companyName}</strong><br/>NIP: ${customer.nip ?? DASH}<br/>Adres firmy: ${customer.companyAddress ?? DASH}<br/>${customer.companyEmail ?? DASH} · ${customer.companyPhone ?? DASH}</p>
+    <p class="muted">Korzystający z pojazdu:</p>
+    <p>${persona}</p>`;
+}
+
 export function buildFilled(
   template: ContractTemplate,
   ctx: {
@@ -242,6 +254,7 @@ export function buildFilled(
     booking?: Booking;
     employee?: string;
     date: string;
+    documents?: CustomerDocument[];
   },
 ) {
   const { customer, vehicle, booking } = ctx;
@@ -250,6 +263,7 @@ export function buildFilled(
       ? String(differenceInCalendarDays(parseISO(booking.end), parseISO(booking.start)) + 1)
       : DASH;
   const rez = booking?.external_ref ? ` · rezerwacja ${booking.external_ref}` : "";
+  const identityDoc = ctx.documents?.find((d) => d.docType === "Dowód osobisty")?.docNumber;
   const map: Record<string, string> = {
     NUMER: ctx.number,
     REZ: rez,
@@ -264,11 +278,12 @@ export function buildFilled(
     FIRMA_EMAIL: COMPANY.email,
     NAJEMCA: customer?.name ?? DASH,
     NAJEMCA_ADRES: customer?.address ?? DASH,
-    NAJEMCA_DOK: DASH,
+    NAJEMCA_DOK: identityDoc ?? DASH,
     NAJEMCA_PESEL: customer?.id_number ?? DASH,
     NAJEMCA_PJ: customer?.license ?? DASH,
     NAJEMCA_TEL: customer?.phone ?? DASH,
     NAJEMCA_EMAIL: customer?.email ?? DASH,
+    NAJEMCA_BLOK: najemcaBlock(customer, identityDoc),
     POJAZD: vehicle?.name ?? DASH,
     NR_REJ: vehicle?.plate ?? DASH,
     VIN: vehicle?.vin ?? DASH,
