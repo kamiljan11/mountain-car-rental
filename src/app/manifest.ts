@@ -7,7 +7,6 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Wewnętrzny system rezerwacji floty",
     start_url: "/",
     display: "standalone",
-    orientation: "portrait",
     background_color: "#f4f4f5",
     theme_color: "#18181b",
     lang: "pl",

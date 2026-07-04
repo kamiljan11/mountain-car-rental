@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import { Car, Loader2, Eye, EyeOff } from "lucide-react";
+import InstallAppButton from "@/components/InstallAppButton";
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
 
@@ -201,6 +202,8 @@ export default function LoginPage() {
             </button>
           </form>
         </div>
+
+        <InstallAppButton className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm font-medium text-zinc-600 shadow-sm transition-colors hover:bg-zinc-50 hover:text-zinc-900" />
 
         <p className="mt-4 text-center text-xs text-zinc-400">
           Dostęp tylko dla zespołu Mountain Car Rental.
