@@ -8,34 +8,49 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
+// Przechwytujemy beforeinstallprompt na poziomie modułu — rejestracja odpala się
+// gdy tylko wykona się bundle klienta, czyli ZANIM komponent się zamontuje. Bez
+// tego, jeśli Chrome zgłosi zdarzenie wcześnie (przed montowaniem przycisku),
+// zgubilibyśmy je i przycisk „Zainstaluj” by się nie pokazał mimo że apka jest
+// instalowalna. Robimy to bez <script> w drzewie React (brak ostrzeżeń React 19).
+let deferredPrompt: BeforeInstallPromptEvent | null = null;
+const subscribers = new Set<() => void>();
+const notify = () => subscribers.forEach((fn) => fn());
+
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e as BeforeInstallPromptEvent;
+    notify();
+  });
+  window.addEventListener("appinstalled", () => {
+    deferredPrompt = null;
+    notify();
+  });
+}
+
 export default function InstallAppButton({ className }: { className: string }) {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
-    const onPrompt = (e: Event) => {
-      // Przechwytujemy zdarzenie, którym Chrome „uzbraja” instalację, i trzymamy
-      // je, żeby móc wymusić natywne okno instalacji na klik przycisku.
-      e.preventDefault();
-      setDeferred(e as BeforeInstallPromptEvent);
-    };
-    const onInstalled = () => setDeferred(null);
-    window.addEventListener("beforeinstallprompt", onPrompt);
-    window.addEventListener("appinstalled", onInstalled);
+    const sync = () => setDeferred(deferredPrompt);
+    sync(); // złap zdarzenie, które mogło odpalić zanim komponent się zamontował
+    subscribers.add(sync);
     return () => {
-      window.removeEventListener("beforeinstallprompt", onPrompt);
-      window.removeEventListener("appinstalled", onInstalled);
+      subscribers.delete(sync);
     };
   }, []);
 
-  // Widoczny tylko wtedy, gdy przeglądarka pozwala wymusić instalację
-  // (Android/desktop Chrome/Edge na spełnionych kryteriach PWA). Bez zdarzenia
-  // nie istnieje żadne API, które otworzyłoby instalator — więc nie udajemy.
+  // Widoczny tylko wtedy, gdy przeglądarka uzbroiła instalację. To jedyny
+  // mechanizm, jakim strona może wymusić natywny instalator — bez tego
+  // zdarzenia nie ma żadnego API „zainstaluj teraz”, a iOS nie ma go w ogóle.
   if (!deferred) return null;
 
   const install = async () => {
-    // To jest wymuszenie instalatora — natywne okno „Zainstaluj”.
+    // Wymuszenie natywnego okna instalacji.
     await deferred.prompt();
     await deferred.userChoice;
+    deferredPrompt = null; // zdarzenie jest jednorazowe
     setDeferred(null);
   };
 
