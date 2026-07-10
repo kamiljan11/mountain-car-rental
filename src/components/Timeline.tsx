@@ -13,8 +13,9 @@ import { useData } from "@/components/DataProvider";
 import NewReservationWizard from "@/components/NewReservationWizard";
 import { useIsMobile } from "@/lib/useIsMobile";
 import { PL_MONTHS, PL_WD, fmtDate, toISODate, nowIceland } from "@/lib/dates";
+import { matchesQuery } from "@/lib/search";
 import type { Booking, BookingType } from "@/lib/types";
-import { ChevronLeft, ChevronRight, Plus, X, Trash2, FileSignature, Pencil } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, X, Trash2, FileSignature, Pencil, Search } from "lucide-react";
 
 const TYPE_STYLES: Record<
   BookingType,
@@ -103,6 +104,8 @@ export default function Timeline() {
     null,
   );
   const [editing, setEditing] = useState<Booking | null>(null);
+  const [query, setQuery] = useState("");
+  const q = query.trim();
 
   const days = useMemo(
     () => Array.from({ length: dayCount }, (_, i) => addDays(start, i)),
@@ -190,15 +193,28 @@ export default function Timeline() {
 
   // Wszystkie wiersze pojazdów dostają tę samą wysokość (najdłuższy stos
   // nakładek w bieżącym widoku) — inaczej rzędy "skaczą" przy zmianie miesiąca.
-  const vehicleRows = useMemo(
-    () =>
-      vehicles.map((v) => ({
-        v,
-        ...withLanes(visible.filter((b) => b.vehicleId === v.id)),
-      })),
+  // Szeroka wyszukiwarka: pusty query → wszystkie pojazdy/wpisy (jak dotąd).
+  // Z query: pokazujemy pojazd, gdy pasuje sam pojazd (nazwa/rejestracja) albo
+  // ma ≥1 wpis pasujący po kliencie/notatce/pojeździe; w wierszu bez trafienia
+  // pojazdu zostawiamy tylko pasujące paski.
+  const vehicleRows = useMemo(() => {
+    const bookingHay = (b: Booking) => {
+      const v = vehicles.find((x) => x.id === b.vehicleId);
+      return [customerById(b.customerId)?.name, b.notes, v?.name, v?.plate]
+        .filter(Boolean)
+        .join(" ");
+    };
+    return vehicles
+      .map((v) => {
+        const vis = visible.filter((b) => b.vehicleId === v.id);
+        if (!q) return { v, ...withLanes(vis), show: true };
+        const vMatch = matchesQuery([v.name, v.plate].filter(Boolean).join(" "), q);
+        const kept = vMatch ? vis : vis.filter((b) => matchesQuery(bookingHay(b), q));
+        return { v, ...withLanes(kept), show: vMatch || kept.length > 0 };
+      })
+      .filter((r) => r.show);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [vehicles, bookings, start, last],
-  );
+  }, [vehicles, bookings, start, last, q]);
   const rowH =
     Math.max(1, ...vehicleRows.map((r) => r.lanes)) * LANE_H + (isMobile ? 6 : 8);
 
@@ -256,6 +272,25 @@ export default function Timeline() {
             <Plus className="size-4" /> {!isMobile && "Nowa"}
           </button>
         </div>
+      </div>
+
+      <div className={`relative ${isMobile ? "mb-2" : "mb-3"}`}>
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Szukaj: klient, pojazd, rejestracja…"
+          className="w-full rounded-lg border border-zinc-200 bg-white py-2.5 pl-9 pr-9 text-sm outline-none transition-colors focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10"
+        />
+        {query && (
+          <button
+            onClick={() => setQuery("")}
+            aria-label="Wyczyść"
+            className="absolute right-1.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+          >
+            <X className="size-4" />
+          </button>
+        )}
       </div>
 
       <div
@@ -423,6 +458,12 @@ export default function Timeline() {
           </div>
         </div>
       </div>
+      {q && vehicleRows.length === 0 && (
+        <p className="mt-3 rounded-lg border border-dashed border-zinc-200 bg-white px-4 py-8 text-center text-sm text-zinc-400">
+          Brak wyników dla „{query}”. Szukaj po kliencie, pojeździe lub rejestracji.
+        </p>
+      )}
+
       <p className="mt-2 hidden text-xs text-zinc-400 sm:block">
         Przewijaj w bok (myszką, gładzikiem lub palcem) — pas czasu ładuje kolejne
         miesiące bez końca. Nakładające się wpisy układają się w podwierszach.
