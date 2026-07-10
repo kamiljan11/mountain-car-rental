@@ -30,6 +30,8 @@ export default function ChecklistPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [state, setState] = useState<Record<string, boolean>>({});
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  // Szybka checklista poglądowa — stan tylko w oknie, resetuje się przy odświeżeniu.
+  const [quick, setQuick] = useState<Record<string, boolean>>({});
 
   const vById = useMemo(() => new Map(vehicles.map((v) => [v.id, v])), [vehicles]);
 
@@ -106,6 +108,10 @@ export default function ChecklistPage() {
 
   const doneCount = CHECKLIST_ITEMS.filter((i) => view[i.key]).length;
   const allDone = doneCount === CHECKLIST_COUNT;
+
+  const quickToggle = (key: string) =>
+    setQuick((s) => ({ ...s, [key]: !s[key] }));
+  const quickDone = CHECKLIST_ITEMS.filter((i) => quick[i.key]).length;
 
   const pick = (id: string) => {
     setSelectedId(id);
@@ -283,51 +289,101 @@ export default function ChecklistPage() {
           {loading ? (
             <p className="mt-4 text-center text-sm text-zinc-400">Wczytywanie…</p>
           ) : (
-            <div className="mt-4 space-y-4">
-              {CHECKLIST.map((group) => (
-                <div key={group.title}>
-                  <h2 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                    {group.title}
-                  </h2>
-                  <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
-                    {group.items.map((item) => {
-                      const done = !!view[item.key];
-                      return (
-                        <button
-                          key={item.key}
-                          onClick={() => toggle(item.key)}
-                          className="flex w-full items-center gap-3 border-b border-zinc-100 px-4 py-3.5 text-left last:border-0 hover:bg-zinc-50"
-                        >
-                          <span
-                            className={`grid size-6 shrink-0 place-items-center rounded-md border transition-colors ${
-                              done
-                                ? "border-emerald-500 bg-emerald-500 text-white"
-                                : "border-zinc-300 bg-white text-transparent"
-                            }`}
-                          >
-                            <Check className="size-4" strokeWidth={3} />
-                          </span>
-                          <span
-                            className={`text-sm ${done ? "text-zinc-400 line-through" : "text-zinc-800"}`}
-                          >
-                            {item.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+            <div className="mt-4">
+              <ChecklistGroups value={view} onToggle={toggle} />
             </div>
           )}
         </div>
       ) : (
         !query.trim() && (
-          <div className="mt-4 rounded-xl border border-dashed border-zinc-200 bg-white px-4 py-10 text-center text-sm text-zinc-400">
-            Wyszukaj i wybierz klienta, aby otworzyć jego checklistę wydania.
+          // Szybka checklista poglądowa — bez klienta, stan tylko w oknie
+          // (resetuje się przy odświeżeniu / ponownym wejściu).
+          <div className="mt-4">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-zinc-900">
+                    Szybka checklista (poglądowa)
+                  </div>
+                  <p className="mt-0.5 text-xs text-zinc-500">
+                    Nie zapisuje się — resetuje przy odświeżeniu strony. Wybierz
+                    klienta powyżej, aby mieć wersję zapisaną per klient.
+                  </p>
+                </div>
+                {quickDone > 0 && (
+                  <button
+                    onClick={() => setQuick({})}
+                    className="inline-flex shrink-0 items-center gap-1 text-xs text-zinc-400 hover:text-zinc-600"
+                  >
+                    <RotateCcw className="size-3.5" /> Wyczyść
+                  </button>
+                )}
+              </div>
+              <div className="mt-3">
+                <div className="mb-1 text-xs text-zinc-500">
+                  {quickDone} / {CHECKLIST_COUNT} odhaczone
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
+                  <div
+                    className="h-full rounded-full bg-zinc-900 transition-all"
+                    style={{ width: `${(quickDone / CHECKLIST_COUNT) * 100}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="mt-4">
+              <ChecklistGroups value={quick} onToggle={quickToggle} />
+            </div>
           </div>
         )
       )}
+    </div>
+  );
+}
+
+function ChecklistGroups({
+  value,
+  onToggle,
+}: {
+  value: Record<string, boolean>;
+  onToggle: (key: string) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      {CHECKLIST.map((group) => (
+        <div key={group.title}>
+          <h2 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+            {group.title}
+          </h2>
+          <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+            {group.items.map((item) => {
+              const done = !!value[item.key];
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => onToggle(item.key)}
+                  className="flex w-full items-center gap-3 border-b border-zinc-100 px-4 py-3.5 text-left last:border-0 hover:bg-zinc-50"
+                >
+                  <span
+                    className={`grid size-6 shrink-0 place-items-center rounded-md border transition-colors ${
+                      done
+                        ? "border-emerald-500 bg-emerald-500 text-white"
+                        : "border-zinc-300 bg-white text-transparent"
+                    }`}
+                  >
+                    <Check className="size-4" strokeWidth={3} />
+                  </span>
+                  <span
+                    className={`text-sm ${done ? "text-zinc-400 line-through" : "text-zinc-800"}`}
+                  >
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

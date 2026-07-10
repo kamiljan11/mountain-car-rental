@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-10 (wieczór, 4)
+- **Szybka checklista poglądowa (bez klienta).** Na stronie Checklista, gdy nie wybrano klienta i nie trwa wyszukiwanie, pokazuje się „Szybka checklista (poglądowa)" z tymi samymi 12 punktami. Stan trzymany tylko w oknie (`useState`) — **resetuje się przy odświeżeniu / ponownym wejściu**, nic nie zapisuje do bazy (w przeciwieństwie do wersji per klient). Pasek postępu + „Wyczyść". Render pozycji wyciągnięty do wspólnego komponentu `ChecklistGroups`, używanego przez obie wersje (per klient i poglądową).
+
 ## 2026-07-10 (wieczór, 3)
 - **Płatność Revolut — łatwo podać klientowi.** Klienci płacą głównie przez Revolut, więc dodany reużywalny komponent `RevolutPay` (`src/components/RevolutPay.tsx`) z linkiem `revolut.me/m_krokoszynska` (@m_krokoszynska): **kod QR** do zeskanowania na miejscu (generowany offline biblioteką `qrcode-generator`, bez wywołań sieciowych), **„Kopiuj link"** i **„Wyślij przez WhatsApp"** z gotową wiadomością (z imieniem klienta i kwotą; `wa.me/<numer>` gdy znamy telefon). Umieszczony: pełna karta na **Checklista** (przy wybranym kliencie, kwota z jego ostatniej rezerwacji), kompaktowy przycisk „Poproś o płatność" w **szczegółach wpisu na Kalendarzu**, oraz wiersz w **Ustawieniach**. Odbiorcę zmienia się w jednej linii (`src/lib/payment.ts`). QR + helpery zweryfikowane (poprawny data-URL, `wa.me` z numerem i bez).
 
