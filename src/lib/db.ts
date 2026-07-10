@@ -370,6 +370,49 @@ export async function insertContract(
   return toContract(data);
 }
 
+/* ---------- Checklista wydania auta (per klient) ---------- */
+
+export async function fetchCustomerChecklist(
+  customerId: string,
+): Promise<Record<string, boolean>> {
+  await requireSession();
+  if (!supabase) return {};
+  const { data, error } = await supabase
+    .from("customer_checklists")
+    .select("item_key,done")
+    .eq("customer_id", customerId);
+  if (error) {
+    console.error(error);
+    return {};
+  }
+  const out: Record<string, boolean> = {};
+  for (const r of data ?? []) out[(r as any).item_key] = !!(r as any).done;
+  return out;
+}
+
+export async function setChecklistItem(
+  customerId: string,
+  itemKey: string,
+  done: boolean,
+): Promise<boolean> {
+  await requireSession();
+  if (!supabase) return false;
+  const { error } = await supabase.from("customer_checklists").upsert(
+    {
+      customer_id: customerId,
+      item_key: itemKey,
+      done,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "customer_id,item_key" },
+  );
+  if (error) {
+    console.error(error);
+    return false;
+  }
+  return true;
+}
+
 /* ---------- Self-service booking links (kolejka wniosków) ---------- */
 
 function newToken(): string {

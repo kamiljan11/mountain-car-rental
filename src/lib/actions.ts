@@ -60,6 +60,20 @@ export async function insertContractAction(c: Omit<Contract, "id" | "createdAt">
   return db.insertContract(c);
 }
 
+/* ---------- Checklista wydania auta (per klient) ---------- */
+
+export async function fetchCustomerChecklistAction(customerId: string) {
+  return db.fetchCustomerChecklist(customerId);
+}
+
+export async function setChecklistItemAction(
+  customerId: string,
+  itemKey: string,
+  done: boolean,
+) {
+  return db.setChecklistItem(customerId, itemKey, done);
+}
+
 /* ---------- Self-service booking links ---------- */
 
 export async function createBookingLinkAction(input: {

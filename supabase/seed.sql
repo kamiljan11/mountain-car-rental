@@ -33,6 +33,12 @@ alter table rental.booking_links enable row level security;
 revoke all on rental.booking_links from anon;
 create policy "auth full" on rental.booking_links for all to authenticated using (true) with check (true);
 
+-- Checklista wydania auta przypięta do klienta (stan współdzielony przez zespół).
+create table rental.customer_checklists (customer_id uuid not null references rental.customers(id) on delete cascade, item_key text not null, done boolean not null default false, updated_at timestamptz not null default now(), primary key (customer_id, item_key));
+alter table rental.customer_checklists enable row level security;
+revoke all on rental.customer_checklists from anon;
+create policy "auth full" on rental.customer_checklists for all to authenticated using (true) with check (true);
+
 insert into rental.vehicles (id,name,registration,color,status) values ('a8b551db-a504-41c5-b38d-ad04f35addba','Pajero Blue','TG692','#2563eb','active');
 insert into rental.vehicles (id,name,registration,color,status) values ('5659fc8c-0384-4afc-ac47-47c320e1526b','Pajero Silver','SV183','#0ea5e9','active');
 insert into rental.vehicles (id,name,registration,color,status) values ('26d78c9f-1064-46d4-8c57-26c4feacd582','Vito','PKP90','#14b8a6','active');

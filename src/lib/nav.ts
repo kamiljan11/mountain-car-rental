@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   CalendarDays,
   ListChecks,
+  ClipboardCheck,
   Inbox,
   Car,
   Users,
@@ -16,6 +17,7 @@ export const NAV = [
   { href: "/requests", label: "Wnioski", icon: Inbox },
   { href: "/fleet", label: "Flota", icon: Car },
   { href: "/customers", label: "Klienci", icon: Users },
+  { href: "/checklist", label: "Checklista", icon: ClipboardCheck },
   { href: "/contracts", label: "Kontrakt", icon: FileSignature },
   { href: "/settings", label: "Ustawienia", icon: Settings },
 ] as const;
