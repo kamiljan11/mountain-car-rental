@@ -11,6 +11,7 @@ import { parseISO, differenceInCalendarDays } from "date-fns";
 import Link from "next/link";
 import { useData } from "@/components/DataProvider";
 import NewReservationWizard from "@/components/NewReservationWizard";
+import RevolutPay from "@/components/RevolutPay";
 import { useIsMobile } from "@/lib/useIsMobile";
 import { PL_MONTHS, PL_WD, fmtDate, toISODate, nowIceland } from "@/lib/dates";
 import { matchesQuery } from "@/lib/search";
@@ -520,6 +521,14 @@ export default function Timeline() {
               >
                 <FileSignature className="size-4" /> Podgląd umowy
               </Link>
+            )}
+            {selected.type === "reservation" && (
+              <RevolutPay
+                compact
+                amount={selected.total}
+                phone={customerById(selected.customerId)?.phone}
+                customerName={customerById(selected.customerId)?.name}
+              />
             )}
             <button
               onClick={() => {

@@ -1,3 +1,5 @@
+import { REVOLUT_HANDLE, REVOLUT_URL } from "@/lib/payment";
+
 const company = [
   { label: "Nazwa (marka)", value: "Mountain Car Rental" },
   { label: "Podmiot / nazwa formalna", value: "Mountain All Service ehf." },
@@ -6,6 +8,7 @@ const company = [
   { label: "Adres", value: "Njarðarbraut 6i, 260 Njarðvík" },
   { label: "E-mail", value: "mountainallservice@gmail.com" },
   { label: "Strona", value: "mountaincar.is" },
+  { label: "Płatność (Revolut)", value: `@${REVOLUT_HANDLE} · ${REVOLUT_URL}` },
 ];
 
 export default function SettingsPage() {

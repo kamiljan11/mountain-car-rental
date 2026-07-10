@@ -6,6 +6,7 @@ import { useData } from "@/components/DataProvider";
 import { useToast } from "@/components/Toast";
 import { matchesQuery } from "@/lib/search";
 import { CHECKLIST, CHECKLIST_COUNT, CHECKLIST_ITEMS } from "@/lib/checklist";
+import RevolutPay from "@/components/RevolutPay";
 import {
   fetchCustomerChecklistAction as fetchChecklist,
   setChecklistItemAction as setItem,
@@ -94,13 +95,14 @@ export default function ChecklistPage() {
   const loading = !!selectedId && loadedFor !== selectedId;
   const view = loading ? {} : state;
 
-  const custVehicle = useMemo(() => {
+  const custBooking = useMemo(() => {
     if (!selectedId) return null;
     const bs = bookings
       .filter((b) => b.customerId === selectedId)
       .sort((a, b) => (a.start < b.start ? 1 : -1));
-    return bs[0] ? vById.get(bs[0].vehicleId) ?? null : null;
-  }, [selectedId, bookings, vById]);
+    return bs[0] ?? null;
+  }, [selectedId, bookings]);
+  const custVehicle = custBooking ? vById.get(custBooking.vehicleId) ?? null : null;
 
   const doneCount = CHECKLIST_ITEMS.filter((i) => view[i.key]).length;
   const allDone = doneCount === CHECKLIST_COUNT;
@@ -266,6 +268,15 @@ export default function ChecklistPage() {
                 <User className="size-3.5" /> Profil klienta
               </Link>
             </div>
+          </div>
+
+          {/* Płatność Revolut — łatwo podać klientowi przy wydaniu */}
+          <div className="mt-4">
+            <RevolutPay
+              amount={custBooking?.total}
+              phone={selected.phone}
+              customerName={selected.name}
+            />
           </div>
 
           {/* Grupy punktów */}
