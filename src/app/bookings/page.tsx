@@ -4,7 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useData } from "@/components/DataProvider";
-import { fmtDate, monthLabel } from "@/lib/dates";
+import { fmtDate, monthLabel, nowIceland } from "@/lib/dates";
 import { isk } from "@/lib/contract";
 import { useSort } from "@/lib/useSort";
 import SortableTh from "@/components/SortableTh";
@@ -48,7 +48,7 @@ function BookingsContent() {
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [monthFilter, setMonthFilter] = useState<MonthKey | null>(null);
 
-  const today = new Date();
+  const today = nowIceland();
   const shownMonth = monthFilter ?? { y: today.getFullYear(), m: today.getMonth() };
   const moveMonth = (delta: number) => {
     setMonthFilter((prev) => {

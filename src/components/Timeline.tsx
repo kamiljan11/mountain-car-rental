@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useData } from "@/components/DataProvider";
 import NewReservationWizard from "@/components/NewReservationWizard";
 import { useIsMobile } from "@/lib/useIsMobile";
-import { PL_MONTHS, PL_WD, fmtDate, toISODate } from "@/lib/dates";
+import { PL_MONTHS, PL_WD, fmtDate, toISODate, nowIceland } from "@/lib/dates";
 import type { Booking, BookingType } from "@/lib/types";
 import { ChevronLeft, ChevronRight, Plus, X, Trash2, FileSignature, Pencil } from "lucide-react";
 
@@ -85,11 +85,11 @@ export default function Timeline() {
 
   // Ciągły pas czasu: `start` to pierwszy renderowany dzień, `dayCount` — ile dni.
   const [start, setStart] = useState<Date>(() =>
-    addDays(midnight(new Date()), -BACK_BUFFER),
+    addDays(midnight(nowIceland()), -BACK_BUFFER),
   );
   const [dayCount, setDayCount] = useState(INITIAL_DAYS);
   const [viewMonth, setViewMonth] = useState(() => {
-    const d = new Date();
+    const d = nowIceland();
     return { y: d.getFullYear(), m: d.getMonth() };
   });
 
@@ -112,7 +112,7 @@ export default function Timeline() {
   const gridW = dayCount * DAY_W;
 
   const todayIndex = useMemo(() => {
-    const i = differenceInCalendarDays(midnight(new Date()), start);
+    const i = differenceInCalendarDays(midnight(nowIceland()), start);
     return i >= 0 && i < dayCount ? i : null;
   }, [start, dayCount]);
 
@@ -248,7 +248,7 @@ export default function Timeline() {
           </div>
           <button
             onClick={() =>
-              vehicles[0] && openDraft(vehicles[0].id, midnight(new Date()))
+              vehicles[0] && openDraft(vehicles[0].id, midnight(nowIceland()))
             }
             aria-label="Nowa"
             className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-3 text-sm font-medium text-white hover:bg-zinc-800"

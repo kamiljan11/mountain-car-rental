@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import { useData } from "@/components/DataProvider";
-import { fmtDate, toISODate } from "@/lib/dates";
+import { fmtDate, toISODate, todayISO } from "@/lib/dates";
 import type { Booking, BookingType } from "@/lib/types";
 import {
   X,
@@ -56,7 +56,7 @@ export default function NewReservationWizard({
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
 
-  const today = toISODate(new Date());
+  const today = todayISO(); // „dzisiaj" po islandzku (UTC), nie wg strefy przeglądarki
   const [vehicleId, setVehicleId] = useState(
     editBooking?.vehicleId ?? initialVehicleId ?? vehicles[0]?.id ?? "",
   );
@@ -71,6 +71,13 @@ export default function NewReservationWizard({
   // wpisać przecinek/kropkę dziesiętną; parsowanie dopiero przy użyciu wartości.
   const [dailyRate, setDailyRate] = useState(String(editBooking?.dailyRate ?? 0));
   const [deposit, setDeposit] = useState(String(editBooking?.deposit ?? 0));
+  // Stan licznika (km) — rozliczenie kilometrów z urzędem; puste = nie wpisany.
+  const [odoStart, setOdoStart] = useState(
+    editBooking?.odometerStart != null ? String(editBooking.odometerStart) : "",
+  );
+  const [odoEnd, setOdoEnd] = useState(
+    editBooking?.odometerEnd != null ? String(editBooking.odometerEnd) : "",
+  );
 
   const [customerId, setCustomerId] = useState<string | null>(editBooking?.customerId ?? null);
   const [customerSearch, setCustomerSearch] = useState("");
@@ -87,6 +94,11 @@ export default function NewReservationWizard({
   const rateNum = Number(dailyRate.replace(",", ".")) || 0;
   const depositNum = Number(deposit.replace(",", ".")) || 0;
   const total = rateNum * days;
+  // Licznik: liczba całkowita km albo undefined (pole puste / nie-liczba).
+  const odo = (v: string) => {
+    const n = Math.round(Number(v.replace(/\s/g, "").replace(",", ".")));
+    return v.trim() && Number.isFinite(n) && n >= 0 ? n : undefined;
+  };
 
   const conflicts = useMemo(() => {
     if (!vehicleId || !start || !end) return [];
@@ -135,6 +147,8 @@ export default function NewReservationWizard({
       dailyRate: rateNum || undefined,
       total: total || undefined,
       deposit: depositNum || undefined,
+      odometerStart: odo(odoStart),
+      odometerEnd: odo(odoEnd),
       notes: notes || undefined,
     };
     const ok = editBooking
@@ -369,6 +383,30 @@ export default function NewReservationWizard({
                     <div className="mt-2 flex items-center justify-between border-t border-zinc-100 pt-2 text-sm font-semibold text-zinc-900">
                       <span>Suma całkowita</span>
                       <span>{total.toLocaleString("pl-PL")} ISK</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>
+                      Stan licznika (km) — do rozliczenia kilometrów z urzędem
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={odoStart}
+                        onChange={(e) => setOdoStart(e.target.value)}
+                        placeholder="przy wydaniu"
+                        className={inputCls}
+                      />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={odoEnd}
+                        onChange={(e) => setOdoEnd(e.target.value)}
+                        placeholder="przy zwrocie"
+                        className={inputCls}
+                      />
                     </div>
                   </div>
 

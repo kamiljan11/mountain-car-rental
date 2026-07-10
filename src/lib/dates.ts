@@ -25,3 +25,19 @@ export function toISODate(d: Date) {
     d.getDate(),
   ).padStart(2, "0")}`;
 }
+
+// „Teraz" i „dzisiaj" liczone po ISLANDZKU. Islandia używa UTC przez cały rok
+// (nie ma czasu letniego), więc czas islandzki = czas UTC. Cała apka ma liczyć
+// bieżący dzień/miesiąc od tych helperów, NIE od new Date() — czas lokalny
+// przeglądarki (np. Polska, UTC+1/+2) wieczorem pokazuje już „jutrzejszą" datę
+// względem Keflavíku, co przesuwa „dzisiaj" w kalendarzu, dashboardzie i umowach.
+export function nowIceland(): Date {
+  const d = new Date();
+  // Przesuwamy chwilę tak, żeby lokalne komponenty (getFullYear/getMonth/getDate)
+  // tego obiektu odpowiadały komponentom UTC — bezpieczne dla date-fns.
+  return new Date(d.getTime() + d.getTimezoneOffset() * 60000);
+}
+
+export function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}

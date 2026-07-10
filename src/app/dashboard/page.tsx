@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { parseISO, differenceInCalendarDays } from "date-fns";
 import { useData } from "@/components/DataProvider";
-import { fmtDate, toISODate } from "@/lib/dates";
+import { fmtDate, todayISO } from "@/lib/dates";
 import { isk } from "@/lib/contract";
 import type { Booking, BookingType } from "@/lib/types";
 import NewReservationWizard from "@/components/NewReservationWizard";
@@ -78,7 +78,7 @@ export default function DashboardPage() {
   const { vehicles, bookings, customers, vehicleById, customerById } = useData();
   const [showWizard, setShowWizard] = useState(false);
 
-  const today = toISODate(new Date());
+  const today = todayISO(); // „dzisiaj" po islandzku (UTC)
 
   const stats = useMemo(() => {
     const live = bookings.filter((b) => b.status !== "cancelled");

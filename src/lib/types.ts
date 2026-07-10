@@ -73,6 +73,10 @@ export interface Booking {
   dailyRate?: number;
   total?: number;
   deposit?: number;
+  // Stan licznika przy wydaniu/zwrocie (km) — potrzebny do rozliczenia
+  // kilometrów z urzędem w Islandii (kílómetragjald).
+  odometerStart?: number;
+  odometerEnd?: number;
   platform?: string;
   external_ref?: string;
   notes?: string;

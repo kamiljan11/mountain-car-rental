@@ -69,6 +69,8 @@ function toBooking(r: any): Booking {
     dailyRate: r.daily_rate != null ? Number(r.daily_rate) : undefined,
     total: r.total_price != null ? Number(r.total_price) : undefined,
     deposit: r.deposit != null ? Number(r.deposit) : undefined,
+    odometerStart: r.odometer_start != null ? Number(r.odometer_start) : undefined,
+    odometerEnd: r.odometer_end != null ? Number(r.odometer_end) : undefined,
     platform: r.platform ?? undefined,
     external_ref: r.external_ref ?? undefined,
     notes: r.notes ?? undefined,
@@ -163,6 +165,8 @@ export async function insertBooking(b: Omit<Booking, "id">): Promise<Booking> {
       daily_rate: b.dailyRate ?? null,
       total_price: b.total ?? null,
       deposit: b.deposit ?? null,
+      odometer_start: b.odometerStart ?? null,
+      odometer_end: b.odometerEnd ?? null,
       notes: b.notes ?? null,
     })
     .select()
@@ -190,6 +194,8 @@ export async function updateBooking(
   if (b.dailyRate !== undefined) row.daily_rate = b.dailyRate ?? null;
   if (b.total !== undefined) row.total_price = b.total ?? null;
   if (b.deposit !== undefined) row.deposit = b.deposit ?? null;
+  if (b.odometerStart !== undefined) row.odometer_start = b.odometerStart ?? null;
+  if (b.odometerEnd !== undefined) row.odometer_end = b.odometerEnd ?? null;
   if (b.notes !== undefined) row.notes = b.notes ?? null;
   const { data, error } = await supabase
     .from("bookings")

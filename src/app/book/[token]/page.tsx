@@ -13,7 +13,7 @@ import {
   Clock,
   AlertTriangle,
 } from "lucide-react";
-import { fmtDate, toISODate, monthLabel } from "@/lib/dates";
+import { fmtDate, toISODate, monthLabel, todayISO, nowIceland } from "@/lib/dates";
 import type { PublicBookingView } from "@/lib/types";
 
 const WD = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"]; // tydzień od poniedziałku
@@ -191,7 +191,7 @@ function Wizard({
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState("");
 
-  const today = toISODate(new Date());
+  const today = todayISO(); // dostępność liczona wg daty islandzkiej (UTC)
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim());
@@ -458,7 +458,7 @@ function Calendar({
   end: string;
   onPick: (start: string, end: string) => void;
 }) {
-  const now = new Date();
+  const now = nowIceland();
   const [cursor, setCursor] = useState({ y: now.getFullYear(), m: now.getMonth() });
 
   const unavailable = useMemo(() => {

@@ -1,6 +1,6 @@
 import type { Customer, Vehicle, Booking, CustomerDocument } from "./types";
 import { isCompanyCustomer, DOC_TYPES } from "./types";
-import { fmtDate } from "./dates";
+import { fmtDate, todayISO } from "./dates";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 
 export const COMPANY = {
@@ -190,7 +190,7 @@ const WYDANIE = `
 </div>
 <h2>Stan pojazdu przy wydaniu</h2>
 <table class="kv">
-  <tr><td>Przebieg pojazdu</td><td>______________ km</td></tr>
+  <tr><td>Przebieg pojazdu</td><td>{{PRZEBIEG_WYD}}</td></tr>
   <tr><td>Stan paliwa</td><td>______________ %</td></tr>
   <tr><td>Czystość — wnętrze</td><td>☐ czyste&nbsp;&nbsp;☐ do czyszczenia</td></tr>
   <tr><td>Czystość — karoseria</td><td>☐ czysta&nbsp;&nbsp;☐ do mycia</td></tr>
@@ -217,7 +217,7 @@ const ZWROT = `
 </div>
 <h2>Stan pojazdu przy zwrocie</h2>
 <table class="kv">
-  <tr><td>Przebieg pojazdu</td><td>______________ km</td></tr>
+  <tr><td>Przebieg pojazdu</td><td>{{PRZEBIEG_ZWR}}</td></tr>
   <tr><td>Stan paliwa</td><td>______________ %</td></tr>
   <tr><td>Nowe uszkodzenia — karoseria</td><td>☐ brak&nbsp;&nbsp;☐ małe&nbsp;&nbsp;☐ średnie&nbsp;&nbsp;☐ duże</td></tr>
   <tr><td>Nowe uszkodzenia — wnętrze</td><td>☐ brak&nbsp;&nbsp;☐ małe&nbsp;&nbsp;☐ średnie&nbsp;&nbsp;☐ duże</td></tr>
@@ -294,6 +294,16 @@ export function buildFilled(
     LIMIT_KM: "Brak limitu",
     KAUCJA: isk(booking?.deposit ?? 0),
     UDZIAL: "0 ISK",
+    // Stan licznika z rezerwacji (rozliczenie kilometrów z urzędem); gdy nie
+    // wpisany — pusta linia do ręcznego uzupełnienia na protokole.
+    PRZEBIEG_WYD:
+      booking?.odometerStart != null
+        ? `${booking.odometerStart.toLocaleString("pl-PL")} km`
+        : "______________ km",
+    PRZEBIEG_ZWR:
+      booking?.odometerEnd != null
+        ? `${booking.odometerEnd.toLocaleString("pl-PL")} km`
+        : "______________ km",
     KWOTA: isk(booking?.total),
     STAWKA: isk(booking?.dailyRate ?? vehicle?.dailyRate),
     PRACOWNIK: ctx.employee || DASH,
@@ -322,6 +332,17 @@ export function contractsForCustomer(id: string) {
   return getContracts().filter((c) => c.customerId === id);
 }
 
-export function makeNumber() {
-  return `${Math.floor(Math.random() * 9000) + 1000}/07/2026`;
+// Numer umowy nadaje się sam: kolejny numer w bieżącym miesiącu (wg czasu
+// islandzkiego), format NN/MM/RRRR — np. 03/07/2026. Sekwencja liczona z już
+// zapisanych umów w bazie, więc jest wspólna dla wszystkich urządzeń i nie
+// resetuje się po odświeżeniu.
+export function makeNumber(existing: { number: string }[], isoDate = todayISO()) {
+  const suffix = `/${isoDate.slice(5, 7)}/${isoDate.slice(0, 4)}`;
+  const used = existing
+    .map((c) => c.number)
+    .filter((n) => n.endsWith(suffix))
+    .map((n) => parseInt(n, 10))
+    .filter(Number.isFinite);
+  const next = (used.length ? Math.max(...used) : 0) + 1;
+  return `${String(next).padStart(2, "0")}${suffix}`;
 }

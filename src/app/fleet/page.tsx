@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useData } from "@/components/DataProvider";
-import { PL_MONTHS, fmtDate } from "@/lib/dates";
+import { PL_MONTHS, fmtDate, nowIceland } from "@/lib/dates";
 import { useSort } from "@/lib/useSort";
 import SortableTh from "@/components/SortableTh";
 import { differenceInCalendarDays, parseISO } from "date-fns";
@@ -13,7 +13,7 @@ import { Pencil } from "lucide-react";
 
 function Expiry({ iso }: { iso?: string }) {
   if (!iso) return <span className="text-zinc-400">—</span>;
-  const d = differenceInCalendarDays(parseISO(iso), new Date());
+  const d = differenceInCalendarDays(parseISO(iso), nowIceland());
   const cls =
     d < 0
       ? "bg-red-100 text-red-700"
@@ -71,7 +71,7 @@ export default function FleetPage() {
   const { vehicles, bookings, updateVehicle } = useData();
   const [editing, setEditing] = useState<Vehicle | null>(null);
 
-  const now = new Date();
+  const now = nowIceland();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 

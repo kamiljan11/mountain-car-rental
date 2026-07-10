@@ -4,9 +4,13 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useData } from "@/components/DataProvider";
-import { TEMPLATES, buildFilled, makeNumber } from "@/lib/contract";
-import { insertContractAction as insertContract, fetchCustomerDocumentsAction as fetchCustomerDocuments } from "@/lib/actions";
-import { fmtDate } from "@/lib/dates";
+import { TEMPLATES, buildFilled, makeNumber, type Contract } from "@/lib/contract";
+import {
+  insertContractAction as insertContract,
+  fetchCustomerDocumentsAction as fetchCustomerDocuments,
+  fetchContractsAction as fetchContracts,
+} from "@/lib/actions";
+import { fmtDate, todayISO } from "@/lib/dates";
 import type { Customer, CustomerDocument } from "@/lib/types";
 import { isCompanyCustomer, DOC_TYPES } from "@/lib/types";
 import { useToast } from "@/components/Toast";
@@ -43,6 +47,18 @@ function ContractsContent() {
   const [employee, setEmployee] = useState("");
   const [sentTo, setSentTo] = useState<{ name: string; id: string } | null>(null);
   const [documents, setDocuments] = useState<CustomerDocument[]>([]);
+  // Wszystkie umowy z bazy — do auto-numeracji (kolejny numer w bieżącym miesiącu).
+  const [allContracts, setAllContracts] = useState<Contract[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+    fetchContracts().then((list) => {
+      if (alive) setAllContracts(list);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const template = TEMPLATES.find((t) => t.id === templateId)!;
   const customer = customers.find((c) => c.id === customerId);
@@ -67,9 +83,12 @@ function ContractsContent() {
     activeDocuments.some((d) => d.docType === DOC_TYPES[0]),
   );
 
-  const today = new Date().toLocaleDateString("pl-PL");
+  // Numer i data zawarcia nadają się same: kolejny numer w miesiącu + dzisiejsza
+  // data wg czasu islandzkiego (widoczne już w podglądzie, przed wysłaniem).
+  const nextNumber = makeNumber(allContracts);
+  const today = fmtDate(todayISO());
   const preview = buildFilled(template, {
-    number: "RT/2026/____",
+    number: nextNumber,
     customer,
     vehicle,
     booking,
@@ -80,7 +99,7 @@ function ContractsContent() {
 
   const send = async () => {
     if (!customer) return;
-    const number = makeNumber();
+    const number = nextNumber;
     const content = buildFilled(template, {
       number,
       customer,
@@ -104,6 +123,8 @@ function ContractsContent() {
       showToast("error", "Nie udało się zapisać umowy. Spróbuj ponownie.");
       return;
     }
+    // Dopisz do lokalnej listy, żeby następny numer od razu się przesunął.
+    setAllContracts((prev) => [saved, ...prev]);
     setSentTo({ name: customer.name, id: customer.id });
   };
 
