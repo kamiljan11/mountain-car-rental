@@ -6,7 +6,15 @@ import { AUTH_COOKIE, verifySession } from "@/lib/auth";
 // publiczne zasoby statyczne (ikony/manifest/SW czytane przez przeglądarkę
 // bez ciasteczka sesji w niektórych kontekstach).
 const PUBLIC_PATHS = ["/login", "/api/login", "/api/login/google", "/api/logout"];
-const PUBLIC_PREFIXES = ["/icons/", "/icon.png", "/apple-icon.png", "/manifest.webmanifest", "/sw.js"];
+const PUBLIC_PREFIXES = ["/icons/", "/icon.png", "/apple-icon.png", "/manifest.webmanifest", "/sw.js", "/book/", "/api/book/"];
+
+// Publiczne ścieżki KLIENTA (self-service booking) muszą ominąć także ścianę
+// Basic Auth — klient nie zna hasła zespołu. Pozostałe publiczne ścieżki
+// (/login, zasoby statyczne) zostają za Basic Auth bez zmian.
+const CLIENT_PUBLIC_PREFIXES = ["/book/", "/api/book/"];
+function isClientPublic(pathname: string) {
+  return CLIENT_PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
+}
 
 function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.includes(pathname)) return true;
@@ -46,10 +54,14 @@ async function checkBasicAuth(request: NextRequest): Promise<NextResponse | null
 // w db.ts (requireSession()). To tylko przekierowuje niezalogowanych zamiast
 // renderować pustą/zepsutą stronę.
 export async function proxy(request: NextRequest) {
-  const basicAuthBlock = await checkBasicAuth(request);
-  if (basicAuthBlock) return basicAuthBlock;
-
   const pathname = request.nextUrl.pathname;
+
+  // Ścieżki klienta bookującego omijają ścianę Basic Auth (nie zna hasła zespołu).
+  if (!isClientPublic(pathname)) {
+    const basicAuthBlock = await checkBasicAuth(request);
+    if (basicAuthBlock) return basicAuthBlock;
+  }
+
   const session = await verifySession(request.cookies.get(AUTH_COOKIE)?.value);
 
   if (pathname === "/login") {

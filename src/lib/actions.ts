@@ -59,3 +59,29 @@ export async function fetchContractsAction(customerId?: string) {
 export async function insertContractAction(c: Omit<Contract, "id" | "createdAt">) {
   return db.insertContract(c);
 }
+
+/* ---------- Self-service booking links ---------- */
+
+export async function createBookingLinkAction(input: {
+  vehicleId: string;
+  suggestedStart?: string;
+  suggestedEnd?: string;
+  suggestedDailyRate?: number;
+  suggestedDeposit?: number;
+  noteToClient?: string;
+}) {
+  return db.createBookingLink(input);
+}
+
+export async function fetchBookingLinksAction() {
+  return db.fetchBookingLinks();
+}
+
+export async function decideBookingRequestAction(input: {
+  id: string;
+  decision: "confirm" | "request_changes" | "reject";
+  adminNote?: string;
+  origin: string;
+}) {
+  return db.decideBookingRequest(input);
+}

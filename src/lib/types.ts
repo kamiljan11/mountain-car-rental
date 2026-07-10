@@ -87,3 +87,63 @@ export interface Payment {
   status?: "paid" | "pending";
   paidAt?: string;
 }
+
+export type BookingLinkStatus =
+  | "awaiting_client" // link wygenerowany, klient jeszcze nie wysłał
+  | "submitted" // klient wypełnił — czeka na decyzję zespołu
+  | "confirmed" // zespół potwierdził → powstał booking + klient
+  | "changes_requested" // zespół poprosił o poprawki → wystawiono nowy link
+  | "rejected"
+  | "expired";
+
+// Self-service booking link = jednorazowy, wygasający (60 min) link, którym klient
+// sam wypełnia rezerwację WSKAZANEGO auta. Jeden wiersz = jeden link = jedna próba.
+export interface BookingLink {
+  id: string;
+  token: string;
+  vehicleId: string;
+  status: BookingLinkStatus;
+  expiresAt: string;
+  suggestedStart?: string;
+  suggestedEnd?: string;
+  suggestedDailyRate?: number;
+  suggestedDeposit?: number;
+  noteToClient?: string;
+  clientName?: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  clientAddress?: string;
+  clientIdNumber?: string;
+  clientLicense?: string;
+  reqStart?: string;
+  reqEnd?: string;
+  clientNote?: string;
+  adminNote?: string;
+  decidedAt?: string;
+  createdBookingId?: string;
+  createdCustomerId?: string;
+  supersedesId?: string;
+  createdBy?: string;
+  submittedAt?: string;
+  createdAt?: string;
+}
+
+// Co widzi PUBLICZNY kreator (GET /api/book/[token]) — absolutne minimum, żeby
+// klient wybrał daty. Zero danych innych klientów, innych aut czy cen — tylko to
+// jedno auto i jego zajęte zakresy dat.
+export interface PublicBookingView {
+  status: BookingLinkStatus;
+  vehicle: { name: string; plate?: string; color: string };
+  bookedRanges: { start: string; end: string }[];
+  suggestedStart?: string;
+  suggestedEnd?: string;
+  noteToClient?: string;
+  prefill?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    idNumber?: string;
+    license?: string;
+  };
+}

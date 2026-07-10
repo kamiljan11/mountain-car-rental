@@ -18,8 +18,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Strona logowania renderuje się samodzielnie — bez nawigacji i bez pobierania danych.
-  if (pathname === "/login") {
+  // Strona logowania oraz publiczny kreator bookingu klienta (/book/[token])
+  // renderują się samodzielnie — bez nawigacji, bez DataProvider (który odpytałby
+  // zalogowaną bazę) i bez auth. ToastProvider (z layoutu) nadal jest dostępny.
+  if (pathname === "/login" || pathname.startsWith("/book/")) {
     return <>{children}</>;
   }
 

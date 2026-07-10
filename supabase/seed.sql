@@ -23,6 +23,16 @@ create policy "public" on rental.contracts for all to anon, authenticated using 
 alter table rental.settings enable row level security;
 create policy "public" on rental.settings for all to anon, authenticated using (true) with check (true);
 
+-- Self-service booking links (klient sam wypełnia rezerwację wskazanego auta przez
+-- wygasający link). Dostęp publiczny tylko serwerowo przez service_role scoped po
+-- tokenie; anon bez dostępu (RLS + revoke), authenticated pełny.
+create table rental.booking_links (id uuid primary key default gen_random_uuid(), token text not null unique, vehicle_id uuid references rental.vehicles(id) on delete cascade, status text not null default 'awaiting_client', expires_at timestamptz not null, suggested_start date, suggested_end date, suggested_daily_rate numeric(12,2), suggested_deposit numeric(12,2), note_to_client text, client_name text, client_email text, client_phone text, client_address text, client_id_number text, client_license text, req_start date, req_end date, client_note text, admin_note text, decided_at timestamptz, created_booking_id uuid, created_customer_id uuid, supersedes_id uuid references rental.booking_links(id) on delete set null, created_by text, submitted_at timestamptz, created_at timestamptz default now());
+create index booking_links_token_idx on rental.booking_links (token);
+create index booking_links_status_idx on rental.booking_links (status);
+alter table rental.booking_links enable row level security;
+revoke all on rental.booking_links from anon;
+create policy "auth full" on rental.booking_links for all to authenticated using (true) with check (true);
+
 insert into rental.vehicles (id,name,registration,color,status) values ('a8b551db-a504-41c5-b38d-ad04f35addba','Pajero Blue','TG692','#2563eb','active');
 insert into rental.vehicles (id,name,registration,color,status) values ('5659fc8c-0384-4afc-ac47-47c320e1526b','Pajero Silver','SV183','#0ea5e9','active');
 insert into rental.vehicles (id,name,registration,color,status) values ('26d78c9f-1064-46d4-8c57-26c4feacd582','Vito','PKP90','#14b8a6','active');

@@ -6,8 +6,10 @@ import {
   customers as seedCustomers,
   bookings as seedBookings,
 } from "./data";
-import type { Vehicle, Customer, Booking, CustomerDocument } from "./types";
+import type { Vehicle, Customer, Booking, CustomerDocument, BookingLink } from "./types";
 import type { Contract } from "./contract";
+import { randomBytes } from "crypto";
+import { sendEmail, emailConfirmed, emailChanges, emailRejected } from "./email";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function toVehicle(r: any): Vehicle {
@@ -360,4 +362,236 @@ export async function insertContract(
     return null;
   }
   return toContract(data);
+}
+
+/* ---------- Self-service booking links (kolejka wniosków) ---------- */
+
+function newToken(): string {
+  return randomBytes(24).toString("base64url");
+}
+
+function toBookingLink(r: any): BookingLink {
+  return {
+    id: r.id,
+    token: r.token,
+    vehicleId: r.vehicle_id,
+    status: r.status,
+    expiresAt: r.expires_at,
+    suggestedStart: r.suggested_start ?? undefined,
+    suggestedEnd: r.suggested_end ?? undefined,
+    suggestedDailyRate: r.suggested_daily_rate != null ? Number(r.suggested_daily_rate) : undefined,
+    suggestedDeposit: r.suggested_deposit != null ? Number(r.suggested_deposit) : undefined,
+    noteToClient: r.note_to_client ?? undefined,
+    clientName: r.client_name ?? undefined,
+    clientEmail: r.client_email ?? undefined,
+    clientPhone: r.client_phone ?? undefined,
+    clientAddress: r.client_address ?? undefined,
+    clientIdNumber: r.client_id_number ?? undefined,
+    clientLicense: r.client_license ?? undefined,
+    reqStart: r.req_start ? String(r.req_start).slice(0, 10) : undefined,
+    reqEnd: r.req_end ? String(r.req_end).slice(0, 10) : undefined,
+    clientNote: r.client_note ?? undefined,
+    adminNote: r.admin_note ?? undefined,
+    decidedAt: r.decided_at ?? undefined,
+    createdBookingId: r.created_booking_id ?? undefined,
+    createdCustomerId: r.created_customer_id ?? undefined,
+    supersedesId: r.supersedes_id ?? undefined,
+    createdBy: r.created_by ?? undefined,
+    submittedAt: r.submitted_at ?? undefined,
+    createdAt: r.created_at ?? undefined,
+  };
+}
+
+export async function createBookingLink(input: {
+  vehicleId: string;
+  suggestedStart?: string;
+  suggestedEnd?: string;
+  suggestedDailyRate?: number;
+  suggestedDeposit?: number;
+  noteToClient?: string;
+}): Promise<{ ok: boolean; token?: string; message?: string }> {
+  const session = await requireSession();
+  if (!supabase) return { ok: false, message: "Baza niedostępna." };
+  if (!input.vehicleId) return { ok: false, message: "Wybierz pojazd." };
+  const token = newToken();
+  const { error } = await supabase.from("booking_links").insert({
+    token,
+    vehicle_id: input.vehicleId,
+    status: "awaiting_client",
+    expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    suggested_start: input.suggestedStart || null,
+    suggested_end: input.suggestedEnd || null,
+    suggested_daily_rate: input.suggestedDailyRate ?? null,
+    suggested_deposit: input.suggestedDeposit ?? null,
+    note_to_client: input.noteToClient?.trim() || null,
+    created_by: session.u,
+  });
+  if (error) {
+    console.error(error);
+    return { ok: false, message: "Nie udało się utworzyć linku." };
+  }
+  return { ok: true, token };
+}
+
+export async function fetchBookingLinks(): Promise<BookingLink[]> {
+  await requireSession();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("booking_links")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) {
+    console.error(error);
+    return [];
+  }
+  return (data ?? []).map(toBookingLink);
+}
+
+export async function decideBookingRequest(input: {
+  id: string;
+  decision: "confirm" | "request_changes" | "reject";
+  adminNote?: string;
+  origin: string;
+}): Promise<{ ok: boolean; message?: string }> {
+  const session = await requireSession();
+  if (!supabase) return { ok: false, message: "Baza niedostępna." };
+
+  const { data: link } = await supabase
+    .from("booking_links")
+    .select("*")
+    .eq("id", input.id)
+    .maybeSingle();
+  if (!link) return { ok: false, message: "Nie znaleziono wniosku." };
+  if (link.status !== "submitted")
+    return { ok: false, message: "Ten wniosek został już rozstrzygnięty." };
+
+  const nowIso = new Date().toISOString();
+  const note = input.adminNote?.trim() || null;
+
+  if (input.decision === "confirm") {
+    // Dedup klienta po e-mailu; inaczej nowy rekord z pełnymi danymi pod umowę.
+    let customerId: string | null = null;
+    if (link.client_email) {
+      const { data: existing } = await supabase
+        .from("customers")
+        .select("id")
+        .eq("email", link.client_email)
+        .maybeSingle();
+      customerId = existing?.id ?? null;
+    }
+    if (!customerId) {
+      const { data: cust, error: ce } = await supabase
+        .from("customers")
+        .insert({
+          full_name: link.client_name,
+          email: link.client_email,
+          phone: link.client_phone,
+          address: link.client_address,
+          id_number: link.client_id_number,
+          license_number: link.client_license,
+          source: "Self-service",
+        })
+        .select("id")
+        .single();
+      if (ce) {
+        console.error(ce);
+        return { ok: false, message: "Nie udało się zapisać klienta." };
+      }
+      customerId = cust.id;
+    }
+    const { data: bk, error: be } = await supabase
+      .from("bookings")
+      .insert({
+        vehicle_id: link.vehicle_id,
+        customer_id: customerId,
+        type: "reservation",
+        status: "confirmed",
+        start_at: link.req_start,
+        end_at: link.req_end,
+        daily_rate: link.suggested_daily_rate,
+        deposit: link.suggested_deposit,
+        notes: link.client_note,
+      })
+      .select("id")
+      .single();
+    if (be) {
+      console.error(be);
+      return { ok: false, message: "Nie udało się utworzyć rezerwacji." };
+    }
+    await supabase
+      .from("booking_links")
+      .update({
+        status: "confirmed",
+        decided_at: nowIso,
+        created_booking_id: bk.id,
+        created_customer_id: customerId,
+        admin_note: note,
+      })
+      .eq("id", input.id);
+    if (link.client_email) {
+      const { data: veh } = await supabase
+        .from("vehicles")
+        .select("name")
+        .eq("id", link.vehicle_id)
+        .maybeSingle();
+      const { subject, html } = emailConfirmed({
+        vehicleName: veh?.name ?? "Pojazd",
+        start: String(link.req_start).slice(0, 10),
+        end: String(link.req_end).slice(0, 10),
+      });
+      await sendEmail({ to: link.client_email, subject, html });
+    }
+    return { ok: true };
+  }
+
+  if (input.decision === "request_changes") {
+    // Nowy link kopiujący dane klienta jako prefill; świeży token + 60 min.
+    const token = newToken();
+    const { error: ne } = await supabase.from("booking_links").insert({
+      token,
+      vehicle_id: link.vehicle_id,
+      status: "awaiting_client",
+      expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      suggested_start: link.req_start,
+      suggested_end: link.req_end,
+      suggested_daily_rate: link.suggested_daily_rate,
+      suggested_deposit: link.suggested_deposit,
+      note_to_client: note || link.note_to_client,
+      client_name: link.client_name,
+      client_email: link.client_email,
+      client_phone: link.client_phone,
+      client_address: link.client_address,
+      client_id_number: link.client_id_number,
+      client_license: link.client_license,
+      supersedes_id: link.id,
+      created_by: session.u,
+    });
+    if (ne) {
+      console.error(ne);
+      return { ok: false, message: "Nie udało się utworzyć nowego linku." };
+    }
+    await supabase
+      .from("booking_links")
+      .update({ status: "changes_requested", decided_at: nowIso, admin_note: note })
+      .eq("id", input.id);
+    if (link.client_email) {
+      const { subject, html } = emailChanges({
+        reason: note || "",
+        link: `${input.origin}/book/${token}`,
+      });
+      await sendEmail({ to: link.client_email, subject, html });
+    }
+    return { ok: true };
+  }
+
+  // reject
+  await supabase
+    .from("booking_links")
+    .update({ status: "rejected", decided_at: nowIso, admin_note: note })
+    .eq("id", input.id);
+  if (link.client_email) {
+    const { subject, html } = emailRejected({ reason: note || "" });
+    await sendEmail({ to: link.client_email, subject, html });
+  }
+  return { ok: true };
 }
