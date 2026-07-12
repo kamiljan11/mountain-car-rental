@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useData } from "@/components/DataProvider";
-import { TEMPLATES, buildFilled, makeNumber, type Contract } from "@/lib/contract";
+import { TEMPLATES, COMPANIES, buildFilled, makeNumber, type Contract } from "@/lib/contract";
 import {
   insertContractAction as insertContract,
   fetchCustomerDocumentsAction as fetchCustomerDocuments,
@@ -42,6 +42,7 @@ function ContractsContent() {
   const searchParams = useSearchParams();
   const showToast = useToast();
   const [templateId, setTemplateId] = useState(TEMPLATES[0].id);
+  const [companyKey, setCompanyKey] = useState<string>(COMPANIES[0].key);
   const [customerId, setCustomerId] = useState(searchParams.get("customerId") ?? "");
   const [bookingId, setBookingId] = useState(searchParams.get("bookingId") ?? "");
   const [employee, setEmployee] = useState("");
@@ -61,6 +62,7 @@ function ContractsContent() {
   }, []);
 
   const template = TEMPLATES.find((t) => t.id === templateId)!;
+  const company = COMPANIES.find((c) => c.key === companyKey) ?? COMPANIES[0];
   const customer = customers.find((c) => c.id === customerId);
   const custBookings = bookings.filter((b) => b.customerId === customerId);
   const booking = custBookings.find((b) => b.id === bookingId);
@@ -95,6 +97,7 @@ function ContractsContent() {
     employee,
     date: today,
     documents: activeDocuments,
+    company,
   });
 
   const send = async () => {
@@ -108,6 +111,7 @@ function ContractsContent() {
       employee,
       date: today,
       documents: activeDocuments,
+      company,
     });
     const saved = await insertContract({
       number,
@@ -143,6 +147,31 @@ function ContractsContent() {
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
             </select>
+          </Field>
+          <Field label="Firma na umowie (Wynajmujący)">
+            <div className="flex gap-2">
+              {COMPANIES.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  onClick={() => setCompanyKey(c.key)}
+                  className={`flex-1 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors ${
+                    companyKey === c.key
+                      ? "border-zinc-900 bg-zinc-900 text-white"
+                      : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
+                  }`}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+            {!company.kennitala && (
+              <p className="mt-1.5 flex items-start gap-1.5 text-xs text-amber-600">
+                <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
+                {company.label}: kennitala i VSK-nr do uzupełnienia — na umowie będą
+                puste linie do wpisania.
+              </p>
+            )}
           </Field>
           <Field label="Klient">
             <select

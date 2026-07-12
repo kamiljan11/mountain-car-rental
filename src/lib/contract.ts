@@ -3,15 +3,49 @@ import { isCompanyCustomer, DOC_TYPES } from "./types";
 import { fmtDate, todayISO } from "./dates";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 
-export const COMPANY = {
-  legalName: "Mountain All Service ehf.",
-  brand: "Mountain Car Rental",
-  kennitala: "6907250450",
-  vat: "158052",
-  address: "Njarðarbraut 6i, 260 Njarðvík, Islandia",
-  email: "mountainallservice@gmail.com",
-  web: "https://mountaincar.is",
-};
+export interface Company {
+  key: "mountain" | "rebel";
+  label: string; // krótka nazwa do przełącznika
+  legalName: string;
+  brand: string;
+  kennitala: string;
+  vat: string;
+  address: string;
+  email: string;
+  web: string;
+}
+
+// Dwie firmy do wyboru przy generowaniu umowy (Wynajmujący). Mountain Car ma
+// komplet danych. Rebel Travel — nazwa/adres/kontakt zweryfikowane (rebeltravel.is,
+// RentHelp: Skógarhlíð 10), ale kennitala i VSK-nr do potwierdzenia — nie wpisujemy
+// zmyślonych numerów na umowę prawną; puste = linia do uzupełnienia na dokumencie.
+export const COMPANIES: Company[] = [
+  {
+    key: "mountain",
+    label: "Mountain Car",
+    legalName: "Mountain All Service ehf.",
+    brand: "Mountain Car Rental",
+    kennitala: "6907250450",
+    vat: "158052",
+    address: "Njarðarbraut 6i, 260 Njarðvík, Islandia",
+    email: "mountainallservice@gmail.com",
+    web: "https://mountaincar.is",
+  },
+  {
+    key: "rebel",
+    label: "Rebel Travel",
+    legalName: "Rebel Travel ehf",
+    brand: "Rebel Travel",
+    kennitala: "", // do uzupełnienia (potwierdzić z Rebel Travel)
+    vat: "", // do uzupełnienia
+    address: "Skógarhlíð 10, 105 Reykjavík, Islandia",
+    email: "info@rebeltravel.is",
+    web: "https://rebeltravel.is",
+  },
+];
+
+// Domyślna firma (zgodność wstecz) = Mountain Car, to co było dotąd.
+export const COMPANY = COMPANIES[0];
 
 export interface ContractTemplate {
   id: string;
@@ -256,9 +290,12 @@ export function buildFilled(
     employee?: string;
     date: string;
     documents?: CustomerDocument[];
+    company?: Company;
   },
 ) {
   const { customer, vehicle, booking } = ctx;
+  const company = ctx.company ?? COMPANIES[0];
+  const fill = "______________";
   const dni =
     booking != null
       ? String(differenceInCalendarDays(parseISO(booking.end), parseISO(booking.start)) + 1)
@@ -270,13 +307,13 @@ export function buildFilled(
     REZ: rez,
     DATA_ZAWARCIA: ctx.date,
     DATA_PROTOKOL: ctx.date,
-    FIRMA: COMPANY.brand,
-    FIRMA_LEGAL: COMPANY.legalName,
-    FIRMA_KT: COMPANY.kennitala,
-    FIRMA_VAT: COMPANY.vat,
-    FIRMA_ADRES: COMPANY.address,
-    FIRMA_WWW: COMPANY.web,
-    FIRMA_EMAIL: COMPANY.email,
+    FIRMA: company.brand,
+    FIRMA_LEGAL: company.legalName,
+    FIRMA_KT: company.kennitala || fill,
+    FIRMA_VAT: company.vat || fill,
+    FIRMA_ADRES: company.address,
+    FIRMA_WWW: company.web,
+    FIRMA_EMAIL: company.email,
     NAJEMCA: customer?.name ?? DASH,
     NAJEMCA_PESEL: customer?.id_number ?? DASH,
     NAJEMCA_PJ: customer?.license ?? DASH,

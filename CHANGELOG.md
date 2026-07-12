@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-12
+- **Wybór firmy na umowie (Wynajmujący): Mountain Car albo Rebel Travel.** Na stronie Kontrakt nowy przełącznik (dwa przyciski, domyślnie Mountain Car — jak dotąd). `contract.ts` ma teraz `COMPANIES[]` z dwoma profilami; `buildFilled` przyjmuje wybraną firmę i podstawia jej dane we wszystkich szablonach (umowa + protokoły wydania/zwrotu). Rebel Travel zweryfikowane ze źródeł (rebeltravel.is + RentHelp): nazwa „Rebel Travel ehf", adres Skógarhlíð 10, 105 Reykjavík, e-mail info@rebeltravel.is, web rebeltravel.is. **Kennitala i VSK-nr Rebel Travel do uzupełnienia** — nie znaleziono ich w RentHelp ani w publicznym rejestrze, a zmyślonych numerów na umowę prawną nie wpisuję; póki puste, renderują się jako linie do ręcznego uzupełnienia + ostrzeżenie w UI. Zawartość umowy zapisuje wybraną firmę (jest w treści HTML), więc podpięta na profilu klienta odzwierciedla właściwego Wynajmującego.
+
 ## 2026-07-10 (wieczór, 6)
 - **Karta Revolut z kodem QR w Ustawieniach.** Wcześniej był tam tylko wiersz tekstowy z linkiem — teraz pełna karta `RevolutPay` (kod QR + link + „Kopiuj"/„Wyślij przez WhatsApp"), ta sama co na Checkliście i przy rezerwacji. Zduplikowany wiersz tekstowy usunięty.
 
