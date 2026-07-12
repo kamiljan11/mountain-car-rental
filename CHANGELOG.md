@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-10 (wieczór, 5)
+- **Prawdziwy kod QR Revolut** (firmowy, z logo R i @m_krokoszynska) zamiast generowanego. Screenshot „Mój kod" przycięty do samego QR (bez chromu telefonu i przycisków Google Wallet), zapisany jako `public/revolut-qr.png` i pokazywany w komponencie `RevolutPay`. Usunięta zależność `qrcode-generator` (już niepotrzebna). To ten sam kod, który klienci realnie skanują.
+
 ## 2026-07-10 (wieczór, 4)
 - **Szybka checklista poglądowa (bez klienta).** Na stronie Checklista, gdy nie wybrano klienta i nie trwa wyszukiwanie, pokazuje się „Szybka checklista (poglądowa)" z tymi samymi 12 punktami. Stan trzymany tylko w oknie (`useState`) — **resetuje się przy odświeżeniu / ponownym wejściu**, nic nie zapisuje do bazy (w przeciwieństwie do wersji per klient). Pasek postępu + „Wyczyść". Render pozycji wyciągnięty do wspólnego komponentu `ChecklistGroups`, używanego przez obie wersje (per klient i poglądową).
 

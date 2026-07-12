@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-import qrcode from "qrcode-generator";
 import { useToast } from "@/components/Toast";
 import { isk } from "@/lib/contract";
 import {
@@ -24,14 +22,6 @@ export default function RevolutPay({
   compact?: boolean;
 }) {
   const showToast = useToast();
-
-  // Deterministyczny data-URL (ten sam link → ten sam QR), więc bez rozjazdu SSR.
-  const qrDataUrl = useMemo(() => {
-    const qr = qrcode(0, "M");
-    qr.addData(REVOLUT_URL);
-    qr.make();
-    return qr.createDataURL(6, 2);
-  }, []);
 
   const msg = paymentMessage({ name: customerName, amount });
 
@@ -66,9 +56,9 @@ export default function RevolutPay({
       <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={qrDataUrl}
-          alt="Kod QR Revolut do płatności"
-          className="size-36 shrink-0 rounded-lg border border-zinc-200 bg-white p-1"
+          src="/revolut-qr.png"
+          alt="Kod QR Revolut @m_krokoszynska do płatności"
+          className="w-36 shrink-0 rounded-lg border border-zinc-200"
         />
         <div className="min-w-0 flex-1 text-center sm:text-left">
           {amount != null && (
