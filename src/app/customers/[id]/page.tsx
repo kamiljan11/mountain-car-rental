@@ -315,10 +315,27 @@ export default function CustomerProfile() {
           title="Edytuj klienta"
           submitLabel="Zapisz"
           initial={customer}
+          initialIdDoc={documents.find((d) => d.docType === DOC_TYPES[0])?.docNumber ?? ""}
           onClose={() => setEditing(false)}
-          onSubmit={async (patch) => {
+          onSubmit={async (patch, idDocNumber) => {
             const ok = await updateCustomer(id, patch);
-            if (ok) setEditing(false);
+            if (!ok) return;
+            // Numer dowodu żyje w dokumentach klienta. Zmieniony i niepusty →
+            // podmień wpis (daty przenosimy); wyczyszczenie pola NIE usuwa
+            // dokumentu — od tego jest zakładka Dokumenty.
+            const existing = documents.find((d) => d.docType === DOC_TYPES[0]);
+            if (idDocNumber && idDocNumber !== existing?.docNumber) {
+              if (existing) await deleteCustomerDocument(existing.id);
+              await insertCustomerDocument({
+                customerId: id,
+                docType: DOC_TYPES[0],
+                docNumber: idDocNumber,
+                issuedAt: existing?.issuedAt,
+                expiresAt: existing?.expiresAt,
+              });
+              fetchCustomerDocuments(id).then(setDocuments);
+            }
+            setEditing(false);
           }}
         />
       )}

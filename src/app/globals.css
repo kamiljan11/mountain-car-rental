@@ -131,6 +131,13 @@ body {
 }
 
 @media print {
+  /* Kontener podglądu ma na ekranie max-h + overflow (scroll) — w druku musi
+     być zdjęty, inaczej wydruk/PDF ucina się do wysokości jednego ekranu. */
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+  }
   body * {
     visibility: hidden;
   }
@@ -143,7 +150,13 @@ body {
     left: 0;
     top: 0;
     width: 100%;
+    max-height: none !important;
+    overflow: visible !important;
     border: none;
     box-shadow: none;
+    padding: 0;
+  }
+  @page {
+    margin: 14mm;
   }
 }

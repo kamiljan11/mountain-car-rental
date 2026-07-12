@@ -14,14 +14,18 @@ export default function CustomerFormModal({
   title,
   submitLabel,
   initial,
+  initialIdDoc,
   onClose,
   onSubmit,
 }: {
   title: string;
   submitLabel: string;
   initial?: Partial<CustomerFormValues>;
+  // Numer dowodu osobistego — trzymany w dokumentach klienta (nie w rekordzie
+  // klienta), więc wchodzi/wychodzi z modala osobnym kanałem niż patch.
+  initialIdDoc?: string;
   onClose: () => void;
-  onSubmit: (patch: CustomerFormValues) => Promise<void>;
+  onSubmit: (patch: CustomerFormValues, idDocNumber?: string) => Promise<void>;
 }) {
   const [form, setForm] = useState({
     name: initial?.name ?? "",
@@ -30,6 +34,7 @@ export default function CustomerFormModal({
     address: initial?.address ?? "",
     id_number: initial?.id_number ?? "",
     license: initial?.license ?? "",
+    idDoc: initialIdDoc ?? "",
     companyName: initial?.companyName ?? "",
     nip: initial?.nip ?? "",
     companyAddress: initial?.companyAddress ?? "",
@@ -44,19 +49,22 @@ export default function CustomerFormModal({
   const save = async () => {
     if (!form.name.trim()) return;
     setSaving(true);
-    await onSubmit({
-      name: form.name.trim(),
-      phone: form.phone.trim() || undefined,
-      email: form.email.trim() || undefined,
-      address: form.address.trim() || undefined,
-      id_number: form.id_number.trim() || undefined,
-      license: form.license.trim() || undefined,
-      companyName: form.companyName.trim() || undefined,
-      nip: form.nip.trim() || undefined,
-      companyAddress: form.companyAddress.trim() || undefined,
-      companyEmail: form.companyEmail.trim() || undefined,
-      companyPhone: form.companyPhone.trim() || undefined,
-    });
+    await onSubmit(
+      {
+        name: form.name.trim(),
+        phone: form.phone.trim() || undefined,
+        email: form.email.trim() || undefined,
+        address: form.address.trim() || undefined,
+        id_number: form.id_number.trim() || undefined,
+        license: form.license.trim() || undefined,
+        companyName: form.companyName.trim() || undefined,
+        nip: form.nip.trim() || undefined,
+        companyAddress: form.companyAddress.trim() || undefined,
+        companyEmail: form.companyEmail.trim() || undefined,
+        companyPhone: form.companyPhone.trim() || undefined,
+      },
+      form.idDoc.trim() || undefined,
+    );
     setSaving(false);
   };
 
@@ -124,6 +132,19 @@ export default function CustomerFormModal({
               <div>
                 <label className={labelCls}>Prawo jazdy</label>
                 <input value={form.license} onChange={set("license")} className={inputCls} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className={labelCls}>Dowód osobisty (numer)</label>
+                <input
+                  value={form.idDoc}
+                  onChange={set("idDoc")}
+                  className={inputCls}
+                  placeholder="np. ABC 123456"
+                />
+                <p className="mt-1 text-[11px] text-zinc-400">
+                  Zapisuje się w dokumentach klienta i podstawia na umowie jako
+                  dokument tożsamości.
+                </p>
               </div>
             </div>
           </div>

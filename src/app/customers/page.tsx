@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useData } from "@/components/DataProvider";
 import CustomerFormModal from "@/components/CustomerFormModal";
+import { insertCustomerDocumentAction as insertCustomerDocument } from "@/lib/actions";
+import { DOC_TYPES } from "@/lib/types";
 import { useSort } from "@/lib/useSort";
 import SortableTh from "@/components/SortableTh";
 import { matchesQuery } from "@/lib/search";
@@ -156,9 +158,16 @@ export default function CustomersPage() {
           title="Nowy klient"
           submitLabel="Dodaj klienta"
           onClose={() => setShowAdd(false)}
-          onSubmit={async (patch) => {
+          onSubmit={async (patch, idDocNumber) => {
             const c = await addCustomer(patch);
             if (!c) return;
+            if (idDocNumber) {
+              await insertCustomerDocument({
+                customerId: c.id,
+                docType: DOC_TYPES[0],
+                docNumber: idDocNumber,
+              });
+            }
             setShowAdd(false);
             router.push(`/customers/${c.id}`);
           }}

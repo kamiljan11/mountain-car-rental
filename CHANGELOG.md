@@ -1,6 +1,10 @@
 # Changelog
 
 ## 2026-07-12
+- **Naprawa „Drukuj / PDF" na Kontrakcie.** Wydruk ucinał się do jednej strony, bo podgląd umowy ma na ekranie `max-height:70vh` + przewijanie, a CSS druku tego nie zdejmował — PDF łapał tylko wysokość jednego ekranu. W `@media print` dochodzi `max-height:none`/`overflow:visible` (też na `html/body`) + marginesy stron `@page 14mm`. Zweryfikowane headless Chromem na replice strony: stary CSS → 1 strona bez końca dokumentu; nowy → 6 stron, pełna treść, interfejs apki ukryty.
+- **Pole „Dowód osobisty (numer)" w formularzu klienta** (Nowy klient i Edytuj klienta) — obok PESEL i prawa jazdy. Zapisuje się w istniejącym systemie dokumentów klienta (typ „Dowód osobisty"), więc umowa od razu podstawia go w linii „Dokument tożsamości", a ostrzeżenie „Brakujące dane klienta" na Kontrakcie znika. Przy edycji pole pokazuje obecny numer; zmiana podmienia wpis (daty wydania/ważności przenoszone); wyczyszczenie pola celowo NIE usuwa dokumentu (od tego zakładka Dokumenty).
+
+## 2026-07-12
 - **Wybór firmy na umowie (Wynajmujący): Mountain Car albo Rebel Travel.** Na stronie Kontrakt nowy przełącznik (dwa przyciski, domyślnie Mountain Car — jak dotąd). `contract.ts` ma teraz `COMPANIES[]` z dwoma profilami; `buildFilled` przyjmuje wybraną firmę i podstawia jej dane we wszystkich szablonach (umowa + protokoły wydania/zwrotu). Rebel Travel zweryfikowane ze źródeł (rebeltravel.is + RentHelp): nazwa „Rebel Travel ehf", adres Skógarhlíð 10, 105 Reykjavík, e-mail info@rebeltravel.is, web rebeltravel.is. **Kennitala i VSK-nr Rebel Travel do uzupełnienia** — nie znaleziono ich w RentHelp ani w publicznym rejestrze, a zmyślonych numerów na umowę prawną nie wpisuję; póki puste, renderują się jako linie do ręcznego uzupełnienia + ostrzeżenie w UI. Zawartość umowy zapisuje wybraną firmę (jest w treści HTML), więc podpięta na profilu klienta odzwierciedla właściwego Wynajmującego.
 
 ## 2026-07-10 (wieczór, 6)
