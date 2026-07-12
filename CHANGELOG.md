@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-10 (wieczór, 6)
+- **Karta Revolut z kodem QR w Ustawieniach.** Wcześniej był tam tylko wiersz tekstowy z linkiem — teraz pełna karta `RevolutPay` (kod QR + link + „Kopiuj"/„Wyślij przez WhatsApp"), ta sama co na Checkliście i przy rezerwacji. Zduplikowany wiersz tekstowy usunięty.
+
 ## 2026-07-10 (wieczór, 5)
 - **Prawdziwy kod QR Revolut** (firmowy, z logo R i @m_krokoszynska) zamiast generowanego. Screenshot „Mój kod" przycięty do samego QR (bez chromu telefonu i przycisków Google Wallet), zapisany jako `public/revolut-qr.png` i pokazywany w komponencie `RevolutPay`. Usunięta zależność `qrcode-generator` (już niepotrzebna). To ten sam kod, który klienci realnie skanują.
 

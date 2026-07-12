@@ -1,4 +1,4 @@
-import { REVOLUT_HANDLE, REVOLUT_URL } from "@/lib/payment";
+import RevolutPay from "@/components/RevolutPay";
 
 const company = [
   { label: "Nazwa (marka)", value: "Mountain Car Rental" },
@@ -8,7 +8,6 @@ const company = [
   { label: "Adres", value: "Njarðarbraut 6i, 260 Njarðvík" },
   { label: "E-mail", value: "mountainallservice@gmail.com" },
   { label: "Strona", value: "mountaincar.is" },
-  { label: "Płatność (Revolut)", value: `@${REVOLUT_HANDLE} · ${REVOLUT_URL}` },
 ];
 
 export default function SettingsPage() {
@@ -32,6 +31,15 @@ export default function SettingsPage() {
       <p className="mt-4 text-xs text-zinc-400">
         Po podłączeniu Supabase te dane trafią do tabeli ustawień i będą edytowalne z poziomu apki.
       </p>
+
+      <div className="mt-8 max-w-xl">
+        <h2 className="mb-1 text-sm font-semibold text-zinc-900">Płatność — Revolut</h2>
+        <p className="mb-3 text-sm text-zinc-500">
+          Kod QR i link, które podajesz klientom do zapłaty (te same, które są na
+          Checkliście i przy rezerwacji).
+        </p>
+        <RevolutPay />
+      </div>
     </div>
   );
 }
