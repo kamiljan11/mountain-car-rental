@@ -556,7 +556,8 @@ export default function Timeline() {
             key={selected.id}
             booking={selected}
             onSave={async (notes) => {
-              await updateBooking(selected.id, { notes });
+              const ok = await updateBooking(selected.id, { notes });
+              if (!ok) return; // DataProvider pokazał już error-toast i rollback
               setSelected((s) => (s ? { ...s, notes } : s));
               showToast("success", "Notatka zapisana.");
             }}

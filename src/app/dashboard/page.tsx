@@ -89,7 +89,11 @@ export default function DashboardPage() {
     const monthReservations = live.filter(
       (b) => b.type === "reservation" && b.start.slice(0, 7) === thisMonth,
     );
-    const revenue = monthReservations.reduce((sum, b) => sum + (b.total ?? 0), 0);
+    // Przychód: tylko realne najmy (bez spekulacyjnych „wstępnych"), żeby liczba
+    // nie była zawyżana o niepotwierdzone holdy.
+    const revenue = monthReservations
+      .filter((b) => b.status !== "tentative")
+      .reduce((sum, b) => sum + (b.total ?? 0), 0);
     return {
       busyToday: busyToday.size,
       monthReservations: monthReservations.length,

@@ -94,7 +94,7 @@ export default function CustomersPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Szukaj: imię, nazwisko, telefon, e-mail, pojazd, rejestracja, nr dokumentu…"
-          className="w-full rounded-lg border border-zinc-200 bg-white py-2.5 pl-9 pr-9 text-sm outline-none transition-colors focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10"
+          className="w-full rounded-lg border border-zinc-200 bg-white py-2.5 pl-9 pr-9 text-base outline-none transition-colors focus:border-zinc-900 md:text-sm focus:ring-2 focus:ring-zinc-900/10"
         />
         {query && (
           <button

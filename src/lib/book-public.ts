@@ -58,24 +58,26 @@ export async function getPublicBookingLink(token: string): Promise<PublicResult>
     suggestedStart: link.suggested_start ?? undefined,
     suggestedEnd: link.suggested_end ?? undefined,
     noteToClient: link.note_to_client ?? undefined,
-    // Prefill przydaje się, gdy zespół poprosił o zmianę danych i wystawił nowy
-    // link kopiujący poprzedni wpis klienta — nic obcego tu nie ma.
-    prefill: {
-      name: link.client_name ?? undefined,
-      email: link.client_email ?? undefined,
-      phone: link.client_phone ?? undefined,
-      address: link.client_address ?? undefined,
-      idNumber: link.client_id_number ?? undefined,
-      idIssued: link.client_id_issued ? iso(link.client_id_issued) : undefined,
-      idExpires: link.client_id_expires ? iso(link.client_id_expires) : undefined,
-      license: link.client_license ?? undefined,
-      licenseIssued: link.client_license_issued
-        ? iso(link.client_license_issued)
+    // Prefill TYLKO dla wciąż aktywnego (niewygasłego) linku — inaczej wyciekły
+    // token dawałby trwały dostęp do danych klienta. Numer dokumentu i prawa
+    // jazdy (rządowe ID) celowo NIE wychodzą na zewnątrz — klient wpisze je sam.
+    prefill:
+      status === "awaiting_client"
+        ? {
+            name: link.client_name ?? undefined,
+            email: link.client_email ?? undefined,
+            phone: link.client_phone ?? undefined,
+            address: link.client_address ?? undefined,
+            idIssued: link.client_id_issued ? iso(link.client_id_issued) : undefined,
+            idExpires: link.client_id_expires ? iso(link.client_id_expires) : undefined,
+            licenseIssued: link.client_license_issued
+              ? iso(link.client_license_issued)
+              : undefined,
+            licenseExpires: link.client_license_expires
+              ? iso(link.client_license_expires)
+              : undefined,
+          }
         : undefined,
-      licenseExpires: link.client_license_expires
-        ? iso(link.client_license_expires)
-        : undefined,
-    },
   };
   return { ok: true, view };
 }

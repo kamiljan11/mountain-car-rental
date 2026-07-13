@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-13 (14) — audyt: P0 XSS + legal + kolejne fixy
+- **Fix P0 — stored XSS w umowach.** Dane z PUBLICZNEGO formularza (`/api/book`: nazwisko, adres, dokument, prawo jazdy, firma) trafiały nieescape'owane do HTML umowy renderowanego przez `dangerouslySetInnerHTML` w sesji admina → nazwisko `<img onerror=…>` wykonywało kod w panelu (kradzież cookie sesji). `contract.ts` escape'uje teraz każdą wartość klienta/dokumentu (`najemcaBlock` + końcowe podstawianie, poza gotowym blokiem HTML). Zweryfikowane: payload neutralizowany, polskie/islandzkie znaki nietknięte.
+- **Fix legal — umowa nie zmyśla „0 ISK".** Kaucja i udział własny, gdy nie zostały wpisane, dają teraz pustą linię do uzupełnienia zamiast fałszywego „0 ISK" (wcześniej każda umowa deklarowała 0 ISK udziału i 0 ISK kaucji — ekspozycja przy roszczeniu).
+- **Fix — publiczny link nie wycieka rządowego ID.** `/api/book/[token]` zwracał w `prefill` numer dowodu i prawa jazdy dla dowolnego tokenu, też wygasłego/rozstrzygniętego. Teraz prefill tylko dla aktywnego linku i BEZ numeru dokumentu/prawa jazdy (klient wpisuje sam).
+- **Fix — dashboard: przychód bez „wstępnych".** Kafelek przychodu wykluczał tylko anulowane; teraz pomija też `tentative` (spekulacyjne holdy), żeby liczba nie była zawyżana.
+- **Fix — notatka w kalendarzu: koniec fałszywego sukcesu.** Zapis notatki sprawdza teraz wynik `updateBooking` (przy błędzie DB nie pokazuje „zapisano").
+- **Fix mobile — inputy 16px.** 7 formularzy/wyszukiwarek (Klienci, Rezerwacje, Checklista, modale klienta/pojazdu, profil, Wnioski) miało 14px → iOS zoomował przy focusie. `text-base md:text-sm` (16px na telefonie, 14px na desktopie) — ważne, bo ekipa wypełnia to przy wydaniu auta.
+
 ## 2026-07-13 (13) — audyt: naprawy P1
 - **Fix P1 (dedup po e‑mailu).** W potwierdzaniu wniosku (`decideBookingRequest`) dedup klienta używał `.eq(email).maybeSingle()`, które **sypie błędem, gdy e‑mail się dubluje** (a takie są w bazie) → istniejący klient był ignorowany i powstawał kolejny duplikat dokładnie dla już zduplikowanych. Teraz bierzemy pierwszy pasujący rekord tablicą (`order+limit(1)`), bez błędu.
 - **Fix P1 (wyścig podwójnego potwierdzenia).** `decideBookingRequest`/confirm robił read‑then‑write bez atomowej blokady — dwa kliknięcia/dwóch adminów tworzyło dwa duplikaty klienta+rezerwacji i dwa maile. Dodane atomowe „zajęcie" (`update ... where id=? and status='submitted' → 'confirming'`, sprawdzenie liczby wierszy) + cofnięcie do `submitted` przy błędzie.

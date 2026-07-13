@@ -271,6 +271,18 @@ export const TEMPLATES: ContractTemplate[] = [
 
 const DASH = "————";
 
+// Escape HTML — dane najemcy/dokumentów pochodzą z PUBLICZNEGO formularza
+// (/api/book), a umowa renderuje się przez dangerouslySetInnerHTML w sesji admina.
+// Bez tego nazwisko typu `<img onerror=…>` = stored XSS w panelu.
+function esc(s: unknown): string {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // "ABC123 (wyd. 01.02.2020, ważny do 01.02.2030)" — daty tylko gdy są.
 function docLabel(number?: string, issuedAt?: string, expiresAt?: string) {
   if (!number) return undefined;
@@ -286,13 +298,13 @@ function najemcaBlock(
   identityDoc?: string,
   licenseDoc?: string,
 ) {
-  const dokumentTozsamosci = identityDoc ?? DASH;
-  const prawoJazdy = licenseDoc ?? customer?.license ?? DASH;
-  const persona = `Imię i nazwisko: ${customer?.name ?? DASH}<br/>Adres: ${customer?.address ?? DASH}<br/>Dokument tożsamości: ${dokumentTozsamosci}<br/>PESEL: ${customer?.id_number ?? DASH}<br/>Prawo jazdy: ${prawoJazdy}<br/>Tel.: ${customer?.phone ?? DASH}<br/>${customer?.email ?? DASH}`;
+  const dokumentTozsamosci = esc(identityDoc ?? DASH);
+  const prawoJazdy = esc(licenseDoc ?? customer?.license ?? DASH);
+  const persona = `Imię i nazwisko: ${esc(customer?.name ?? DASH)}<br/>Adres: ${esc(customer?.address ?? DASH)}<br/>Dokument tożsamości: ${dokumentTozsamosci}<br/>PESEL: ${esc(customer?.id_number ?? DASH)}<br/>Prawo jazdy: ${prawoJazdy}<br/>Tel.: ${esc(customer?.phone ?? DASH)}<br/>${esc(customer?.email ?? DASH)}`;
   if (!isCompanyCustomer(customer)) {
     return `<p>${persona}</p>`;
   }
-  return `<p><strong>${customer.companyName}</strong><br/>NIP: ${customer.nip ?? DASH}<br/>Adres firmy: ${customer.companyAddress ?? DASH}<br/>${customer.companyEmail ?? DASH} · ${customer.companyPhone ?? DASH}</p>
+  return `<p><strong>${esc(customer.companyName)}</strong><br/>NIP: ${esc(customer.nip ?? DASH)}<br/>Adres firmy: ${esc(customer.companyAddress ?? DASH)}<br/>${esc(customer.companyEmail ?? DASH)} · ${esc(customer.companyPhone ?? DASH)}</p>
     <p class="muted">Korzystający z pojazdu:</p>
     <p>${persona}</p>`;
 }
@@ -358,8 +370,10 @@ export function buildFilled(
     MIEJSCE_ZWR: "Keflavík / wg ustaleń",
     DNI: dni,
     LIMIT_KM: "Brak limitu",
-    KAUCJA: isk(booking?.deposit ?? 0),
-    UDZIAL: "0 ISK",
+    // Nie zmyślaj zapisów prawnych: gdy kaucja/udział własny nie zostały wpisane,
+    // zostaw pustą linię do uzupełnienia — nie deklaruj fałszywego „0 ISK".
+    KAUCJA: booking?.deposit != null ? isk(booking.deposit) : fill,
+    UDZIAL: fill,
     // Stan licznika z rezerwacji (rozliczenie kilometrów z urzędem); gdy nie
     // wpisany — pusta linia do ręcznego uzupełnienia na protokole.
     PRZEBIEG_WYD:
@@ -374,7 +388,13 @@ export function buildFilled(
     STAWKA: isk(booking?.dailyRate ?? vehicle?.dailyRate),
     PRACOWNIK: ctx.employee || DASH,
   };
-  return template.body.replace(/\{\{(\w+)\}\}/g, (_, k) => map[k] ?? DASH);
+  // NAJEMCA_BLOK to już zbudowany (i wewnętrznie zescape'owany) HTML — reszta to
+  // skalary wstawiane w HTML, więc je escape'ujemy (defense-in-depth; wartości
+  // firmowe są stałymi, escape jest nieszkodliwy).
+  return template.body.replace(/\{\{(\w+)\}\}/g, (_, k) => {
+    const v = map[k] ?? DASH;
+    return k === "NAJEMCA_BLOK" ? v : esc(v);
+  });
 }
 
 const KEY = "rebel_contracts_v1";
