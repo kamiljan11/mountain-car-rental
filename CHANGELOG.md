@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-13 (7)
+- **Notatka wewnętrzna per rezerwacja — szybka edycja z kalendarza.** W „Szczegóły wpisu" notatka jest teraz edytowalnym polem (zapis do `bookings.notes`, przycisk „Zapisz notatkę" pojawia się po zmianie) — można coś dopisać bez otwierania pełnego kreatora. Notatki per klient już były na profilu („Notatki o kliencie — widoczne tylko dla zespołu"). Obie tylko do użytku wewnętrznego, nie widzi ich klient.
+
 ## 2026-07-13 (6)
 - **Potwierdzenia „na pewno?" i podsumowania przed ważnymi akcjami.** Nowy reużywalny `ConfirmDialog` (tryb danger dla usuwania + opcjonalne wiersze podsumowania do sprawdzenia; Esc/klik zamyka, przycisk pilnuje stanu „w toku"). Wpięty w: **usuń wpis** na kalendarzu (podsumowanie: typ/pojazd/klient/termin), **usuń klienta** (zastąpił brzydki natywny `confirm()`; pokazuje liczbę rezerwacji), **usuń dokument** klienta, **Potwierdź** wniosku w Wnioskach (podsumowanie klient/e-mail/pojazd/termin + info że utworzy klienta+rezerwację i wyśle maila) oraz **Wyślij umowę** (podsumowanie klient/szablon/firma/numer/rezerwacja; ostrzega, gdy dane klienta niekompletne).
 

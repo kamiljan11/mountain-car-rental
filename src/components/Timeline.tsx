@@ -90,7 +90,7 @@ function withLanes(list: Booking[]) {
 }
 
 export default function Timeline() {
-  const { vehicles, bookings, removeBooking, customerById } = useData();
+  const { vehicles, bookings, removeBooking, updateBooking, customerById } = useData();
   const showToast = useToast();
   const [sendingPay, setSendingPay] = useState(false);
   const [iframe, setIframe] = useState<{ title: string; url: string } | null>(null);
@@ -528,7 +528,15 @@ export default function Timeline() {
               value={`${selected.deposit.toLocaleString("pl-PL")} ISK`}
             />
           )}
-          {selected.notes && <DetailRow label="Notatka" value={selected.notes} />}
+          <BookingNote
+            key={selected.id}
+            booking={selected}
+            onSave={async (notes) => {
+              await updateBooking(selected.id, { notes });
+              setSelected((s) => (s ? { ...s, notes } : s));
+              showToast("success", "Notatka zapisana.");
+            }}
+          />
 
           <div className="mt-6 space-y-2">
             <button
@@ -694,6 +702,48 @@ function Drawer({
         </button>
       </div>
       <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+    </div>
+  );
+}
+
+// Notatka wewnętrzna per rezerwacja — szybka edycja wprost z kalendarza (zapis do
+// bookings.notes). Klucz `key={booking.id}` w miejscu użycia resetuje szkic przy
+// zmianie wpisu; przycisk zapisu pokazuje się tylko po zmianie.
+function BookingNote({
+  booking,
+  onSave,
+}: {
+  booking: Booking;
+  onSave: (notes: string) => Promise<void>;
+}) {
+  const [note, setNote] = useState(booking.notes ?? "");
+  const [saving, setSaving] = useState(false);
+  const dirty = note !== (booking.notes ?? "");
+  return (
+    <div className="mt-4">
+      <label className="mb-1 block text-xs font-medium text-zinc-500">
+        Notatka wewnętrzna (tylko zespół)
+      </label>
+      <textarea
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        rows={3}
+        placeholder="np. ustalenia, uwagi, godzina telefonu…"
+        className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/10"
+      />
+      {dirty && (
+        <button
+          onClick={async () => {
+            setSaving(true);
+            await onSave(note);
+            setSaving(false);
+          }}
+          disabled={saving}
+          className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+        >
+          {saving ? "Zapisywanie…" : "Zapisz notatkę"}
+        </button>
+      )}
     </div>
   );
 }
