@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-13 (4)
+- **Naprawa nadawcy maili (root cause, dlaczego nie wychodziły).** Klucz Resend JEST w vaulcie (Infisical, MAS Group/dev, ścieżka `/mountaincar`: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_TO_EMAIL`) — wcześniejszy „check" patrzył tylko na `/`, stąd fałszywy wniosek „brak klucza". Klucz zweryfikowany realną wysyłką (200) z `noreply@mountaincar.is` na `rental@mountaincar.is` — domena mountaincar.is jest zweryfikowana w Resend, klucz jest send-only i działa. Błąd był w kodzie: `email.ts` czytał `EMAIL_FROM`, a konfig używa `RESEND_FROM_EMAIL` → nadawca spadał na `onboarding@resend.dev` (Resend nie dowozi tego do klientów). Teraz `sendEmail` czyta `EMAIL_FROM || RESEND_FROM_EMAIL`. Pozostaje warunek: te 3 zmienne muszą być w env produkcyjnym Vercela (redeploy je podchwyci).
+
 ## 2026-07-13 (3)
 - **QR Revolut + link płatności w mailach.** Mail potwierdzenia rezerwacji (Wnioski → Potwierdź) zawiera teraz blok płatności: kod QR (`/revolut-qr.png`, absolutny URL z origin), przycisk „Zapłać przez Revolut" i kwotę (stawka × dni, jeśli znana). Nowy szablon `emailPayment`.
 - **Kalendarz → „Wyślij płatność e-mailem (Revolut + QR)".** W „Szczegóły wpisu" rezerwacji z klientem mającym e-mail nowy przycisk wysyła klientowi maila z QR i linkiem Revolut (akcja `sendPaymentEmail` — pobiera e-mail/pojazd/kwotę z bazy). Zwraca czytelny toast (sukces / brak e-maila / błąd Resend).

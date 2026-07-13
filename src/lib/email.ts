@@ -14,7 +14,13 @@ export async function sendEmail(opts: {
   html: string;
 }): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM || "Mountain Car Rental <onboarding@resend.dev>";
+  // Nadawca: obie konwencje nazw (EMAIL_FROM oraz RESEND_FROM_EMAIL z vaulta/Vercela).
+  // MUSI być z domeny zweryfikowanej w Resend (mountaincar.is) — onboarding@resend.dev
+  // dowozi tylko na adres właściciela konta, nie do klientów.
+  const from =
+    process.env.EMAIL_FROM ||
+    process.env.RESEND_FROM_EMAIL ||
+    "Mountain Car Rental <onboarding@resend.dev>";
   if (!key) {
     console.warn(`[email] RESEND_API_KEY nie ustawiony — pomijam wysyłkę do ${opts.to}`);
     return false;
