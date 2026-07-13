@@ -14,6 +14,7 @@ import { fmtDate, todayISO } from "@/lib/dates";
 import type { Customer, CustomerDocument } from "@/lib/types";
 import { isCompanyCustomer, DOC_TYPES } from "@/lib/types";
 import { useToast } from "@/components/Toast";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { Send, Printer, Check, TriangleAlert } from "lucide-react";
 
 const inputCls =
@@ -47,6 +48,7 @@ function ContractsContent() {
   const [bookingId, setBookingId] = useState(searchParams.get("bookingId") ?? "");
   const [employee, setEmployee] = useState("");
   const [sentTo, setSentTo] = useState<{ name: string; id: string } | null>(null);
+  const [confirmSend, setConfirmSend] = useState(false);
   const [documents, setDocuments] = useState<CustomerDocument[]>([]);
   // Wszystkie umowy z bazy — do auto-numeracji (kolejny numer w bieżącym miesiącu).
   const [allContracts, setAllContracts] = useState<Contract[]>([]);
@@ -217,7 +219,7 @@ function ContractsContent() {
 
           <div className="flex gap-2 pt-1">
             <button
-              onClick={send}
+              onClick={() => setConfirmSend(true)}
               disabled={!customer}
               className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-3 py-3 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-40"
             >
@@ -243,6 +245,29 @@ function ContractsContent() {
           <div className="contract" dangerouslySetInnerHTML={{ __html: preview }} />
         </div>
       </div>
+
+      {confirmSend && customer && (
+        <ConfirmDialog
+          title="Wysłać umowę do klienta?"
+          description={
+            missing.length > 0
+              ? "Uwaga: część danych klienta jest niekompletna — sprawdź podgląd. Umowa i tak zostanie zapisana i podpięta na profilu klienta."
+              : "Umowa zostanie zapisana i podpięta na profilu klienta."
+          }
+          summary={[
+            { label: "Klient", value: customer.name },
+            { label: "Szablon", value: template.name },
+            { label: "Firma (Wynajmujący)", value: company.label },
+            { label: "Numer umowy", value: nextNumber },
+            ...(booking
+              ? [{ label: "Rezerwacja", value: `${vehicle?.name ?? "—"} · ${fmtDate(booking.start)}` }]
+              : []),
+          ]}
+          confirmLabel="Wyślij umowę"
+          onConfirm={send}
+          onClose={() => setConfirmSend(false)}
+        />
+      )}
     </div>
   );
 }

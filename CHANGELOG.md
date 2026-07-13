@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-13 (6)
+- **Potwierdzenia „na pewno?" i podsumowania przed ważnymi akcjami.** Nowy reużywalny `ConfirmDialog` (tryb danger dla usuwania + opcjonalne wiersze podsumowania do sprawdzenia; Esc/klik zamyka, przycisk pilnuje stanu „w toku"). Wpięty w: **usuń wpis** na kalendarzu (podsumowanie: typ/pojazd/klient/termin), **usuń klienta** (zastąpił brzydki natywny `confirm()`; pokazuje liczbę rezerwacji), **usuń dokument** klienta, **Potwierdź** wniosku w Wnioskach (podsumowanie klient/e-mail/pojazd/termin + info że utworzy klienta+rezerwację i wyśle maila) oraz **Wyślij umowę** (podsumowanie klient/szablon/firma/numer/rezerwacja; ostrzega, gdy dane klienta niekompletne).
+
 ## 2026-07-13 (5)
 - **Kalendarz: „Dane klienta / Umowa / Checklista" otwierają się w okienku, nie wyrzucają z widoku.** Nowy `IframeModal` pokazuje realną stronę apki (edycja klienta, generator umowy, checklista) w iframe na wierzchu kalendarza — powiązaną z bazą, z buttonem „otwórz w pełnym widoku" i zamknięciem (X / Esc). `AppShell` dostał tryb `?embed=1`: strona w iframe renderuje się bez menu bocznego i paska ładowania (spinner trzyma się do `onLoad`, więc bez migotania). Same-origin + cookie `SameSite=Lax` → strona w okienku jest zalogowana; brak nagłówków blokujących iframe.
 

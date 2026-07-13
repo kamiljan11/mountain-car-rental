@@ -13,6 +13,7 @@ import { useToast } from "@/components/Toast";
 import { sendPaymentEmailAction } from "@/lib/actions";
 import NewReservationWizard from "@/components/NewReservationWizard";
 import IframeModal from "@/components/IframeModal";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import RevolutPay from "@/components/RevolutPay";
 import { useIsMobile } from "@/lib/useIsMobile";
 import { PL_MONTHS, PL_WD, fmtDate, toISODate, nowIceland } from "@/lib/dates";
@@ -93,6 +94,7 @@ export default function Timeline() {
   const showToast = useToast();
   const [sendingPay, setSendingPay] = useState(false);
   const [iframe, setIframe] = useState<{ title: string; url: string } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Booking | null>(null);
 
   const isMobile = useIsMobile();
 
@@ -609,10 +611,7 @@ export default function Timeline() {
               </button>
             )}
             <button
-              onClick={() => {
-                removeBooking(selected.id);
-                setSelected(null);
-              }}
+              onClick={() => setPendingDelete(selected)}
               className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-3 text-sm font-medium text-red-700 hover:bg-red-100"
             >
               <Trash2 className="size-4" /> Usuń wpis
@@ -638,6 +637,35 @@ export default function Timeline() {
           title={iframe.title}
           url={iframe.url}
           onClose={() => setIframe(null)}
+        />
+      )}
+
+      {pendingDelete && (
+        <ConfirmDialog
+          danger
+          title="Usunąć wpis?"
+          description="Tej operacji nie można cofnąć."
+          summary={[
+            { label: "Typ", value: TYPE_STYLES[pendingDelete.type].label },
+            {
+              label: "Pojazd",
+              value: vehicles.find((v) => v.id === pendingDelete.vehicleId)?.name ?? "—",
+            },
+            {
+              label: "Klient",
+              value: customerById(pendingDelete.customerId)?.name ?? pendingDelete.notes ?? "—",
+            },
+            {
+              label: "Termin",
+              value: `${fmtDate(pendingDelete.start)} – ${fmtDate(pendingDelete.end)}`,
+            },
+          ]}
+          confirmLabel="Usuń wpis"
+          onConfirm={() => removeBooking(pendingDelete.id)}
+          onClose={() => {
+            setPendingDelete(null);
+            setSelected(null);
+          }}
         />
       )}
     </div>

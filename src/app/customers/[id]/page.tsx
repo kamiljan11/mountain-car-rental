@@ -14,6 +14,7 @@ import { isk, type Contract } from "@/lib/contract";
 import { DOC_TYPES, isCompanyCustomer, type CustomerDocument, type DocType } from "@/lib/types";
 import { fmtDate } from "@/lib/dates";
 import CustomerFormModal from "@/components/CustomerFormModal";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import {
   ArrowLeft,
   FileText,
@@ -125,6 +126,7 @@ export default function CustomerProfile() {
   const [documents, setDocuments] = useState<CustomerDocument[]>([]);
   const [tab, setTab] = useState<"summary" | "documents">("summary");
   const [editing, setEditing] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     fetchContracts(id).then(setContracts);
@@ -149,7 +151,6 @@ export default function CustomerProfile() {
   const toggleSuspect = () => updateCustomer(id, { suspect: !customer.suspect });
 
   const onDelete = async () => {
-    if (!confirm(`Usunąć klienta „${customer.name}”? Tej operacji nie można cofnąć.`)) return;
     await removeCustomer(id);
     router.push("/customers");
   };
@@ -198,7 +199,7 @@ export default function CustomerProfile() {
             {customer.suspect ? "Odznacz podejrzanego" : "Oznacz jako podejrzany"}
           </button>
           <button
-            onClick={onDelete}
+            onClick={() => setConfirmDelete(true)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-3 text-sm font-medium text-red-700 hover:bg-red-100"
           >
             <Trash2 className="size-4" /> Usuń klienta
@@ -371,6 +372,22 @@ export default function CustomerProfile() {
           }}
         />
       )}
+
+      {confirmDelete && (
+        <ConfirmDialog
+          danger
+          title="Usunąć klienta?"
+          description="Tej operacji nie można cofnąć. Rezerwacje klienta pozostaną w kalendarzu, ale bez przypisanego klienta."
+          summary={[
+            { label: "Klient", value: customer.name },
+            ...(customer.phone ? [{ label: "Telefon", value: customer.phone }] : []),
+            { label: "Rezerwacje", value: String(custBookings.length) },
+          ]}
+          confirmLabel="Usuń klienta"
+          onConfirm={onDelete}
+          onClose={() => setConfirmDelete(false)}
+        />
+      )}
     </div>
   );
 }
@@ -391,6 +408,7 @@ function DocumentsTab({
   const [expiresAt, setExpiresAt] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [pendingDel, setPendingDel] = useState<CustomerDocument | null>(null);
 
   const add = async () => {
     setSaving(true);
@@ -448,7 +466,7 @@ function DocumentsTab({
                 <td className="px-4 py-3 text-zinc-600">{d.expiresAt ? fmtDate(d.expiresAt) : "—"}</td>
                 <td className="px-4 py-3 text-right">
                   <button
-                    onClick={() => remove(d.id)}
+                    onClick={() => setPendingDel(d)}
                     aria-label="Usuń dokument"
                     className="rounded-lg p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-600"
                   >
@@ -515,6 +533,21 @@ function DocumentsTab({
         >
           <Plus className="size-4" /> Dodaj dokument
         </button>
+      )}
+
+      {pendingDel && (
+        <ConfirmDialog
+          danger
+          title="Usunąć dokument?"
+          description="Tej operacji nie można cofnąć."
+          summary={[
+            { label: "Rodzaj", value: pendingDel.docType },
+            { label: "Numer", value: pendingDel.docNumber || "—" },
+          ]}
+          confirmLabel="Usuń dokument"
+          onConfirm={() => remove(pendingDel.id)}
+          onClose={() => setPendingDel(null)}
+        />
       )}
     </div>
   );

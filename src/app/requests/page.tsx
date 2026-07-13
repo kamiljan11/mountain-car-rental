@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useData } from "@/components/DataProvider";
 import { useToast } from "@/components/Toast";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import {
   fetchBookingLinksAction,
   createBookingLinkAction,
@@ -37,6 +38,7 @@ export default function RequestsPage() {
   const [links, setLinks] = useState<BookingLink[] | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [decision, setDecision] = useState<{ link: BookingLink; kind: "request_changes" | "reject" } | null>(null);
+  const [confirmLink, setConfirmLink] = useState<BookingLink | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const reload = () => {
@@ -159,7 +161,7 @@ export default function RequestsPage() {
                     )}
                     <div className="mt-4 flex flex-wrap gap-2">
                       <button
-                        onClick={() => decide(l, "confirm")}
+                        onClick={() => setConfirmLink(l)}
                         disabled={busyId === l.id}
                         className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
                       >
@@ -253,6 +255,28 @@ export default function RequestsPage() {
           busy={busyId === decision.link.id}
           onClose={() => setDecision(null)}
           onConfirm={(note) => decide(decision.link, decision.kind, note)}
+        />
+      )}
+
+      {confirmLink && (
+        <ConfirmDialog
+          title="Potwierdzić rezerwację?"
+          description="Utworzy klienta i rezerwację w kalendarzu oraz wyśle klientowi maila z potwierdzeniem i linkiem do płatności."
+          summary={[
+            { label: "Klient", value: confirmLink.clientName || "—" },
+            { label: "E-mail", value: confirmLink.clientEmail || "—" },
+            { label: "Pojazd", value: vehName(confirmLink.vehicleId) },
+            {
+              label: "Termin",
+              value:
+                confirmLink.reqStart && confirmLink.reqEnd
+                  ? `${fmtDate(confirmLink.reqStart)} – ${fmtDate(confirmLink.reqEnd)}`
+                  : "—",
+            },
+          ]}
+          confirmLabel="Potwierdź rezerwację"
+          onConfirm={() => decide(confirmLink, "confirm")}
+          onClose={() => setConfirmLink(null)}
         />
       )}
     </div>
