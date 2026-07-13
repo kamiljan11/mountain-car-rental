@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-13 (16) — domknięcie produkcyjne (audyt→fixy)
+- **Twarda blokada podwójnej rezerwacji.** Kreator blokuje zapis przy kolizji (jawny checkbox „zapisz mimo kolizji"); serwer re-sprawdza nakładanie w `insertBooking`/`updateBooking` (flaga `force`) i w potwierdzaniu wniosku self-service (termin mógł zostać zajęty). `hasOverlap()` = ta sama logika co kalendarz/publiczny submit.
+- **AC (kasko) + alerty wygaśnięć.** Dodana kolumna `insurance_ac_expiry` (migracja `20260713150000`, wdrożona) — była gubiona. Dashboard: kafel „Ubezpieczenia i przeglądy" dla OC/AC/przeglądu wygasających ≤30 dni lub po terminie.
+- **Niezawodność maili + odświeżanie.** Decyzje we Wnioskach zwracają `emailSent` → toast ostrzega „mail NIE wyszedł" zamiast fałszywego sukcesu. Po potwierdzeniu `DataProvider.refresh()` dociąga nowego klienta+rezerwację (były niewidoczne do reloadu).
+- **Flota: wyszukiwarka + „Dodaj pojazd".** Spójnie z resztą (fold PL). Usuwanie pominięte celowo (kaskadowo kasuje rezerwacje).
+- **Modale: blokada scrolla tła (`useModalChrome`) + `role=dialog`.**
+- **Higiena danych (prod).** Usunięto 4 rekordy bez zależności: 2 duplikaty ([klient 380], [klient 221] — wariant wielkości liter e-maila) + 2 testowe ([klient 154], „[klient 798]"). Zostało 74 klientów, zero duplikatów nazw. **Do decyzji Kamila:** `[e-mail klienta usuniety]` = [klient 828] + [klient 581] (ten sam telefon, każdy z 1 rezerwacją) — scalić czy to dwie osoby? oraz klient testowy „[klient 443]" ma realną rezerwację (VW Caddy California, 11–23.07) — przemianować na prawdziwą osobę. Po tym można dodać unikalny indeks na e-mail.
+- Security-review na diffie: brak exploitów; atomowy claim + re-check nakładania utwardzają wyścig.
+
 ## 2026-07-13 (14) — audyt: P0 XSS + legal + kolejne fixy
 - **Fix P0 — stored XSS w umowach.** Dane z PUBLICZNEGO formularza (`/api/book`: nazwisko, adres, dokument, prawo jazdy, firma) trafiały nieescape'owane do HTML umowy renderowanego przez `dangerouslySetInnerHTML` w sesji admina → nazwisko `<img onerror=…>` wykonywało kod w panelu (kradzież cookie sesji). `contract.ts` escape'uje teraz każdą wartość klienta/dokumentu (`najemcaBlock` + końcowe podstawianie, poza gotowym blokiem HTML). Zweryfikowane: payload neutralizowany, polskie/islandzkie znaki nietknięte.
 - **Fix legal — umowa nie zmyśla „0 ISK".** Kaucja i udział własny, gdy nie zostały wpisane, dają teraz pustą linię do uzupełnienia zamiast fałszywego „0 ISK" (wcześniej każda umowa deklarowała 0 ISK udziału i 0 ISK kaucji — ekspozycja przy roszczeniu).
