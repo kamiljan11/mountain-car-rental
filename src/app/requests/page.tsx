@@ -31,7 +31,7 @@ const inputCls =
 const labelCls = "mb-1 block text-xs font-medium text-zinc-600";
 
 export default function RequestsPage() {
-  const { vehicles } = useData();
+  const { vehicles, refresh } = useData();
   const showToast = useToast();
   const vById = useMemo(() => new Map(vehicles.map((v) => [v.id, v])), [vehicles]);
 
@@ -69,16 +69,20 @@ export default function RequestsPage() {
       showToast("error", res.message || "Nie udało się.");
       return;
     }
+    // Mail mógł nie wyjść (brak/zła konfiguracja Resend) — nie udawaj, że wyszedł.
+    const mailNote = res.emailSent === false ? " (uwaga: mail NIE wyszedł)" : " — mail wysłany.";
     showToast(
-      "success",
-      kind === "confirm"
-        ? "Potwierdzono — rezerwacja utworzona, mail wysłany."
+      res.emailSent === false ? "error" : "success",
+      (kind === "confirm"
+        ? "Potwierdzono — rezerwacja utworzona"
         : kind === "reject"
-          ? "Odrzucono — mail wysłany."
-          : "Wysłano nowy link do klienta.",
+          ? "Odrzucono"
+          : "Wysłano nowy link do klienta") + mailNote,
     );
     setDecision(null);
     reload();
+    // Nowy klient + rezerwacja muszą pojawić się w Kalendarzu/Rezerwacjach/pickerach.
+    if (kind === "confirm") await refresh();
   };
 
   const submitted = (links ?? []).filter((l) => l.status === "submitted");

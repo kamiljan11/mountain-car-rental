@@ -8,8 +8,9 @@ import SortableTh from "@/components/SortableTh";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import type { Booking, Vehicle } from "@/lib/types";
 import VehicleFormModal from "@/components/VehicleFormModal";
+import { matchesQuery } from "@/lib/search";
 import { isk } from "@/lib/contract";
-import { Pencil } from "lucide-react";
+import { Pencil, Plus, Search, X } from "lucide-react";
 
 function Expiry({ iso }: { iso?: string }) {
   if (!iso) return <span className="text-zinc-400">—</span>;
@@ -68,8 +69,16 @@ function UtilizationRing({ percent }: { percent: number }) {
 }
 
 export default function FleetPage() {
-  const { vehicles, bookings, updateVehicle } = useData();
+  const { vehicles, bookings, updateVehicle, addVehicle } = useData();
   const [editing, setEditing] = useState<Vehicle | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const filteredVehicles = query.trim()
+    ? vehicles.filter((v) =>
+        matchesQuery([v.name, v.plate, v.vin, v.notes].filter(Boolean).join(" "), query),
+      )
+    : vehicles;
 
   const now = nowIceland();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -91,7 +100,7 @@ export default function FleetPage() {
   }, [vehicles, bookings]);
 
   const { sorted: sortedVehicles, sortKey, sortDir, toggleSort } = useSort(
-    vehicles,
+    filteredVehicles,
     {
       name: (v) => v.name,
       year: (v) => v.year ?? -1,
@@ -106,11 +115,41 @@ export default function FleetPage() {
 
   return (
     <div className="p-6">
-      <h1 className="mb-1 text-xl font-semibold tracking-tight">Flota</h1>
-      <p className="mb-5 text-sm text-zinc-500">
-        {vehicles.length} pojazdów. Ostrzeżenie gdy OC lub przegląd wygasa w ciągu 30 dni. Wykorzystanie
-        liczone dla {PL_MONTHS[now.getMonth()]} {now.getFullYear()}.
-      </p>
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="mb-1 text-xl font-semibold tracking-tight">Flota</h1>
+          <p className="text-sm text-zinc-500">
+            {vehicles.length} pojazdów. Ostrzeżenie gdy OC/AC/przegląd wygasa w ciągu 30 dni.
+            Wykorzystanie dla {PL_MONTHS[now.getMonth()]} {now.getFullYear()}.
+          </p>
+        </div>
+        <button
+          onClick={() => setAdding(true)}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-3 text-sm font-medium text-white hover:bg-zinc-800"
+        >
+          <Plus className="size-4" /> Dodaj pojazd
+        </button>
+      </div>
+
+      <div className="relative mb-4">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Szukaj: nazwa, rejestracja, VIN…"
+          className="w-full rounded-lg border border-zinc-200 bg-white py-2.5 pl-9 pr-9 text-base outline-none transition-colors focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 md:text-sm"
+        />
+        {query && (
+          <button
+            onClick={() => setQuery("")}
+            aria-label="Wyczyść"
+            className="absolute right-1.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+          >
+            <X className="size-4" />
+          </button>
+        )}
+      </div>
+
       <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
         <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-zinc-50 text-left text-xs uppercase tracking-wide text-zinc-500">
@@ -165,6 +204,13 @@ export default function FleetPage() {
                 </td>
               </tr>
             ))}
+            {sortedVehicles.length === 0 && (
+              <tr>
+                <td colSpan={8} className="px-4 py-6 text-center text-zinc-400">
+                  Brak pojazdów pasujących do „{query}”.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -176,6 +222,15 @@ export default function FleetPage() {
           onSubmit={async (patch) => {
             const ok = await updateVehicle(editing.id, patch);
             if (ok) setEditing(null);
+          }}
+        />
+      )}
+      {adding && (
+        <VehicleFormModal
+          onClose={() => setAdding(false)}
+          onSubmit={async (patch) => {
+            const v = await addVehicle(patch as Omit<Vehicle, "id">);
+            if (v) setAdding(false);
           }}
         />
       )}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Vehicle } from "@/lib/types";
+import { useModalChrome } from "@/lib/useModalChrome";
 import { X } from "lucide-react";
 
 const inputCls =
@@ -19,25 +20,26 @@ export default function VehicleFormModal({
   onClose,
   onSubmit,
 }: {
-  vehicle: Vehicle;
+  vehicle?: Vehicle; // brak = tryb dodawania nowego pojazdu
   onClose: () => void;
   onSubmit: (patch: Partial<Omit<Vehicle, "id">>) => Promise<void>;
 }) {
   const [form, setForm] = useState({
-    name: vehicle.name,
-    plate: vehicle.plate,
-    vin: vehicle.vin ?? "",
-    year: vehicle.year != null ? String(vehicle.year) : "",
-    mileage: vehicle.mileage != null ? String(vehicle.mileage) : "",
-    dailyRate: vehicle.dailyRate != null ? String(vehicle.dailyRate) : "",
-    color: vehicle.color,
-    status: vehicle.status,
-    ocExpiry: vehicle.ocExpiry ?? "",
-    acExpiry: vehicle.acExpiry ?? "",
-    inspectionExpiry: vehicle.inspectionExpiry ?? "",
-    notes: vehicle.notes ?? "",
+    name: vehicle?.name ?? "",
+    plate: vehicle?.plate ?? "",
+    vin: vehicle?.vin ?? "",
+    year: vehicle?.year != null ? String(vehicle.year) : "",
+    mileage: vehicle?.mileage != null ? String(vehicle.mileage) : "",
+    dailyRate: vehicle?.dailyRate != null ? String(vehicle.dailyRate) : "",
+    color: vehicle?.color ?? "#378ADD",
+    status: vehicle?.status ?? "active",
+    ocExpiry: vehicle?.ocExpiry ?? "",
+    acExpiry: vehicle?.acExpiry ?? "",
+    inspectionExpiry: vehicle?.inspectionExpiry ?? "",
+    notes: vehicle?.notes ?? "",
   });
   const [saving, setSaving] = useState(false);
+  useModalChrome();
 
   const set =
     (k: keyof typeof form) =>
@@ -68,7 +70,9 @@ export default function VehicleFormModal({
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-zinc-900/30 px-4 py-6 md:items-center">
       <div className="w-full max-w-xl rounded-2xl bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4">
-          <h2 className="text-base font-semibold text-zinc-900">Edytuj pojazd</h2>
+          <h2 className="text-base font-semibold text-zinc-900">
+            {vehicle ? "Edytuj pojazd" : "Nowy pojazd"}
+          </h2>
           <button
             onClick={onClose}
             aria-label="Zamknij"

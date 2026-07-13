@@ -6,6 +6,7 @@ import {
   sendBookingConfirmationAction,
 } from "@/lib/actions";
 import { useToast } from "@/components/Toast";
+import { useModalChrome } from "@/lib/useModalChrome";
 import { Loader2, X, Check, Mail, AlertTriangle } from "lucide-react";
 
 // Okienko „wyślij potwierdzenie rezerwacji na e-mail": podgląd treści maila,
@@ -18,6 +19,7 @@ export default function SendConfirmationModal({
   onClose: () => void;
 }) {
   const showToast = useToast();
+  useModalChrome();
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [to, setTo] = useState("");

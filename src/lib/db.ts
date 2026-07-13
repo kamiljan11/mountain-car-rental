@@ -25,6 +25,7 @@ function toVehicle(r: any): Vehicle {
     color: r.color ?? "#378ADD",
     status: r.status ?? "active",
     ocExpiry: r.insurance_oc_expiry ?? undefined,
+    acExpiry: r.insurance_ac_expiry ?? undefined,
     inspectionExpiry: r.inspection_expiry ?? undefined,
     notes: r.notes ?? undefined,
   };
@@ -138,6 +139,7 @@ export async function updateVehicle(
   if (v.color !== undefined) row.color = v.color;
   if (v.status !== undefined) row.status = v.status;
   if (v.ocExpiry !== undefined) row.insurance_oc_expiry = v.ocExpiry ?? null;
+  if (v.acExpiry !== undefined) row.insurance_ac_expiry = v.acExpiry ?? null;
   if (v.inspectionExpiry !== undefined) row.inspection_expiry = v.inspectionExpiry ?? null;
   if (v.notes !== undefined) row.notes = v.notes ?? null;
   const { data, error } = await supabase
@@ -153,9 +155,67 @@ export async function updateVehicle(
   return toVehicle(data);
 }
 
-export async function insertBooking(b: Omit<Booking, "id">): Promise<Booking> {
+export async function insertVehicle(v: Omit<Vehicle, "id">): Promise<Vehicle | null> {
+  await requireSession();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("vehicles")
+    .insert({
+      name: v.name,
+      registration: v.plate || null,
+      vin: v.vin ?? null,
+      year: v.year ?? null,
+      mileage: v.mileage ?? null,
+      daily_rate: v.dailyRate ?? null,
+      color: v.color,
+      status: v.status,
+      insurance_oc_expiry: v.ocExpiry ?? null,
+      insurance_ac_expiry: v.acExpiry ?? null,
+      inspection_expiry: v.inspectionExpiry ?? null,
+      notes: v.notes ?? null,
+    })
+    .select()
+    .single();
+  if (error) {
+    console.error(error);
+    return null;
+  }
+  return toVehicle(data);
+}
+
+// Czy dla danego auta jest nie-anulowany wpis nakładający się na [start,end]
+// (włącznie, jak kalendarz)? excludeId pomija sam edytowany wpis.
+async function hasOverlap(
+  vehicleId: string,
+  start: string,
+  end: string,
+  excludeId?: string,
+): Promise<boolean> {
+  if (!supabase) return false;
+  const { data } = await supabase
+    .from("bookings")
+    .select("id,start_at,end_at,status")
+    .eq("vehicle_id", vehicleId);
+  const iso = (x: unknown) => String(x).slice(0, 10);
+  return (data ?? []).some(
+    (r: any) =>
+      r.id !== excludeId &&
+      r.status !== "cancelled" &&
+      iso(r.start_at) <= end &&
+      iso(r.end_at) >= start,
+  );
+}
+
+export async function insertBooking(
+  b: Omit<Booking, "id">,
+  force = false,
+): Promise<Booking> {
   await requireSession();
   if (!supabase) return { ...b, id: `local-${Math.round(Math.random() * 1e9)}` };
+  // Twarda blokada podwójnej rezerwacji (chyba że świadome nadpisanie).
+  if (!force && (await hasOverlap(b.vehicleId, b.start, b.end))) {
+    throw new Error("Termin zajęty — nakłada się na istniejący wpis tego auta.");
+  }
   const { data, error } = await supabase
     .from("bookings")
     .insert({
@@ -186,9 +246,14 @@ export async function insertBooking(b: Omit<Booking, "id">): Promise<Booking> {
 export async function updateBooking(
   id: string,
   b: Partial<Omit<Booking, "id">>,
+  force = false,
 ): Promise<Booking | null> {
   await requireSession();
   if (!supabase) return null;
+  // Re-check nakładania, gdy zmienia się auto lub daty (potrzebny komplet vehicle+start+end).
+  if (!force && b.vehicleId && b.start && b.end && (await hasOverlap(b.vehicleId, b.start, b.end, id))) {
+    return null;
+  }
   const row: Record<string, unknown> = {};
   if (b.vehicleId !== undefined) row.vehicle_id = b.vehicleId;
   if (b.customerId !== undefined) row.customer_id = b.customerId ?? null;
@@ -636,7 +701,7 @@ export async function decideBookingRequest(input: {
   decision: "confirm" | "request_changes" | "reject";
   adminNote?: string;
   origin: string;
-}): Promise<{ ok: boolean; message?: string }> {
+}): Promise<{ ok: boolean; message?: string; emailSent?: boolean }> {
   const session = await requireSession();
   if (!supabase) return { ok: false, message: "Baza niedostępna." };
 
@@ -729,6 +794,20 @@ export async function decideBookingRequest(input: {
         if (de) console.error(de); // nie blokuje potwierdzenia rezerwacji
       }
     }
+    // Termin mógł zostać zajęty między wysłaniem wniosku a potwierdzeniem.
+    if (
+      await hasOverlap(
+        link.vehicle_id,
+        String(link.req_start).slice(0, 10),
+        String(link.req_end).slice(0, 10),
+      )
+    ) {
+      await revert();
+      return {
+        ok: false,
+        message: "Termin jest już zajęty — odrzuć wniosek albo poproś klienta o inny termin.",
+      };
+    }
     const { data: bk, error: be } = await supabase
       .from("bookings")
       .insert({
@@ -782,9 +861,10 @@ export async function decideBookingRequest(input: {
         origin: input.origin, // włącza blok płatności Revolut (QR + link) w mailu
         amount,
       });
-      await sendEmail({ to: link.client_email, subject, html });
+      const emailSent = await sendEmail({ to: link.client_email, subject, html });
+      return { ok: true, emailSent };
     }
-    return { ok: true };
+    return { ok: true, emailSent: false };
   }
 
   if (input.decision === "request_changes") {
@@ -826,9 +906,10 @@ export async function decideBookingRequest(input: {
         reason: note || "",
         link: `${input.origin}/book/${token}`,
       });
-      await sendEmail({ to: link.client_email, subject, html });
+      const emailSent = await sendEmail({ to: link.client_email, subject, html });
+      return { ok: true, emailSent };
     }
-    return { ok: true };
+    return { ok: true, emailSent: false };
   }
 
   // reject
@@ -838,7 +919,8 @@ export async function decideBookingRequest(input: {
     .eq("id", input.id);
   if (link.client_email) {
     const { subject, html } = emailRejected({ reason: note || "" });
-    await sendEmail({ to: link.client_email, subject, html });
+    const emailSent = await sendEmail({ to: link.client_email, subject, html });
+    return { ok: true, emailSent };
   }
-  return { ok: true };
+  return { ok: true, emailSent: false };
 }

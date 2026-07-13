@@ -15,6 +15,7 @@ import {
   updateCustomerAction as updateCustomerDb,
   deleteCustomerAction as deleteCustomerDb,
   updateVehicleAction as updateVehicleDb,
+  insertVehicleAction as insertVehicleDb,
 } from "@/lib/actions";
 import { useToast } from "@/components/Toast";
 import type { Vehicle, Customer, Booking } from "@/lib/types";
@@ -24,13 +25,19 @@ type Ctx = {
   customers: Customer[];
   bookings: Booking[];
   loaded: boolean;
-  addBooking: (b: Omit<Booking, "id">) => Promise<Booking | null>;
-  updateBooking: (id: string, patch: Partial<Omit<Booking, "id">>) => Promise<boolean>;
+  refresh: () => Promise<void>;
+  addBooking: (b: Omit<Booking, "id">, force?: boolean) => Promise<Booking | null>;
+  updateBooking: (
+    id: string,
+    patch: Partial<Omit<Booking, "id">>,
+    force?: boolean,
+  ) => Promise<boolean>;
   removeBooking: (id: string) => Promise<void>;
   addCustomer: (c: Omit<Customer, "id">) => Promise<Customer | null>;
   updateCustomer: (id: string, patch: Partial<Omit<Customer, "id">>) => Promise<boolean>;
   removeCustomer: (id: string) => Promise<void>;
   updateVehicle: (id: string, patch: Partial<Omit<Vehicle, "id">>) => Promise<boolean>;
+  addVehicle: (v: Omit<Vehicle, "id">) => Promise<Vehicle | null>;
   vehicleById: (id: string) => Vehicle | undefined;
   customerById: (id?: string | null) => Customer | undefined;
 };
@@ -81,20 +88,31 @@ export default function DataProvider({
     customers,
     bookings,
     loaded,
-    addBooking: async (b) => {
+    refresh: async () => {
+      const d = await fetchAll();
+      setVehicles(d.vehicles);
+      setCustomers(d.customers);
+      setBookings(d.bookings);
+    },
+    addBooking: async (b, force = false) => {
       try {
-        const nb = await insertBooking(b);
+        const nb = await insertBooking(b, force);
         setBookings((prev) => [...prev, nb]);
         return nb;
-      } catch {
-        showToast("error", "Nie udało się zapisać rezerwacji. Spróbuj ponownie.");
+      } catch (e) {
+        showToast(
+          "error",
+          e instanceof Error && /zaj/i.test(e.message)
+            ? "Termin zajęty — wpis nakłada się na istniejący. Wybierz inny termin."
+            : "Nie udało się zapisać rezerwacji. Spróbuj ponownie.",
+        );
         return null;
       }
     },
-    updateBooking: async (id, patch) => {
+    updateBooking: async (id, patch, force = false) => {
       const prevBooking = bookings.find((b) => b.id === id);
       setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, ...patch } : b)));
-      const result = await updateBookingDb(id, patch);
+      const result = await updateBookingDb(id, patch, force);
       if (!result) {
         if (prevBooking) {
           setBookings((prev) => prev.map((b) => (b.id === id ? prevBooking : b)));
@@ -159,6 +177,15 @@ export default function DataProvider({
         return false;
       }
       return true;
+    },
+    addVehicle: async (v) => {
+      const nv = await insertVehicleDb(v);
+      if (!nv) {
+        showToast("error", "Nie udało się dodać pojazdu. Spróbuj ponownie.");
+        return null;
+      }
+      setVehicles((prev) => [...prev, nv]);
+      return nv;
     },
     vehicleById: (id) => maps.v.get(id),
     customerById: (id) => (id ? maps.c.get(id) : undefined),

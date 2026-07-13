@@ -17,6 +17,7 @@ import {
   Users,
   CalendarCheck,
   Wallet,
+  ShieldAlert,
 } from "lucide-react";
 
 const TYPE_LABEL: Record<BookingType, string> = {
@@ -120,6 +121,25 @@ export default function DashboardPage() {
     })
     .sort((a, b) => (a.start < b.start ? -1 : 1));
 
+  // OC/AC/przegląd wygasające ≤30 dni lub już wygasłe — nie wolno wydać auta bez OC.
+  const expiring = useMemo(() => {
+    const rows: { vehicle: string; kind: string; date: string; days: number }[] = [];
+    for (const v of vehicles) {
+      (
+        [
+          ["OC", v.ocExpiry],
+          ["AC", v.acExpiry],
+          ["Przegląd", v.inspectionExpiry],
+        ] as const
+      ).forEach(([kind, date]) => {
+        if (!date) return;
+        const days = differenceInCalendarDays(parseISO(date), parseISO(today));
+        if (days <= 30) rows.push({ vehicle: v.name, kind, date, days });
+      });
+    }
+    return rows.sort((a, b) => a.days - b.days);
+  }, [vehicles, today]);
+
   return (
     <div className="p-6">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
@@ -213,6 +233,34 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {expiring.length > 0 && (
+        <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+          <h2 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-zinc-900">
+            <ShieldAlert className="size-4 text-amber-500" /> Ubezpieczenia i przeglądy — uwaga
+          </h2>
+          <div className="space-y-1.5">
+            {expiring.map((e, i) => (
+              <div key={i} className="flex items-center justify-between gap-3 text-sm">
+                <span className="text-zinc-700">
+                  <strong>{e.vehicle}</strong> · {e.kind}
+                </span>
+                <span
+                  className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-medium ${
+                    e.days < 0 ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
+                  }`}
+                >
+                  {e.days < 0
+                    ? `wygasło ${fmtDate(e.date)}`
+                    : e.days === 0
+                      ? "wygasa dziś"
+                      : `za ${e.days} dni · ${fmtDate(e.date)}`}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="rounded-xl border border-zinc-200 bg-white p-4">
         <div className="mb-3 flex items-center justify-between">

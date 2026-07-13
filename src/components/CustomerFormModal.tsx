@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Customer } from "@/lib/types";
+import { useModalChrome } from "@/lib/useModalChrome";
 import { X } from "lucide-react";
 
 const inputCls =
@@ -55,6 +56,7 @@ export default function CustomerFormModal({
     companyPhone: initial?.companyPhone ?? "",
   });
   const [saving, setSaving] = useState(false);
+  useModalChrome();
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));

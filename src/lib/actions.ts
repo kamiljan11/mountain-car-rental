@@ -16,12 +16,20 @@ export async function updateVehicleAction(id: string, patch: Partial<Omit<Vehicl
   return db.updateVehicle(id, patch);
 }
 
-export async function insertBookingAction(b: Omit<Booking, "id">) {
-  return db.insertBooking(b);
+export async function insertVehicleAction(v: Omit<Vehicle, "id">) {
+  return db.insertVehicle(v);
 }
 
-export async function updateBookingAction(id: string, patch: Partial<Omit<Booking, "id">>) {
-  return db.updateBooking(id, patch);
+export async function insertBookingAction(b: Omit<Booking, "id">, force = false) {
+  return db.insertBooking(b, force);
+}
+
+export async function updateBookingAction(
+  id: string,
+  patch: Partial<Omit<Booking, "id">>,
+  force = false,
+) {
+  return db.updateBooking(id, patch, force);
 }
 
 export async function deleteBookingAction(id: string) {

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import { useData } from "@/components/DataProvider";
 import { fmtDate, toISODate, todayISO } from "@/lib/dates";
+import { useModalChrome } from "@/lib/useModalChrome";
 import type { Booking, BookingType } from "@/lib/types";
 import {
   X,
@@ -67,6 +68,7 @@ export default function NewReservationWizard({
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  useModalChrome();
 
   const today = todayISO(); // „dzisiaj" po islandzku (UTC), nie wg strefy przeglądarki
   const [vehicleId, setVehicleId] = useState(
@@ -112,6 +114,7 @@ export default function NewReservationWizard({
   });
 
   const [notes, setNotes] = useState(editBooking?.notes ?? "");
+  const [override, setOverride] = useState(false); // świadome zapisanie mimo kolizji
 
   const vehicle = vehicles.find((v) => v.id === vehicleId);
   const days = Math.max(
@@ -155,7 +158,7 @@ export default function NewReservationWizard({
   const dateOrderOk = !!start && !!end && parseISO(end) >= parseISO(start);
   const canNext =
     step === 0
-      ? !!vehicleId && dateOrderOk
+      ? !!vehicleId && dateOrderOk && (conflicts.length === 0 || override)
       : step === 2
         ? type !== "reservation" || !!customerId
         : true;
@@ -183,9 +186,9 @@ export default function NewReservationWizard({
     let saved: Booking | null = null;
     let success: boolean;
     if (editBooking) {
-      success = await updateBooking(editBooking.id, payload);
+      success = await updateBooking(editBooking.id, payload, override);
     } else {
-      saved = await addBooking({ ...payload, status: "confirmed" });
+      saved = await addBooking({ ...payload, status: "confirmed" }, override);
       success = !!saved;
     }
     setSubmitting(false);
@@ -373,13 +376,24 @@ export default function NewReservationWizard({
                   )}
 
                   {conflicts.length > 0 && (
-                    <div className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800">
-                      <CircleAlert className="mt-0.5 size-4 shrink-0" />
-                      <span>
-                        {vehicle?.name} ma już {conflicts.length}{" "}
-                        {conflicts.length === 1 ? "wpis" : "wpisy"} nakładając się na
-                        te daty. Sprawdź kalendarz przed zapisaniem.
-                      </span>
+                    <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800">
+                      <div className="flex gap-2">
+                        <CircleAlert className="mt-0.5 size-4 shrink-0" />
+                        <span>
+                          Termin zajęty: {vehicle?.name} ma już {conflicts.length}{" "}
+                          {conflicts.length === 1 ? "wpis" : "wpisy"} nakładając się na te
+                          daty. Zapis jest zablokowany.
+                        </span>
+                      </div>
+                      <label className="flex items-center gap-2 font-medium">
+                        <input
+                          type="checkbox"
+                          checked={override}
+                          onChange={(e) => setOverride(e.target.checked)}
+                          className="size-4"
+                        />
+                        Zapisz mimo kolizji (świadomie)
+                      </label>
                     </div>
                   )}
 

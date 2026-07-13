@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AlertTriangle, Loader2, X } from "lucide-react";
+import { useModalChrome } from "@/lib/useModalChrome";
 
 // Reużywalne okno potwierdzenia. Dla akcji nieodwracalnych (usuwanie) użyj
 // danger; dla zapisów podaj `summary` (wiersze do sprawdzenia przed potwierdzeniem).
@@ -26,6 +27,7 @@ export default function ConfirmDialog({
   onClose: () => void;
 }) {
   const [busy, setBusy] = useState(false);
+  useModalChrome();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && !busy && onClose();
@@ -45,7 +47,7 @@ export default function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-zinc-900/40 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
+      <div role="dialog" aria-modal="true" className="w-full max-w-md rounded-2xl bg-white shadow-xl">
         <div className="flex items-start justify-between gap-3 border-b border-zinc-100 px-5 py-4">
           <div className="flex items-center gap-2.5">
             {danger && (
