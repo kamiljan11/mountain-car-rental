@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-13 (10)
+- **Blokady funkcjonują jak rezerwacje.** Zdjęte ograniczenie „tylko typ=rezerwacja" z akcji w „Szczegóły wpisu" — umowa, płatność (Revolut/QR), wysyłka płatności e-mailem, dane klienta i checklista zależą teraz tylko od tego, czy jest przypięty klient, nie od typu wpisu. Dzięki temu blokada z przypiętym klientem ma pełen zestaw funkcji rezerwacji. Wpisy bez klienta (m.in. importowane blokady RentHelp z klientem w notatce) mają przycisk **„Przypisz klienta (odblokuj funkcje rezerwacji)"** — po przypięciu (z podpowiedzią imienia/stawki z notatki) dostają wszystko.
+
 ## 2026-07-13 (9)
 - **„Zamień na rezerwację" dla blokad z RentHelpa.** Importowane wpisy typu Blokada z klientem i ceną w notatce (np. „[klient 691] messenger 25000") nie miały funkcji rezerwacji (brak `type=reservation` i przypiętego klienta → brak klienta/umowy/checklisty/płatności). W „Szczegóły wpisu" blokady/serwisu jest teraz przycisk **„Zamień na rezerwację"** — otwiera kreator z typem = Rezerwacja i **podpowiedzianym imieniem klienta oraz stawką wyciągniętą z notatki** (fold liczb/słów typu „messenger"; zweryfikowane na realnych wpisach). Po przypięciu klienta wpis zyskuje wszystkie funkcje rezerwacji. Podpowiedzi są edytowalne w kreatorze.
 

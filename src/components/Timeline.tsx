@@ -561,12 +561,12 @@ export default function Timeline() {
           />
 
           <div className="mt-6 space-y-2">
-            {selected.type !== "reservation" && (
+            {!selected.customerId && (
               <button
                 onClick={() => setPromote(selected)}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-3 text-sm font-medium text-blue-700 hover:bg-blue-100"
               >
-                <ArrowLeftRight className="size-4" /> Zamień na rezerwację (przypisz klienta)
+                <ArrowLeftRight className="size-4" /> Przypisz klienta (odblokuj funkcje rezerwacji)
               </button>
             )}
             <button
@@ -591,7 +591,7 @@ export default function Timeline() {
                 <UserRound className="size-4" /> Dane klienta (edytuj / uzupełnij)
               </button>
             )}
-            {selected.type === "reservation" && selected.customerId && (
+            {selected.customerId && (
               <button
                 onClick={() =>
                   setIframe({
@@ -617,7 +617,7 @@ export default function Timeline() {
                 <ClipboardCheck className="size-4" /> Checklista wydania
               </button>
             )}
-            {selected.type === "reservation" && (
+            {selected.customerId && (
               <RevolutPay
                 compact
                 amount={selected.total}
@@ -625,7 +625,7 @@ export default function Timeline() {
                 customerName={customerById(selected.customerId)?.name}
               />
             )}
-            {selected.type === "reservation" && customerById(selected.customerId)?.email && (
+            {customerById(selected.customerId)?.email && (
               <button
                 onClick={async () => {
                   setSendingPay(true);
