@@ -9,15 +9,23 @@ const PUBLIC_PATHS = ["/login", "/api/login", "/api/login/google", "/api/logout"
 const PUBLIC_PREFIXES = ["/icons/", "/icon.png", "/apple-icon.png", "/manifest.webmanifest", "/sw.js", "/book/", "/api/book/"];
 
 // Publiczne ścieżki KLIENTA (self-service booking) muszą ominąć także ścianę
-// Basic Auth — klient nie zna hasła zespołu. Pozostałe publiczne ścieżki
-// (/login, zasoby statyczne) zostają za Basic Auth bez zmian.
+// Basic Auth — klient nie zna hasła zespołu. Pliki statyczne (np. /revolut-qr.png
+// w mailu do klienta, ikony PWA, manifest, sw) też muszą być osiągalne bez haseł —
+// są niewrażliwe, a inaczej obrazek w mailu klienta = 401 (broken image).
 const CLIENT_PUBLIC_PREFIXES = ["/book/", "/api/book/"];
+// Pliki serwowane z /public (rozpoznawane po rozszerzeniu). Wykluczają się spod
+// Basic Auth ORAZ spod redirectu sesji.
+const STATIC_ASSET = /\.(?:png|jpe?g|gif|svg|webp|ico|webmanifest|xml|txt|js|json|woff2?)$/i;
+function isStaticAsset(pathname: string) {
+  return STATIC_ASSET.test(pathname);
+}
 function isClientPublic(pathname: string) {
-  return CLIENT_PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
+  return CLIENT_PUBLIC_PREFIXES.some((p) => pathname.startsWith(p)) || isStaticAsset(pathname);
 }
 
 function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.includes(pathname)) return true;
+  if (isStaticAsset(pathname)) return true;
   return PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
 }
 

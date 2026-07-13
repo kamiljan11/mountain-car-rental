@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-13 (11)
+- **Fix: QR/statyki spod Basic Auth (mail z QR do klienta był zepsuty).** Weryfikacja na żywo na produkcji wykazała, że `/revolut-qr.png` (a także ikony PWA, manifest) zwraca **401 Basic Auth** — więc kod QR w mailu potwierdzenia/płatności do klienta **nie ładował się** (klient nie ma haseł zespołu). `proxy.ts` wyłącza teraz pliki statyczne (po rozszerzeniu: png/jpg/svg/ico/webmanifest/js/json/…) spod Basic Auth i spod redirectu sesji — są niewrażliwe, a muszą być publiczne dla maili i PWA. `/book/*` i `/api/book/*` publiczne bez zmian; strony i API panelu nadal za bramką. (Produkcyjny alias publiczny: `mountain-car-rental.vercel.app`; per-deploy URL-e są za Vercel SSO.)
+
 ## 2026-07-13 (10)
 - **Blokady funkcjonują jak rezerwacje.** Zdjęte ograniczenie „tylko typ=rezerwacja" z akcji w „Szczegóły wpisu" — umowa, płatność (Revolut/QR), wysyłka płatności e-mailem, dane klienta i checklista zależą teraz tylko od tego, czy jest przypięty klient, nie od typu wpisu. Dzięki temu blokada z przypiętym klientem ma pełen zestaw funkcji rezerwacji. Wpisy bez klienta (m.in. importowane blokady RentHelp z klientem w notatce) mają przycisk **„Przypisz klienta (odblokuj funkcje rezerwacji)"** — po przypięciu (z podpowiedzią imienia/stawki z notatki) dostają wszystko.
 
