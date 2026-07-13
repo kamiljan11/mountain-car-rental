@@ -139,13 +139,15 @@ export async function submitBookingRequest(
     return { ok: false, message: "Link wygasł. Poproś zespół o nowy." };
 
   // Serwerowa re-walidacja dostępności — klient mógł ominąć UI kalendarza.
+  // Half-open [start,end): dzień zwrotu poprzedniego najmu NIE koliduje z odbiorem tego
+  // samego dnia — identycznie jak hasOverlap w db.ts i constraint bookings_no_overlap w DB.
   const { data: bk } = await supabase
     .from("bookings")
     .select("start_at,end_at,status")
     .eq("vehicle_id", link.vehicle_id);
   const conflict = (bk ?? []).some(
     (b: any) =>
-      b.status !== "cancelled" && iso(b.start_at) <= end && iso(b.end_at) >= start,
+      b.status !== "cancelled" && iso(b.start_at) < end && iso(b.end_at) > start,
   );
   if (conflict)
     return { ok: false, message: "Te daty są już zajęte. Wybierz inny termin." };

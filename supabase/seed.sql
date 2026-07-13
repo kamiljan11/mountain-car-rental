@@ -198,5 +198,7 @@ alter table rental.bookings
       '[)'
     ) with &&
   )
-  where (status <> 'cancelled');
+  -- Podłoga 2026: jak w migracji 20260713160000 — historia importu (2024/25) wyłączona spod
+  -- constraintu, era żywa (2026+) egzekwowana w pełni.
+  where (status <> 'cancelled' and start_at >= '2026-01-01');
 
