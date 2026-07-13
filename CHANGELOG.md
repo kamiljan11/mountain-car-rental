@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-13 (5)
+- **Kalendarz: „Dane klienta / Umowa / Checklista" otwierają się w okienku, nie wyrzucają z widoku.** Nowy `IframeModal` pokazuje realną stronę apki (edycja klienta, generator umowy, checklista) w iframe na wierzchu kalendarza — powiązaną z bazą, z buttonem „otwórz w pełnym widoku" i zamknięciem (X / Esc). `AppShell` dostał tryb `?embed=1`: strona w iframe renderuje się bez menu bocznego i paska ładowania (spinner trzyma się do `onLoad`, więc bez migotania). Same-origin + cookie `SameSite=Lax` → strona w okienku jest zalogowana; brak nagłówków blokujących iframe.
+
 ## 2026-07-13 (4)
 - **Naprawa nadawcy maili (root cause, dlaczego nie wychodziły).** Klucz Resend JEST w vaulcie (Infisical, MAS Group/dev, ścieżka `/mountaincar`: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_TO_EMAIL`) — wcześniejszy „check" patrzył tylko na `/`, stąd fałszywy wniosek „brak klucza". Klucz zweryfikowany realną wysyłką (200) z `noreply@mountaincar.is` na `rental@mountaincar.is` — domena mountaincar.is jest zweryfikowana w Resend, klucz jest send-only i działa. Błąd był w kodzie: `email.ts` czytał `EMAIL_FROM`, a konfig używa `RESEND_FROM_EMAIL` → nadawca spadał na `onboarding@resend.dev` (Resend nie dowozi tego do klientów). Teraz `sendEmail` czyta `EMAIL_FROM || RESEND_FROM_EMAIL`. Pozostaje warunek: te 3 zmienne muszą być w env produkcyjnym Vercela (redeploy je podchwyci).
 

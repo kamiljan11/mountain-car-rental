@@ -8,11 +8,11 @@ import {
   useState,
 } from "react";
 import { parseISO, differenceInCalendarDays } from "date-fns";
-import Link from "next/link";
 import { useData } from "@/components/DataProvider";
 import { useToast } from "@/components/Toast";
 import { sendPaymentEmailAction } from "@/lib/actions";
 import NewReservationWizard from "@/components/NewReservationWizard";
+import IframeModal from "@/components/IframeModal";
 import RevolutPay from "@/components/RevolutPay";
 import { useIsMobile } from "@/lib/useIsMobile";
 import { PL_MONTHS, PL_WD, fmtDate, toISODate, nowIceland } from "@/lib/dates";
@@ -92,6 +92,7 @@ export default function Timeline() {
   const { vehicles, bookings, removeBooking, customerById } = useData();
   const showToast = useToast();
   const [sendingPay, setSendingPay] = useState(false);
+  const [iframe, setIframe] = useState<{ title: string; url: string } | null>(null);
 
   const isMobile = useIsMobile();
 
@@ -538,28 +539,43 @@ export default function Timeline() {
               <Pencil className="size-4" /> Edytuj wpis
             </button>
             {selected.customerId && (
-              <Link
-                href={`/customers/${selected.customerId}`}
+              <button
+                onClick={() =>
+                  setIframe({
+                    title: "Dane klienta",
+                    url: `/customers/${selected.customerId}`,
+                  })
+                }
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
               >
                 <UserRound className="size-4" /> Dane klienta (edytuj / uzupełnij)
-              </Link>
+              </button>
             )}
             {selected.type === "reservation" && selected.customerId && (
-              <Link
-                href={`/contracts?customerId=${selected.customerId}&bookingId=${selected.id}`}
+              <button
+                onClick={() =>
+                  setIframe({
+                    title: "Umowa",
+                    url: `/contracts?customerId=${selected.customerId}&bookingId=${selected.id}`,
+                  })
+                }
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
               >
                 <FileSignature className="size-4" /> Wygeneruj umowę
-              </Link>
+              </button>
             )}
             {selected.customerId && (
-              <Link
-                href={`/checklist?customerId=${selected.customerId}`}
+              <button
+                onClick={() =>
+                  setIframe({
+                    title: "Checklista wydania",
+                    url: `/checklist?customerId=${selected.customerId}`,
+                  })
+                }
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
               >
                 <ClipboardCheck className="size-4" /> Checklista wydania
-              </Link>
+              </button>
             )}
             {selected.type === "reservation" && (
               <RevolutPay
@@ -615,6 +631,14 @@ export default function Timeline() {
 
       {editing && (
         <NewReservationWizard editBooking={editing} onClose={() => setEditing(null)} />
+      )}
+
+      {iframe && (
+        <IframeModal
+          title={iframe.title}
+          url={iframe.url}
+          onClose={() => setIframe(null)}
+        />
       )}
     </div>
   );
