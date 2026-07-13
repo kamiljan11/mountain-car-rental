@@ -8,6 +8,7 @@ import {
 } from "./data";
 import type { Vehicle, Customer, Booking, CustomerDocument, BookingLink } from "./types";
 import type { Contract } from "./contract";
+import { makeNumber } from "./contract";
 import { randomBytes } from "crypto";
 import { sendEmail, emailConfirmed, emailChanges, emailRejected, emailPayment } from "./email";
 import { differenceInCalendarDays, parseISO } from "date-fns";
@@ -75,6 +76,7 @@ function toBooking(r: any): Booking {
     deposit: r.deposit != null ? Number(r.deposit) : undefined,
     odometerStart: r.odometer_start != null ? Number(r.odometer_start) : undefined,
     odometerEnd: r.odometer_end != null ? Number(r.odometer_end) : undefined,
+    location: r.location ?? undefined,
     platform: r.platform ?? undefined,
     external_ref: r.external_ref ?? undefined,
     notes: r.notes ?? undefined,
@@ -101,20 +103,29 @@ export async function fetchAll(): Promise<{
   bookings: Booking[];
 }> {
   await requireSession();
-  const fallback = {
-    vehicles: seedVehicles,
-    customers: seedCustomers,
-    bookings: seedBookings,
-  };
-  if (!supabase) return fallback;
+  // Fail-closed jak w auth.ts: w produkcji brak konfiguracji Supabase MUSI rzucić,
+  // a nie po cichu serwować zamrożonego seeda jako dane „na żywo". Seed dopuszczamy
+  // WYŁĄCZNIE lokalnie (dev bez bazy).
+  if (!supabase) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Brak konfiguracji Supabase w produkcji — odmawiam serwowania seeda.");
+    }
+    return {
+      vehicles: seedVehicles,
+      customers: seedCustomers,
+      bookings: seedBookings,
+    };
+  }
   const [v, c, b] = await Promise.all([
     supabase.from("vehicles").select("*").order("name"),
     supabase.from("customers").select("*").order("full_name"),
     supabase.from("bookings").select("*"),
   ]);
   if (v.error || c.error || b.error) {
+    // Realny błąd zapytania — NIE podstawiaj seeda (to maskowało awarię danymi
+    // sprzed tygodni). Zgłoś wyżej, żeby UI pokazał stan błędu/retry.
     console.error("Supabase fetch error", v.error || c.error || b.error);
-    return fallback;
+    throw new Error("Nie udało się pobrać danych z bazy.");
   }
   return {
     vehicles: (v.data ?? []).map(toVehicle),
@@ -183,8 +194,10 @@ export async function insertVehicle(v: Omit<Vehicle, "id">): Promise<Vehicle | n
   return toVehicle(data);
 }
 
-// Czy dla danego auta jest nie-anulowany wpis nakładający się na [start,end]
-// (włącznie, jak kalendarz)? excludeId pomija sam edytowany wpis.
+// Czy dla danego auta jest nie-anulowany wpis nakładający się na [start,end]?
+// end to dzień ZWROTU — traktujemy go jako granicę wykluczającą (semantyka [start,end)),
+// więc zmiana tego samego dnia (auto wraca dnia X, kolejny klient odbiera dnia X) NIE jest
+// konfliktem. Prawdziwe nakładanie dni nadal łapiemy. excludeId pomija sam edytowany wpis.
 async function hasOverlap(
   vehicleId: string,
   start: string,
@@ -201,8 +214,9 @@ async function hasOverlap(
     (r: any) =>
       r.id !== excludeId &&
       r.status !== "cancelled" &&
-      iso(r.start_at) <= end &&
-      iso(r.end_at) >= start,
+      // Dotknięcie na styku (istniejący.end === nowy.start lub odwrotnie) to NIE konflikt.
+      iso(r.start_at) < end &&
+      iso(r.end_at) > start,
   );
 }
 
@@ -232,12 +246,18 @@ export async function insertBooking(
       deposit: b.deposit ?? null,
       odometer_start: b.odometerStart ?? null,
       odometer_end: b.odometerEnd ?? null,
+      location: b.location ?? null,
       notes: b.notes ?? null,
     })
     .select()
     .single();
   if (error) {
     console.error(error);
+    // Backstop bazy: EXCLUDE (GiST) łapie wyścig, którego pre-check hasOverlap nie zobaczył.
+    // 23P01 = exclusion_violation → ten sam komunikat co miękka blokada wyżej.
+    if ((error as { code?: string }).code === "23P01") {
+      throw new Error("Termin zajęty — nakłada się na istniejący wpis tego auta.");
+    }
     throw new Error("Nie udało się zapisać rezerwacji.");
   }
   return toBooking(data);
@@ -268,6 +288,7 @@ export async function updateBooking(
   if (b.deposit !== undefined) row.deposit = b.deposit ?? null;
   if (b.odometerStart !== undefined) row.odometer_start = b.odometerStart ?? null;
   if (b.odometerEnd !== undefined) row.odometer_end = b.odometerEnd ?? null;
+  if (b.location !== undefined) row.location = b.location ?? null;
   if (b.notes !== undefined) row.notes = b.notes ?? null;
   const { data, error } = await supabase
     .from("bookings")
@@ -277,6 +298,8 @@ export async function updateBooking(
     .single();
   if (error) {
     console.error(error);
+    // 23P01 (exclusion_violation) = termin zajęty wg backstopu bazy → null, tak jak miękka
+    // blokada wyżej (UI pokazuje wtedy komunikat o zajętym terminie).
     return null;
   }
   return toBooking(data);
@@ -421,25 +444,41 @@ export async function insertContract(
 ): Promise<Contract | null> {
   await requireSession();
   if (!supabase) return null;
-  const { data, error } = await supabase
-    .from("contracts")
-    .insert({
-      number: c.number,
-      template_id: c.templateId,
-      template_name: c.templateName,
-      customer_id: c.customerId,
-      vehicle_id: c.vehicleId ?? null,
-      booking_id: c.bookingId ?? null,
-      status: c.status,
-      content: c.content,
-    })
-    .select()
-    .single();
-  if (error) {
+  // Numer umowy nadajemy SERWEROWO i atomowo. `c.number` z klienta to tylko podpowiedź do
+  // podglądu — dwie karty/dwóch adminów licząc max()+1 z własnej migawki mogłoby wybić ten
+  // sam numer prawnej umowy. Liczymy świeży numer z bieżącego stanu bazy, a UNIQUE(number)
+  // + retry na 23505 (unique_violation) gwarantuje unikat nawet przy wyścigu dwóch zapisów.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const { data: rows, error: rowsErr } = await supabase.from("contracts").select("number");
+    // Świeży numer z bazy; gdy odczyt padł — fallback na podpowiedź klienta.
+    const number = rowsErr ? c.number : makeNumber(rows ?? []);
+    // Numer trafia też w treść umowy (podstawiony w HTML jako {{NUMER}}). Gdy numer serwerowy
+    // różni się od podpowiedzi klienta, podmieniamy go też w treści, żeby dokument i kolumna
+    // `number` się zgadzały (format NN/MM/RRRR nie koliduje z formatem daty w treści).
+    const content =
+      c.number && number !== c.number ? c.content.split(c.number).join(number) : c.content;
+    const { data, error } = await supabase
+      .from("contracts")
+      .insert({
+        number,
+        template_id: c.templateId,
+        template_name: c.templateName,
+        customer_id: c.customerId,
+        vehicle_id: c.vehicleId ?? null,
+        booking_id: c.bookingId ?? null,
+        status: c.status,
+        content,
+      })
+      .select()
+      .single();
+    if (!error) return toContract(data);
+    // 23505 = kolizja numeru (inny wpis zdążył wskoczyć) → przelicz z nowego maxa i ponów.
+    if ((error as { code?: string }).code === "23505") continue;
     console.error(error);
     return null;
   }
-  return toContract(data);
+  console.error("insertContract: nie udało się nadać unikalnego numeru umowy po kilku próbach.");
+  return null;
 }
 
 // Wyślij klientowi maila z płatnością Revolut (QR + link) dla danej rezerwacji.
@@ -808,6 +847,18 @@ export async function decideBookingRequest(input: {
         message: "Termin jest już zajęty — odrzuć wniosek albo poproś klienta o inny termin.",
       };
     }
+    // Cena całkowita = stawka dzienna × liczba naliczanych dni (dzień zwrotu włącznie).
+    // Ten sam wzór co w mailu potwierdzającym niżej. Bez tego self-service dawał 0 zł
+    // w przychodach i pustą kwotę w umowie, bloku QR Revolut i szufladzie kalendarza.
+    let totalPrice: number | null = null;
+    if (link.suggested_daily_rate != null && link.req_start && link.req_end) {
+      const billedDays =
+        differenceInCalendarDays(
+          parseISO(String(link.req_end).slice(0, 10)),
+          parseISO(String(link.req_start).slice(0, 10)),
+        ) + 1;
+      totalPrice = Number(link.suggested_daily_rate) * Math.max(1, billedDays);
+    }
     const { data: bk, error: be } = await supabase
       .from("bookings")
       .insert({
@@ -818,6 +869,7 @@ export async function decideBookingRequest(input: {
         start_at: link.req_start,
         end_at: link.req_end,
         daily_rate: link.suggested_daily_rate,
+        total_price: totalPrice,
         deposit: link.suggested_deposit,
         notes: link.client_note,
       })
@@ -826,6 +878,13 @@ export async function decideBookingRequest(input: {
     if (be) {
       console.error(be);
       await revert();
+      // Backstop bazy pod wyścig: EXCLUDE złapał zajęty termin (23P01) mimo pre-checku hasOverlap.
+      if ((be as { code?: string }).code === "23P01") {
+        return {
+          ok: false,
+          message: "Termin jest już zajęty — odrzuć wniosek albo poproś klienta o inny termin.",
+        };
+      }
       return { ok: false, message: "Nie udało się utworzyć rezerwacji." };
     }
     await supabase

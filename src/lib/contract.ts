@@ -366,8 +366,10 @@ export function buildFilled(
     DATA_ZWROTU: booking
       ? `${fmtDate(booking.end)}${booking.returnTime ? `, godz. ${booking.returnTime}` : ""}`
       : DASH,
-    MIEJSCE_WYD: "Keflavík / wg ustaleń",
-    MIEJSCE_ZWR: "Keflavík / wg ustaleń",
+    // Miejsce wydania/odbioru z rezerwacji (biuro vs lotnisko); gdy nie wybrane
+    // — dotychczasowy fallback.
+    MIEJSCE_WYD: booking?.location ?? "Keflavík / wg ustaleń",
+    MIEJSCE_ZWR: booking?.location ?? "Keflavík / wg ustaleń",
     DNI: dni,
     LIMIT_KM: "Brak limitu",
     // Nie zmyślaj zapisów prawnych: gdy kaucja/udział własny nie zostały wpisane,

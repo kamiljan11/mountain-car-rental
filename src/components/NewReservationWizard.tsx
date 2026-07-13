@@ -81,7 +81,7 @@ export default function NewReservationWizard({
   const [end, setEnd] = useState(
     editBooking?.end ?? addDays(initialDate ?? today, 2),
   );
-  const [location, setLocation] = useState(LOCATIONS[0]);
+  const [location, setLocation] = useState(editBooking?.location ?? LOCATIONS[0]);
   // Godzina wydania/odbioru ("HH:MM") — opcjonalna, osobno od dat.
   const [pickupTime, setPickupTime] = useState(editBooking?.pickupTime ?? "");
   const [returnTime, setReturnTime] = useState(editBooking?.returnTime ?? "");
@@ -181,6 +181,8 @@ export default function NewReservationWizard({
       deposit: depositNum || undefined,
       odometerStart: odo(odoStart),
       odometerEnd: odo(odoEnd),
+      // Miejsce wydania/odbioru tylko dla rezerwacji (blok/serwis go nie mają).
+      location: type === "reservation" ? location : undefined,
       notes: notes || undefined,
     };
     let saved: Booking | null = null;

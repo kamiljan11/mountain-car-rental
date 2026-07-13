@@ -59,21 +59,31 @@ export default function DataProvider({
   const [customers, setCustomers] = useState<Customer[]>(seedCustomers);
   const [bookings, setBookings] = useState<Booking[]>(seedBookings);
   const [loaded, setLoaded] = useState(false);
+  // Stan błędu wczytania: gdy fetchAll padnie, pokazujemy jasny ekran błędu/retry
+  // zamiast po cichu renderować nieaktualny seed jako dane produkcyjne.
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const showToast = useToast();
 
   useEffect(() => {
     let alive = true;
-    fetchAll().then((d) => {
-      if (!alive) return;
-      setVehicles(d.vehicles);
-      setCustomers(d.customers);
-      setBookings(d.bookings);
-      setLoaded(true);
-    });
+    fetchAll()
+      .then((d) => {
+        if (!alive) return;
+        setVehicles(d.vehicles);
+        setCustomers(d.customers);
+        setBookings(d.bookings);
+        setLoaded(true);
+        setLoadError(false); // udany retry czyści ekran błędu
+      })
+      .catch(() => {
+        // Baza niedostępna / błąd zapytania — nie serwuj cicho seeda, zgłoś błąd.
+        if (alive) setLoadError(true);
+      });
     return () => {
       alive = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const maps = useMemo(
     () => ({
@@ -82,6 +92,26 @@ export default function DataProvider({
     }),
     [vehicles, customers],
   );
+
+  // Twardy stan błędu — nie renderuj aplikacji na nieaktualnym seedzie.
+  // (Po wszystkich hookach powyżej, zgodnie z regułami hooków.)
+  if (loadError) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
+        <p className="max-w-sm text-sm text-neutral-600 dark:text-neutral-300">
+          Nie udało się pobrać danych z bazy. Aby uniknąć pokazywania nieaktualnych
+          informacji, panel został wstrzymany.
+        </p>
+        <button
+          type="button"
+          onClick={() => setReloadKey((k) => k + 1)}
+          className="rounded-lg bg-[#378ADD] px-4 py-2 text-sm font-medium text-white"
+        >
+          Spróbuj ponownie
+        </button>
+      </div>
+    );
+  }
 
   const value: Ctx = {
     vehicles,

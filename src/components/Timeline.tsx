@@ -17,6 +17,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import SendConfirmationModal from "@/components/SendConfirmationModal";
 import RevolutPay from "@/components/RevolutPay";
 import { useIsMobile } from "@/lib/useIsMobile";
+import { useModalChrome } from "@/lib/useModalChrome";
 import { PL_MONTHS, PL_WD, fmtDate, toISODate, nowIceland } from "@/lib/dates";
 import { matchesQuery } from "@/lib/search";
 import type { Booking, BookingType } from "@/lib/types";
@@ -754,8 +755,15 @@ function Drawer({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  // Scroll-lock tła + zamykanie Escape jak w pozostałych modalach aplikacji.
+  useModalChrome(onClose);
   return (
-    <div className="fixed right-0 top-0 z-50 flex h-full w-96 max-w-full flex-col border-l border-zinc-200 bg-white shadow-xl">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      className="fixed right-0 top-0 z-50 flex h-full w-96 max-w-full flex-col border-l border-zinc-200 bg-white shadow-xl"
+    >
       <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
         <h2 className="text-sm font-semibold">{title}</h2>
         <button

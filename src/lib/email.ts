@@ -77,7 +77,8 @@ export function emailConfirmed(o: {
   vehicleName: string;
   start: string;
   end: string;
-  // Gdy podane — do maila dochodzi blok płatności Revolut (QR + link).
+  // origin/amount zostawione dla zgodności wywołań. Model płatności: PRZY ODBIORZE
+  // (bez przedpłaty Revolut w potwierdzeniu) — pokazujemy tylko kwotę do zapłaty.
   origin?: string;
   amount?: number;
 }): { subject: string; html: string } {
@@ -90,8 +91,12 @@ export function emailConfirmed(o: {
           <div><strong>${o.vehicleName}</strong></div>
           <div style="color:#71717a">${fmtDate(o.start)} – ${fmtDate(o.end)}</div>
         </div>` +
-        (o.origin ? p("Płatność możesz wygodnie wykonać przez Revolut:") + paymentBlock(o.origin, o.amount) : "") +
-        p("Skontaktujemy się w sprawie odbioru pojazdu. Do zobaczenia!"),
+        p(
+          `<strong>Płatność przy odbiorze pojazdu.</strong>${
+            o.amount != null ? ` Do zapłaty: <strong>${isk(o.amount)}</strong>.` : ""
+          }`,
+        ) +
+        p("Bądźmy w kontakcie — najłatwiej złapać nas na Messengerze lub WhatsAppie. Do zobaczenia!"),
     ),
   };
 }

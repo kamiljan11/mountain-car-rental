@@ -104,6 +104,9 @@ function ContractsContent() {
 
   const send = async () => {
     if (!customer) return;
+    // `nextNumber` to tylko PODPOWIEDŹ do podglądu — ostateczny, unikalny numer nadaje
+    // serwer atomowo w insertContract (UNIQUE + retry). Do listy dopisujemy `saved`
+    // z autorytatywnym numerem z bazy, więc kolejna sugestia liczy się poprawnie.
     const number = nextNumber;
     const content = buildFilled(template, {
       number,

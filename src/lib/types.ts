@@ -81,6 +81,9 @@ export interface Booking {
   // kilometrów z urzędem w Islandii (kílómetragjald).
   odometerStart?: number;
   odometerEnd?: number;
+  // Miejsce wydania/odbioru auta (biuro vs lotnisko) — wybierane w kreatorze,
+  // trafia na umowę. Opcjonalne (wsteczna zgodność: stare wpisy go nie mają).
+  location?: string;
   platform?: string;
   external_ref?: string;
   notes?: string;

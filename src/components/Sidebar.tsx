@@ -6,10 +6,13 @@ import { LogOut } from "lucide-react";
 import { NAV } from "@/lib/nav";
 import { useData } from "@/components/DataProvider";
 import InstallAppButton from "@/components/InstallAppButton";
+import { isHiddenVehicleName } from "@/lib/hiddenVehicles";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { vehicles } = useData();
+  // Liczymy tylko widoczne auta (bez Pajero/Vito), spójnie z pulpitem.
+  const visibleVehicleCount = vehicles.filter((v) => !isHiddenVehicleName(v.name)).length;
 
   const logout = async () => {
     await fetch("/api/logout", { method: "POST" });
@@ -51,7 +54,7 @@ export default function Sidebar() {
           Wyloguj
         </button>
         <div className="px-3 pt-2 text-xs text-zinc-500">
-          {vehicles.length} pojazdów · sezon 2026
+          {visibleVehicleCount} pojazdów · sezon 2026
         </div>
       </div>
     </aside>

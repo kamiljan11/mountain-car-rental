@@ -8,8 +8,10 @@ alter default privileges in schema rental grant all on tables to anon, authentic
 
 create table rental.vehicles (id uuid primary key default gen_random_uuid(), name text not null, registration text, vin text, year int, mileage int, daily_rate numeric(12,2), color text default '#378ADD', status text default 'active', insurance_oc_expiry date, insurance_ac_expiry date, inspection_expiry date, notes text, created_at timestamptz default now());
 create table rental.customers (id uuid primary key default gen_random_uuid(), full_name text not null, phone text, email text, id_number text, license_number text, address text, source text default 'renthelp', notes text, created_at timestamptz default now());
-create table rental.bookings (id uuid primary key default gen_random_uuid(), vehicle_id uuid references rental.vehicles(id) on delete cascade, customer_id uuid references rental.customers(id) on delete set null, type text not null default 'reservation', status text not null default 'confirmed', start_at timestamptz not null, end_at timestamptz not null, pickup_time text, return_time text, daily_rate numeric(12,2), total_price numeric(12,2), deposit numeric(12,2), odometer_start integer, odometer_end integer, platform text, external_ref text, notes text, created_at timestamptz default now());
+create table rental.bookings (id uuid primary key default gen_random_uuid(), vehicle_id uuid references rental.vehicles(id) on delete cascade, customer_id uuid references rental.customers(id) on delete set null, type text not null default 'reservation', status text not null default 'confirmed', start_at timestamptz not null, end_at timestamptz not null, pickup_time text, return_time text, daily_rate numeric(12,2), total_price numeric(12,2), deposit numeric(12,2), odometer_start integer, odometer_end integer, location text, platform text, external_ref text, notes text, created_at timestamptz default now());
 create table rental.contracts (id uuid primary key default gen_random_uuid(), number text not null, template_id text, template_name text, customer_id uuid references rental.customers(id) on delete cascade, vehicle_id uuid, booking_id uuid, status text default 'sent', content text, created_at timestamptz default now());
+-- Numer umowy niepowtarzalny (format NN/MM/RRRR = globalnie unikatowy) — lustro migracji 20260713162000.
+create unique index if not exists contracts_number_unique on rental.contracts (number);
 create table rental.settings (id int primary key default 1, brand text default 'Mountain Car Rental', legal_name text default 'Mountain All Service ehf.', kennitala text default '6907250450', vat text default '158052', address text default 'Njarðarbraut 3i, 260 Njarðvík', email text default 'mountainallservice@gmail.com', web text default 'https://mountaincar.is');
 
 alter table rental.vehicles enable row level security;
@@ -181,4 +183,20 @@ insert into rental.bookings (id,vehicle_id,customer_id,type,status,start_at,end_
 insert into rental.bookings (id,vehicle_id,customer_id,type,status,start_at,end_at,notes) values ('3350d9cd-56f2-4847-881e-8139fce515fa','5659fc8c-0384-4afc-ac47-47c320e1526b',null,'service','confirmed','2024-06-11','2025-03-31','Serwis (RentHelp import, historyczny)');
 
 insert into rental.settings (id) values (1);
+
+-- Backstop bazy przeciw podwójnej rezerwacji — lustro migracji 20260713160000.
+-- Semantyka [) (dzień zwrotu = granica wykluczająca), zgodna z hasOverlap w db.ts.
+-- Dodane PO insertach, bo constraint waliduje istniejące wiersze (seed nie ma nakładek).
+create extension if not exists btree_gist;
+alter table rental.bookings
+  add constraint bookings_no_overlap
+  exclude using gist (
+    vehicle_id with =,
+    daterange(
+      (start_at at time zone 'UTC')::date,
+      (end_at   at time zone 'UTC')::date,
+      '[)'
+    ) with &&
+  )
+  where (status <> 'cancelled');
 
