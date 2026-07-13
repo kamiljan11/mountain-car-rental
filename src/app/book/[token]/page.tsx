@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Loader2,
   ShieldCheck,
+  Lock,
   CalendarDays,
   Clock,
   AlertTriangle,
@@ -120,10 +121,27 @@ export default function BookPage() {
           <Wizard token={token} view={view} onDone={() => setSubmitted(true)} />
         )}
 
-        <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs text-zinc-400">
-          <ShieldCheck className="size-3.5" /> Twoje dane wpisujesz sam i trafiają
-          bezpiecznie do Mountain Car Rental.
-        </p>
+        {/* Zaufanie: kto zbiera dane, po co i jak — klient widzi to pod kreatorem. */}
+        <div className="mt-4 space-y-2 rounded-xl border border-zinc-200/70 bg-white/70 px-4 py-3 text-xs text-zinc-500">
+          <p className="flex items-start gap-1.5">
+            <Lock className="mt-0.5 size-3.5 shrink-0 text-zinc-400" />
+            Połączenie jest szyfrowane (HTTPS), a dane wpisujesz samodzielnie — trafiają
+            wyłącznie do Mountain Car Rental.
+          </p>
+          <p className="flex items-start gap-1.5">
+            <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-zinc-400" />
+            Wykorzystujemy je tylko do umowy najmu i kontaktu w sprawie rezerwacji
+            (RODO/GDPR). Nie przekazujemy ich nikomu innemu.
+          </p>
+          <p className="border-t border-zinc-100 pt-2 text-[11px] leading-relaxed text-zinc-400">
+            Mountain Car Rental — Mountain All Service ehf. · kennitala 690725-0450 ·
+            Njarðarbraut 6i, 260 Njarðvík, Islandia ·{" "}
+            <a href="https://mountaincar.is" className="underline hover:text-zinc-600">
+              mountaincar.is
+            </a>{" "}
+            · rental@mountaincar.is · +354 888 8005
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -185,7 +203,11 @@ function Wizard({
     phone: view.prefill?.phone ?? "",
     address: view.prefill?.address ?? "",
     idNumber: view.prefill?.idNumber ?? "",
+    idIssued: view.prefill?.idIssued ?? "",
+    idExpires: view.prefill?.idExpires ?? "",
     license: view.prefill?.license ?? "",
+    licenseIssued: view.prefill?.licenseIssued ?? "",
+    licenseExpires: view.prefill?.licenseExpires ?? "",
     note: "",
   });
   const [submitting, setSubmitting] = useState(false);
@@ -195,7 +217,15 @@ function Wizard({
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim());
-  const dataOk = form.name.trim().length > 1 && emailOk;
+  // Dokumenty (numery + daty wydania/ważności) są wymagane — trafiają na umowę najmu.
+  const docsOk =
+    !!form.idNumber.trim() &&
+    !!form.idIssued &&
+    !!form.idExpires &&
+    !!form.license.trim() &&
+    !!form.licenseIssued &&
+    !!form.licenseExpires;
+  const dataOk = form.name.trim().length > 1 && emailOk && docsOk;
   const datesOk = !!start && !!end && end >= start;
 
   const submit = async () => {
@@ -344,23 +374,69 @@ function Wizard({
               className={inputCls}
             />
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label className={labelCls}>Nr dokumentu tożsamości</label>
-              <input
-                value={form.idNumber}
-                onChange={(e) => set("idNumber", e.target.value)}
-                placeholder="Dowód / paszport"
-                className={inputCls}
-              />
+          <div className="rounded-xl border border-zinc-200 p-3">
+            <p className="mb-2 text-xs font-medium text-zinc-600">
+              Dokument tożsamości * <span className="font-normal text-zinc-400">(dowód / paszport — trafia na umowę najmu)</span>
+            </p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div>
+                <label className={labelCls}>Numer *</label>
+                <input
+                  value={form.idNumber}
+                  onChange={(e) => set("idNumber", e.target.value)}
+                  placeholder="np. ABC 123456"
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Data wydania *</label>
+                <input
+                  type="date"
+                  value={form.idIssued}
+                  onChange={(e) => set("idIssued", e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Ważny do *</label>
+                <input
+                  type="date"
+                  value={form.idExpires}
+                  onChange={(e) => set("idExpires", e.target.value)}
+                  className={inputCls}
+                />
+              </div>
             </div>
-            <div>
-              <label className={labelCls}>Nr prawa jazdy</label>
-              <input
-                value={form.license}
-                onChange={(e) => set("license", e.target.value)}
-                className={inputCls}
-              />
+          </div>
+          <div className="rounded-xl border border-zinc-200 p-3">
+            <p className="mb-2 text-xs font-medium text-zinc-600">Prawo jazdy *</p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div>
+                <label className={labelCls}>Numer *</label>
+                <input
+                  value={form.license}
+                  onChange={(e) => set("license", e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Data wydania *</label>
+                <input
+                  type="date"
+                  value={form.licenseIssued}
+                  onChange={(e) => set("licenseIssued", e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Ważne do *</label>
+                <input
+                  type="date"
+                  value={form.licenseExpires}
+                  onChange={(e) => set("licenseExpires", e.target.value)}
+                  className={inputCls}
+                />
+              </div>
             </div>
           </div>
           <div>
@@ -373,9 +449,10 @@ function Wizard({
               className={inputCls}
             />
           </div>
-          {!dataOk && (form.name || form.email) && (
+          {!dataOk && (form.name || form.email || form.idNumber || form.license) && (
             <p className="text-xs text-amber-600">
-              Podaj imię i nazwisko oraz poprawny e-mail.
+              Wymagane: imię i nazwisko, poprawny e-mail oraz dokument tożsamości i
+              prawo jazdy (numery + daty wydania i ważności).
             </p>
           )}
         </div>
@@ -389,8 +466,14 @@ function Wizard({
           <Row label="E-mail" value={form.email} />
           {form.phone && <Row label="Telefon" value={form.phone} />}
           {form.address && <Row label="Adres" value={form.address} />}
-          {form.idNumber && <Row label="Dokument tożsamości" value={form.idNumber} />}
-          {form.license && <Row label="Prawo jazdy" value={form.license} />}
+          <Row
+            label="Dokument tożsamości"
+            value={`${form.idNumber} (${fmtDate(form.idIssued)} – ${fmtDate(form.idExpires)})`}
+          />
+          <Row
+            label="Prawo jazdy"
+            value={`${form.license} (${fmtDate(form.licenseIssued)} – ${fmtDate(form.licenseExpires)})`}
+          />
           {form.note && <Row label="Wiadomość" value={form.note} />}
           {err && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">

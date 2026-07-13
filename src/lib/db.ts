@@ -66,6 +66,8 @@ function toBooking(r: any): Booking {
     status: r.status,
     start: String(r.start_at).slice(0, 10),
     end: String(r.end_at).slice(0, 10),
+    pickupTime: r.pickup_time ?? undefined,
+    returnTime: r.return_time ?? undefined,
     dailyRate: r.daily_rate != null ? Number(r.daily_rate) : undefined,
     total: r.total_price != null ? Number(r.total_price) : undefined,
     deposit: r.deposit != null ? Number(r.deposit) : undefined,
@@ -162,6 +164,8 @@ export async function insertBooking(b: Omit<Booking, "id">): Promise<Booking> {
       status: b.status,
       start_at: b.start,
       end_at: b.end,
+      pickup_time: b.pickupTime ?? null,
+      return_time: b.returnTime ?? null,
       daily_rate: b.dailyRate ?? null,
       total_price: b.total ?? null,
       deposit: b.deposit ?? null,
@@ -191,6 +195,8 @@ export async function updateBooking(
   if (b.status !== undefined) row.status = b.status;
   if (b.start !== undefined) row.start_at = b.start;
   if (b.end !== undefined) row.end_at = b.end;
+  if (b.pickupTime !== undefined) row.pickup_time = b.pickupTime ?? null;
+  if (b.returnTime !== undefined) row.return_time = b.returnTime ?? null;
   if (b.dailyRate !== undefined) row.daily_rate = b.dailyRate ?? null;
   if (b.total !== undefined) row.total_price = b.total ?? null;
   if (b.deposit !== undefined) row.deposit = b.deposit ?? null;
@@ -436,7 +442,15 @@ function toBookingLink(r: any): BookingLink {
     clientPhone: r.client_phone ?? undefined,
     clientAddress: r.client_address ?? undefined,
     clientIdNumber: r.client_id_number ?? undefined,
+    clientIdIssued: r.client_id_issued ? String(r.client_id_issued).slice(0, 10) : undefined,
+    clientIdExpires: r.client_id_expires ? String(r.client_id_expires).slice(0, 10) : undefined,
     clientLicense: r.client_license ?? undefined,
+    clientLicenseIssued: r.client_license_issued
+      ? String(r.client_license_issued).slice(0, 10)
+      : undefined,
+    clientLicenseExpires: r.client_license_expires
+      ? String(r.client_license_expires).slice(0, 10)
+      : undefined,
     reqStart: r.req_start ? String(r.req_start).slice(0, 10) : undefined,
     reqEnd: r.req_end ? String(r.req_end).slice(0, 10) : undefined,
     clientNote: r.client_note ?? undefined,
@@ -547,6 +561,29 @@ export async function decideBookingRequest(input: {
         return { ok: false, message: "Nie udało się zapisać klienta." };
       }
       customerId = cust.id;
+      // Dokumenty z wniosku (numer + daty wydania/ważności) → od razu na profil,
+      // żeby umowa miała komplet bez przepisywania. Tylko dla nowego klienta —
+      // istniejącemu nie dublujemy wpisów.
+      const docs = [
+        link.client_id_number && {
+          customer_id: customerId,
+          doc_type: "Dowód osobisty",
+          doc_number: link.client_id_number,
+          issued_at: link.client_id_issued ?? null,
+          expires_at: link.client_id_expires ?? null,
+        },
+        link.client_license && {
+          customer_id: customerId,
+          doc_type: "Prawo jazdy",
+          doc_number: link.client_license,
+          issued_at: link.client_license_issued ?? null,
+          expires_at: link.client_license_expires ?? null,
+        },
+      ].filter(Boolean);
+      if (docs.length) {
+        const { error: de } = await supabase.from("customer_documents").insert(docs);
+        if (de) console.error(de); // nie blokuje potwierdzenia rezerwacji
+      }
     }
     const { data: bk, error: be } = await supabase
       .from("bookings")
@@ -611,7 +648,11 @@ export async function decideBookingRequest(input: {
       client_phone: link.client_phone,
       client_address: link.client_address,
       client_id_number: link.client_id_number,
+      client_id_issued: link.client_id_issued,
+      client_id_expires: link.client_id_expires,
       client_license: link.client_license,
+      client_license_issued: link.client_license_issued,
+      client_license_expires: link.client_license_expires,
       supersedes_id: link.id,
       created_by: session.u,
     });

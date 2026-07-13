@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-13 (2)
+- **Godzina wydania i odbioru na rezerwacji.** Nowe pola `pickup_time`/`return_time` (migracja `20260713100000`, wdrożona na prod; osobno od dat — logika kolizji i kalendarz bez zmian). Kreator (krok Termin, też edycja), szczegóły wpisu na Kalendarzu, tabela Rezerwacji (Od/Do), dashboard „Dziś — wydania i zwroty" i umowa (Data wydania/zwrotu z „godz. HH:MM"). Rezerwacji [klient 292] Kozłowskiego uzupełniono 01:00/18:00 z notatki.
+- **Kalendarz → szybkie akcje z wpisu.** „Szczegóły wpisu" mają teraz: **Dane klienta (edytuj/uzupełnij)** → profil, **Wygeneruj umowę** (dawny „Podgląd umowy") i **Checklista wydania** → `/checklist?customerId=…` (deep-link istniał, teraz jest dojście jednym klikiem).
+- **Wyszukiwarka w Rezerwacjach** — ta sama szeroka logika (fold PL): klient, pojazd, rejestracja, notatka oraz **typ i status po polsku** („blokada", „serwis", „wstępna"…).
+- **Daty wydania/ważności dowodu i prawa jazdy wszędzie.** Formularz klienta (sekcje Dowód/Prawo jazdy z datami; zapis podmienia dokument, daty przenoszone), umowa i protokoły („ABC123 (wyd. 01.02.2020, ważny do 01.02.2030)" przy dokumencie tożsamości i prawie jazdy), publiczny `/book` (pola dat), Wnioski (podgląd z datami), a **potwierdzenie wniosku tworzy dokumenty na profilu nowego klienta** (dowód + prawko z datami).
+- **Publiczny `/book`: dokumenty OBOWIĄZKOWE.** Numer dokumentu tożsamości i prawa jazdy + daty wydania i ważności wymagane — walidacja na froncie i serwerze (`book-public.ts`); nowe kolumny `client_id_issued/expires`, `client_license_issued/expires` (kopiowane też do linku „poproś o zmianę").
+- **Sekcja zaufania na `/book`.** Pod kreatorem: szyfrowane połączenie, RODO (dane tylko do umowy najmu, nieprzekazywane dalej) i pełne dane firmy (Mountain All Service ehf., kennitala, adres, mountaincar.is, e-mail, telefon).
+
 ## 2026-07-13
 - **Dane Rebel Travel ehf. uzupełnione na umowie** — kennitala `600723-0140` i VSK-nr `149557`. Kennitala odczytana z umowy generowanej przez RentHelp (blok Wynajmującego, rezerwacja #1107) i potwierdzona w fyrirtækjaskrá Skatturinn (firma aktywna, zarej. 17.07.2023, ISAT 77.11.0 — wynajem samochodów); VSK-nr z rejestru (potwierdzony dwukrotnie). Ostrzeżenie „kennitala i VSK-nr do uzupełnienia" przy wyborze Rebel Travel znika samo; na umowie zamiast pustych linii są numery.
 

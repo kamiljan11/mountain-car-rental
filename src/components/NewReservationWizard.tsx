@@ -66,6 +66,9 @@ export default function NewReservationWizard({
     editBooking?.end ?? addDays(initialDate ?? today, 2),
   );
   const [location, setLocation] = useState(LOCATIONS[0]);
+  // Godzina wydania/odbioru ("HH:MM") — opcjonalna, osobno od dat.
+  const [pickupTime, setPickupTime] = useState(editBooking?.pickupTime ?? "");
+  const [returnTime, setReturnTime] = useState(editBooking?.returnTime ?? "");
 
   // Trzymane jako tekst (nie number) — pole jest type="text", żeby dało się
   // wpisać przecinek/kropkę dziesiętną; parsowanie dopiero przy użyciu wartości.
@@ -144,6 +147,8 @@ export default function NewReservationWizard({
       type,
       start,
       end,
+      pickupTime: pickupTime || undefined,
+      returnTime: returnTime || undefined,
       dailyRate: rateNum || undefined,
       total: total || undefined,
       deposit: depositNum || undefined,
@@ -303,6 +308,27 @@ export default function NewReservationWizard({
                         value={end}
                         min={start}
                         onChange={(e) => setEnd(e.target.value)}
+                        className={inputCls}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={labelCls}>Godzina wydania</label>
+                      <input
+                        type="time"
+                        value={pickupTime}
+                        onChange={(e) => setPickupTime(e.target.value)}
+                        className={inputCls}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Godzina odbioru</label>
+                      <input
+                        type="time"
+                        value={returnTime}
+                        onChange={(e) => setReturnTime(e.target.value)}
                         className={inputCls}
                       />
                     </div>
@@ -552,7 +578,9 @@ export default function NewReservationWizard({
                       <div>
                         <div className="text-xs text-zinc-400">Termin</div>
                         <div className="text-sm font-medium text-zinc-900">
-                          {fmtDate(start)} – {fmtDate(end)}
+                          {fmtDate(start)}
+                          {pickupTime ? ` ${pickupTime}` : ""} – {fmtDate(end)}
+                          {returnTime ? ` ${returnTime}` : ""}
                         </div>
                       </div>
                       <div className="text-right">

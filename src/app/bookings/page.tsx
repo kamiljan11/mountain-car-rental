@@ -11,7 +11,8 @@ import SortableTh from "@/components/SortableTh";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import type { Booking, BookingType, BookingStatus } from "@/lib/types";
 import NewReservationWizard from "@/components/NewReservationWizard";
-import { Plus, X, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { matchesQuery } from "@/lib/search";
+import { Plus, X, Pencil, ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 const TYPE_LABEL: Record<BookingType, string> = {
   reservation: "Rezerwacja",
@@ -47,6 +48,7 @@ function BookingsContent() {
   const [showWizard, setShowWizard] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [monthFilter, setMonthFilter] = useState<MonthKey | null>(null);
+  const [query, setQuery] = useState("");
 
   const today = nowIceland();
   const shownMonth = monthFilter ?? { y: today.getFullYear(), m: today.getMonth() };
@@ -58,9 +60,26 @@ function BookingsContent() {
     });
   };
 
+  // Szeroka wyszukiwarka: pojazd/rejestracja, klient, notatka, typ i status
+  // (po polsku, jak w tabeli — „blokada", „wstępna"…), z foldem polskich znaków.
+  const bookingHay = (b: Booking) => {
+    const v = vehicleById(b.vehicleId);
+    return [
+      v?.name,
+      v?.plate,
+      customerById(b.customerId)?.name,
+      b.notes,
+      TYPE_LABEL[b.type],
+      STATUS_LABEL[b.status],
+    ]
+      .filter(Boolean)
+      .join(" ");
+  };
+
   const filtered = bookings
     .filter((b) => !customerId || b.customerId === customerId)
-    .filter((b) => !monthFilter || overlapsMonth(b, monthFilter));
+    .filter((b) => !monthFilter || overlapsMonth(b, monthFilter))
+    .filter((b) => !query.trim() || matchesQuery(bookingHay(b), query));
 
   const { sorted: rows, sortKey, sortDir, toggleSort } = useSort(
     filtered,
@@ -134,6 +153,25 @@ function BookingsContent() {
         </div>
       </div>
 
+      <div className="relative mb-4">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Szukaj: klient, pojazd, rejestracja, typ (blokada/serwis), status, notatka…"
+          className="w-full rounded-lg border border-zinc-200 bg-white py-2.5 pl-9 pr-9 text-sm outline-none transition-colors focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10"
+        />
+        {query && (
+          <button
+            onClick={() => setQuery("")}
+            aria-label="Wyczyść"
+            className="absolute right-1.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+          >
+            <X className="size-4" />
+          </button>
+        )}
+      </div>
+
       {customerId && (
         <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
           <span>
@@ -184,8 +222,18 @@ function BookingsContent() {
                         {TYPE_LABEL[b.type]}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-zinc-600">{fmtDate(b.start)}</td>
-                    <td className="px-4 py-3 text-zinc-600">{fmtDate(b.end)}</td>
+                    <td className="px-4 py-3 text-zinc-600">
+                      {fmtDate(b.start)}
+                      {b.pickupTime && (
+                        <span className="text-xs text-zinc-400"> {b.pickupTime}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-zinc-600">
+                      {fmtDate(b.end)}
+                      {b.returnTime && (
+                        <span className="text-xs text-zinc-400"> {b.returnTime}</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-zinc-600">{days}</td>
                     <td className="px-4 py-3 text-zinc-600">{isk(b.total)}</td>
                     <td className="px-4 py-3 text-zinc-500">{STATUS_LABEL[b.status]}</td>

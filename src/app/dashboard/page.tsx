@@ -169,7 +169,7 @@ export default function DashboardPage() {
                   <div className="flex-1">
                     <BookingRow
                       b={b}
-                      vehicleName={vehicleById(b.vehicleId)?.name ?? "—"}
+                      vehicleName={`${vehicleById(b.vehicleId)?.name ?? "—"}${b.pickupTime ? ` · ${b.pickupTime}` : ""}`}
                       customerName={customerById(b.customerId)?.name ?? b.notes ?? "—"}
                     />
                   </div>
@@ -181,7 +181,7 @@ export default function DashboardPage() {
                   <div className="flex-1">
                     <BookingRow
                       b={b}
-                      vehicleName={vehicleById(b.vehicleId)?.name ?? "—"}
+                      vehicleName={`${vehicleById(b.vehicleId)?.name ?? "—"}${b.returnTime ? ` · ${b.returnTime}` : ""}`}
                       customerName={customerById(b.customerId)?.name ?? b.notes ?? "—"}
                     />
                   </div>

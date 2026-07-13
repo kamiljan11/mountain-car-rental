@@ -158,14 +158,25 @@ export default function CustomersPage() {
           title="Nowy klient"
           submitLabel="Dodaj klienta"
           onClose={() => setShowAdd(false)}
-          onSubmit={async (patch, idDocNumber) => {
+          onSubmit={async (patch, docs) => {
             const c = await addCustomer(patch);
             if (!c) return;
-            if (idDocNumber) {
+            if (docs.idNumber) {
               await insertCustomerDocument({
                 customerId: c.id,
                 docType: DOC_TYPES[0],
-                docNumber: idDocNumber,
+                docNumber: docs.idNumber,
+                issuedAt: docs.idIssued,
+                expiresAt: docs.idExpires,
+              });
+            }
+            if (patch.license && (docs.licIssued || docs.licExpires)) {
+              await insertCustomerDocument({
+                customerId: c.id,
+                docType: DOC_TYPES[1],
+                docNumber: patch.license,
+                issuedAt: docs.licIssued,
+                expiresAt: docs.licExpires,
               });
             }
             setShowAdd(false);

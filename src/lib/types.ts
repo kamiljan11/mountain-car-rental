@@ -70,6 +70,10 @@ export interface Booking {
   status: BookingStatus;
   start: string; // YYYY-MM-DD
   end: string; // YYYY-MM-DD
+  // Godzina wydania/odbioru ("HH:MM") — osobno od dat, żeby logika kolizji
+  // i kalendarz dalej działały na samych datach.
+  pickupTime?: string;
+  returnTime?: string;
   dailyRate?: number;
   total?: number;
   deposit?: number;
@@ -118,7 +122,11 @@ export interface BookingLink {
   clientPhone?: string;
   clientAddress?: string;
   clientIdNumber?: string;
+  clientIdIssued?: string;
+  clientIdExpires?: string;
   clientLicense?: string;
+  clientLicenseIssued?: string;
+  clientLicenseExpires?: string;
   reqStart?: string;
   reqEnd?: string;
   clientNote?: string;
@@ -148,6 +156,10 @@ export interface PublicBookingView {
     phone?: string;
     address?: string;
     idNumber?: string;
+    idIssued?: string;
+    idExpires?: string;
     license?: string;
+    licenseIssued?: string;
+    licenseExpires?: string;
   };
 }

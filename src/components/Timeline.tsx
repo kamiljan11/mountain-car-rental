@@ -16,7 +16,18 @@ import { useIsMobile } from "@/lib/useIsMobile";
 import { PL_MONTHS, PL_WD, fmtDate, toISODate, nowIceland } from "@/lib/dates";
 import { matchesQuery } from "@/lib/search";
 import type { Booking, BookingType } from "@/lib/types";
-import { ChevronLeft, ChevronRight, Plus, X, Trash2, FileSignature, Pencil, Search } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  X,
+  Trash2,
+  FileSignature,
+  Pencil,
+  Search,
+  UserRound,
+  ClipboardCheck,
+} from "lucide-react";
 
 const TYPE_STYLES: Record<
   BookingType,
@@ -488,8 +499,14 @@ export default function Timeline() {
             label="Klient"
             value={customerById(selected.customerId)?.name ?? "—"}
           />
-          <DetailRow label="Od" value={fmtDate(selected.start)} />
-          <DetailRow label="Do" value={fmtDate(selected.end)} />
+          <DetailRow
+            label="Od"
+            value={`${fmtDate(selected.start)}${selected.pickupTime ? `, godz. ${selected.pickupTime}` : ""}`}
+          />
+          <DetailRow
+            label="Do"
+            value={`${fmtDate(selected.end)}${selected.returnTime ? `, godz. ${selected.returnTime}` : ""}`}
+          />
           {selected.total != null && (
             <DetailRow
               label="Kwota"
@@ -514,12 +531,28 @@ export default function Timeline() {
             >
               <Pencil className="size-4" /> Edytuj wpis
             </button>
+            {selected.customerId && (
+              <Link
+                href={`/customers/${selected.customerId}`}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+              >
+                <UserRound className="size-4" /> Dane klienta (edytuj / uzupełnij)
+              </Link>
+            )}
             {selected.type === "reservation" && selected.customerId && (
               <Link
                 href={`/contracts?customerId=${selected.customerId}&bookingId=${selected.id}`}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
               >
-                <FileSignature className="size-4" /> Podgląd umowy
+                <FileSignature className="size-4" /> Wygeneruj umowę
+              </Link>
+            )}
+            {selected.customerId && (
+              <Link
+                href={`/checklist?customerId=${selected.customerId}`}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+              >
+                <ClipboardCheck className="size-4" /> Checklista wydania
               </Link>
             )}
             {selected.type === "reservation" && (

@@ -271,9 +271,24 @@ export const TEMPLATES: ContractTemplate[] = [
 
 const DASH = "————";
 
-function najemcaBlock(customer: Customer | undefined, identityDoc?: string) {
+// "ABC123 (wyd. 01.02.2020, ważny do 01.02.2030)" — daty tylko gdy są.
+function docLabel(number?: string, issuedAt?: string, expiresAt?: string) {
+  if (!number) return undefined;
+  const parts = [
+    issuedAt ? `wyd. ${fmtDate(issuedAt)}` : null,
+    expiresAt ? `ważny do ${fmtDate(expiresAt)}` : null,
+  ].filter(Boolean);
+  return parts.length ? `${number} (${parts.join(", ")})` : number;
+}
+
+function najemcaBlock(
+  customer: Customer | undefined,
+  identityDoc?: string,
+  licenseDoc?: string,
+) {
   const dokumentTozsamosci = identityDoc ?? DASH;
-  const persona = `Imię i nazwisko: ${customer?.name ?? DASH}<br/>Adres: ${customer?.address ?? DASH}<br/>Dokument tożsamości: ${dokumentTozsamosci}<br/>PESEL: ${customer?.id_number ?? DASH}<br/>Prawo jazdy: ${customer?.license ?? DASH}<br/>Tel.: ${customer?.phone ?? DASH}<br/>${customer?.email ?? DASH}`;
+  const prawoJazdy = licenseDoc ?? customer?.license ?? DASH;
+  const persona = `Imię i nazwisko: ${customer?.name ?? DASH}<br/>Adres: ${customer?.address ?? DASH}<br/>Dokument tożsamości: ${dokumentTozsamosci}<br/>PESEL: ${customer?.id_number ?? DASH}<br/>Prawo jazdy: ${prawoJazdy}<br/>Tel.: ${customer?.phone ?? DASH}<br/>${customer?.email ?? DASH}`;
   if (!isCompanyCustomer(customer)) {
     return `<p>${persona}</p>`;
   }
@@ -303,7 +318,15 @@ export function buildFilled(
       ? String(differenceInCalendarDays(parseISO(booking.end), parseISO(booking.start)) + 1)
       : DASH;
   const rez = booking?.external_ref ? ` · rezerwacja ${booking.external_ref}` : "";
-  const identityDoc = ctx.documents?.find((d) => d.docType === DOC_TYPES[0])?.docNumber;
+  // Dokumenty z profilu klienta — numer + daty wydania/ważności (OWU wymaga dat).
+  const idDoc = ctx.documents?.find((d) => d.docType === DOC_TYPES[0]);
+  const licDoc = ctx.documents?.find((d) => d.docType === DOC_TYPES[1]);
+  const identityDoc = docLabel(idDoc?.docNumber, idDoc?.issuedAt, idDoc?.expiresAt);
+  const licenseDoc = docLabel(
+    licDoc?.docNumber ?? customer?.license,
+    licDoc?.issuedAt,
+    licDoc?.expiresAt,
+  );
   const map: Record<string, string> = {
     NUMER: ctx.number,
     REZ: rez,
@@ -318,15 +341,19 @@ export function buildFilled(
     FIRMA_EMAIL: company.email,
     NAJEMCA: customer?.name ?? DASH,
     NAJEMCA_PESEL: customer?.id_number ?? DASH,
-    NAJEMCA_PJ: customer?.license ?? DASH,
+    NAJEMCA_PJ: licenseDoc ?? customer?.license ?? DASH,
     NAJEMCA_TEL: customer?.phone ?? DASH,
     NAJEMCA_EMAIL: customer?.email ?? DASH,
-    NAJEMCA_BLOK: najemcaBlock(customer, identityDoc),
+    NAJEMCA_BLOK: najemcaBlock(customer, identityDoc, licenseDoc),
     POJAZD: vehicle?.name ?? DASH,
     NR_REJ: vehicle?.plate ?? DASH,
     VIN: vehicle?.vin ?? DASH,
-    DATA_WYDANIA: booking ? fmtDate(booking.start) : DASH,
-    DATA_ZWROTU: booking ? fmtDate(booking.end) : DASH,
+    DATA_WYDANIA: booking
+      ? `${fmtDate(booking.start)}${booking.pickupTime ? `, godz. ${booking.pickupTime}` : ""}`
+      : DASH,
+    DATA_ZWROTU: booking
+      ? `${fmtDate(booking.end)}${booking.returnTime ? `, godz. ${booking.returnTime}` : ""}`
+      : DASH,
     MIEJSCE_WYD: "Keflavík / wg ustaleń",
     MIEJSCE_ZWR: "Keflavík / wg ustaleń",
     DNI: dni,

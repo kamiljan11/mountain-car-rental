@@ -315,26 +315,58 @@ export default function CustomerProfile() {
           title="Edytuj klienta"
           submitLabel="Zapisz"
           initial={customer}
-          initialIdDoc={documents.find((d) => d.docType === DOC_TYPES[0])?.docNumber ?? ""}
+          initialDocs={{
+            idNumber: documents.find((d) => d.docType === DOC_TYPES[0])?.docNumber,
+            idIssued: documents.find((d) => d.docType === DOC_TYPES[0])?.issuedAt,
+            idExpires: documents.find((d) => d.docType === DOC_TYPES[0])?.expiresAt,
+            licIssued: documents.find((d) => d.docType === DOC_TYPES[1])?.issuedAt,
+            licExpires: documents.find((d) => d.docType === DOC_TYPES[1])?.expiresAt,
+          }}
           onClose={() => setEditing(false)}
-          onSubmit={async (patch, idDocNumber) => {
+          onSubmit={async (patch, docs) => {
             const ok = await updateCustomer(id, patch);
             if (!ok) return;
-            // Numer dowodu żyje w dokumentach klienta. Zmieniony i niepusty →
-            // podmień wpis (daty przenosimy); wyczyszczenie pola NIE usuwa
-            // dokumentu — od tego jest zakładka Dokumenty.
-            const existing = documents.find((d) => d.docType === DOC_TYPES[0]);
-            if (idDocNumber && idDocNumber !== existing?.docNumber) {
-              if (existing) await deleteCustomerDocument(existing.id);
+            // Dokumenty żyją w customer_documents. Zmiana czegokolwiek → podmiana
+            // wpisu danego typu; wyczyszczenie numeru dowodu NIE usuwa dokumentu
+            // (od tego jest zakładka Dokumenty).
+            const idExisting = documents.find((d) => d.docType === DOC_TYPES[0]);
+            const licExisting = documents.find((d) => d.docType === DOC_TYPES[1]);
+            let changed = false;
+            const idChanged =
+              docs.idNumber &&
+              (docs.idNumber !== idExisting?.docNumber ||
+                (docs.idIssued ?? "") !== (idExisting?.issuedAt ?? "") ||
+                (docs.idExpires ?? "") !== (idExisting?.expiresAt ?? ""));
+            if (idChanged) {
+              if (idExisting) await deleteCustomerDocument(idExisting.id);
               await insertCustomerDocument({
                 customerId: id,
                 docType: DOC_TYPES[0],
-                docNumber: idDocNumber,
-                issuedAt: existing?.issuedAt,
-                expiresAt: existing?.expiresAt,
+                docNumber: docs.idNumber,
+                issuedAt: docs.idIssued ?? idExisting?.issuedAt,
+                expiresAt: docs.idExpires ?? idExisting?.expiresAt,
               });
-              fetchCustomerDocuments(id).then(setDocuments);
+              changed = true;
             }
+            const licNumber = patch.license;
+            const licChanged =
+              licNumber &&
+              (docs.licIssued || docs.licExpires) &&
+              (licNumber !== licExisting?.docNumber ||
+                (docs.licIssued ?? "") !== (licExisting?.issuedAt ?? "") ||
+                (docs.licExpires ?? "") !== (licExisting?.expiresAt ?? ""));
+            if (licChanged) {
+              if (licExisting) await deleteCustomerDocument(licExisting.id);
+              await insertCustomerDocument({
+                customerId: id,
+                docType: DOC_TYPES[1],
+                docNumber: licNumber,
+                issuedAt: docs.licIssued,
+                expiresAt: docs.licExpires,
+              });
+              changed = true;
+            }
+            if (changed) fetchCustomerDocuments(id).then(setDocuments);
             setEditing(false);
           }}
         />

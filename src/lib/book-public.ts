@@ -66,7 +66,15 @@ export async function getPublicBookingLink(token: string): Promise<PublicResult>
       phone: link.client_phone ?? undefined,
       address: link.client_address ?? undefined,
       idNumber: link.client_id_number ?? undefined,
+      idIssued: link.client_id_issued ? iso(link.client_id_issued) : undefined,
+      idExpires: link.client_id_expires ? iso(link.client_id_expires) : undefined,
       license: link.client_license ?? undefined,
+      licenseIssued: link.client_license_issued
+        ? iso(link.client_license_issued)
+        : undefined,
+      licenseExpires: link.client_license_expires
+        ? iso(link.client_license_expires)
+        : undefined,
     },
   };
   return { ok: true, view };
@@ -77,10 +85,17 @@ export interface PublicSubmitData {
   email: string;
   phone?: string;
   address?: string;
+  // Dokumenty są OBOWIĄZKOWE (potrzebne do umowy najmu) — walidowane niżej.
   idNumber?: string;
+  idIssued?: string;
+  idExpires?: string;
   license?: string;
+  licenseIssued?: string;
+  licenseExpires?: string;
   note?: string;
 }
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export async function submitBookingRequest(
   token: string,
@@ -94,6 +109,19 @@ export async function submitBookingRequest(
     return { ok: false, message: "Imię i nazwisko oraz e-mail są wymagane." };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()))
     return { ok: false, message: "Podaj poprawny adres e-mail." };
+  // Dokumenty pod umowę najmu — obowiązkowe (numer + daty wydania i ważności).
+  if (!data.idNumber?.trim() || !data.license?.trim())
+    return {
+      ok: false,
+      message: "Numer dokumentu tożsamości i numer prawa jazdy są wymagane.",
+    };
+  for (const d of [data.idIssued, data.idExpires, data.licenseIssued, data.licenseExpires]) {
+    if (!d || !ISO_DATE.test(d))
+      return {
+        ok: false,
+        message: "Podaj daty wydania i ważności dokumentu tożsamości oraz prawa jazdy.",
+      };
+  }
   if (!start || !end || end < start)
     return { ok: false, message: "Nieprawidłowy zakres dat." };
 
@@ -128,7 +156,11 @@ export async function submitBookingRequest(
       client_phone: data.phone?.trim() || null,
       client_address: data.address?.trim() || null,
       client_id_number: data.idNumber?.trim() || null,
+      client_id_issued: data.idIssued || null,
+      client_id_expires: data.idExpires || null,
       client_license: data.license?.trim() || null,
+      client_license_issued: data.licenseIssued || null,
+      client_license_expires: data.licenseExpires || null,
       req_start: start,
       req_end: end,
       client_note: data.note?.trim() || null,

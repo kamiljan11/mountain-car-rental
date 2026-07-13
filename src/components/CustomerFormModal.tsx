@@ -10,22 +10,31 @@ const labelCls = "mb-1 block text-xs font-medium text-zinc-600";
 
 export type CustomerFormValues = Omit<Customer, "id" | "notes" | "suspect" | "source">;
 
+// Dane dokumentów (dowód: numer+daty; prawko: daty — numer żyje w patch.license).
+// Trzymane w dokumentach klienta, nie w rekordzie klienta, więc wchodzą/wychodzą
+// z modala osobnym kanałem niż patch.
+export interface CustomerDocValues {
+  idNumber?: string;
+  idIssued?: string;
+  idExpires?: string;
+  licIssued?: string;
+  licExpires?: string;
+}
+
 export default function CustomerFormModal({
   title,
   submitLabel,
   initial,
-  initialIdDoc,
+  initialDocs,
   onClose,
   onSubmit,
 }: {
   title: string;
   submitLabel: string;
   initial?: Partial<CustomerFormValues>;
-  // Numer dowodu osobistego — trzymany w dokumentach klienta (nie w rekordzie
-  // klienta), więc wchodzi/wychodzi z modala osobnym kanałem niż patch.
-  initialIdDoc?: string;
+  initialDocs?: CustomerDocValues;
   onClose: () => void;
-  onSubmit: (patch: CustomerFormValues, idDocNumber?: string) => Promise<void>;
+  onSubmit: (patch: CustomerFormValues, docs: CustomerDocValues) => Promise<void>;
 }) {
   const [form, setForm] = useState({
     name: initial?.name ?? "",
@@ -34,7 +43,11 @@ export default function CustomerFormModal({
     address: initial?.address ?? "",
     id_number: initial?.id_number ?? "",
     license: initial?.license ?? "",
-    idDoc: initialIdDoc ?? "",
+    idDoc: initialDocs?.idNumber ?? "",
+    idIssued: initialDocs?.idIssued ?? "",
+    idExpires: initialDocs?.idExpires ?? "",
+    licIssued: initialDocs?.licIssued ?? "",
+    licExpires: initialDocs?.licExpires ?? "",
     companyName: initial?.companyName ?? "",
     nip: initial?.nip ?? "",
     companyAddress: initial?.companyAddress ?? "",
@@ -63,7 +76,13 @@ export default function CustomerFormModal({
         companyEmail: form.companyEmail.trim() || undefined,
         companyPhone: form.companyPhone.trim() || undefined,
       },
-      form.idDoc.trim() || undefined,
+      {
+        idNumber: form.idDoc.trim() || undefined,
+        idIssued: form.idIssued || undefined,
+        idExpires: form.idExpires || undefined,
+        licIssued: form.licIssued || undefined,
+        licExpires: form.licExpires || undefined,
+      },
     );
     setSaving(false);
   };
@@ -125,26 +144,53 @@ export default function CustomerFormModal({
                   autoComplete="street-address"
                 />
               </div>
-              <div>
+              <div className="sm:col-span-2">
                 <label className={labelCls}>PESEL</label>
                 <input value={form.id_number} onChange={set("id_number")} className={inputCls} />
               </div>
-              <div>
-                <label className={labelCls}>Prawo jazdy</label>
-                <input value={form.license} onChange={set("license")} className={inputCls} />
-              </div>
-              <div className="sm:col-span-2">
-                <label className={labelCls}>Dowód osobisty (numer)</label>
-                <input
-                  value={form.idDoc}
-                  onChange={set("idDoc")}
-                  className={inputCls}
-                  placeholder="np. ABC 123456"
-                />
-                <p className="mt-1 text-[11px] text-zinc-400">
-                  Zapisuje się w dokumentach klienta i podstawia na umowie jako
-                  dokument tożsamości.
+              <div className="rounded-lg border border-zinc-100 bg-zinc-50/50 p-2.5 sm:col-span-2">
+                <p className="mb-2 text-xs font-medium text-zinc-600">
+                  Dowód osobisty{" "}
+                  <span className="font-normal text-zinc-400">
+                    (zapisuje się w dokumentach klienta i podstawia na umowie)
+                  </span>
                 </p>
+                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                  <div>
+                    <label className={labelCls}>Numer</label>
+                    <input
+                      value={form.idDoc}
+                      onChange={set("idDoc")}
+                      className={inputCls}
+                      placeholder="np. ABC 123456"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Data wydania</label>
+                    <input type="date" value={form.idIssued} onChange={set("idIssued")} className={inputCls} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Ważny do</label>
+                    <input type="date" value={form.idExpires} onChange={set("idExpires")} className={inputCls} />
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-lg border border-zinc-100 bg-zinc-50/50 p-2.5 sm:col-span-2">
+                <p className="mb-2 text-xs font-medium text-zinc-600">Prawo jazdy</p>
+                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                  <div>
+                    <label className={labelCls}>Numer</label>
+                    <input value={form.license} onChange={set("license")} className={inputCls} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Data wydania</label>
+                    <input type="date" value={form.licIssued} onChange={set("licIssued")} className={inputCls} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Ważne do</label>
+                    <input type="date" value={form.licExpires} onChange={set("licExpires")} className={inputCls} />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -142,7 +142,17 @@ export default function RequestsPage() {
                       <Field icon={<Mail className="size-3.5" />} v={l.clientEmail} />
                       <Field icon={<Phone className="size-3.5" />} v={l.clientPhone} />
                       <Field icon={<MapPin className="size-3.5" />} v={l.clientAddress} />
-                      <Field icon={<IdCard className="size-3.5" />} v={[l.clientIdNumber, l.clientLicense].filter(Boolean).join(" · ")} />
+                      <Field
+                        icon={<IdCard className="size-3.5" />}
+                        v={[
+                          l.clientIdNumber &&
+                            `Dowód ${l.clientIdNumber}${l.clientIdIssued ? ` (${fmtDate(l.clientIdIssued)} – ${l.clientIdExpires ? fmtDate(l.clientIdExpires) : "…"})` : ""}`,
+                          l.clientLicense &&
+                            `PJ ${l.clientLicense}${l.clientLicenseIssued ? ` (${fmtDate(l.clientLicenseIssued)} – ${l.clientLicenseExpires ? fmtDate(l.clientLicenseExpires) : "…"})` : ""}`,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      />
                     </dl>
                     {l.clientNote && (
                       <p className="mt-2 rounded-lg bg-zinc-50 px-3 py-2 text-sm text-zinc-600">{l.clientNote}</p>
