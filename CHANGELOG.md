@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-13 (9)
+- **„Zamień na rezerwację" dla blokad z RentHelpa.** Importowane wpisy typu Blokada z klientem i ceną w notatce (np. „[klient 691] messenger 25000") nie miały funkcji rezerwacji (brak `type=reservation` i przypiętego klienta → brak klienta/umowy/checklisty/płatności). W „Szczegóły wpisu" blokady/serwisu jest teraz przycisk **„Zamień na rezerwację"** — otwiera kreator z typem = Rezerwacja i **podpowiedzianym imieniem klienta oraz stawką wyciągniętą z notatki** (fold liczb/słów typu „messenger"; zweryfikowane na realnych wpisach). Po przypięciu klienta wpis zyskuje wszystkie funkcje rezerwacji. Podpowiedzi są edytowalne w kreatorze.
+
 ## 2026-07-13 (8)
 - **Rezerwacje: klikalny pojazd i klient w wierszu.** Klik w nazwę pojazdu → podgląd/edycja tego wpisu (kreator). Klik w nazwę klienta → jego profil w okienku (IframeModal, jak na kalendarzu — bez wychodzenia z listy). Wpisy bez klienta (blokady) pokazują opis jako zwykły tekst. Ikonka ołówka do edycji zostaje.
 

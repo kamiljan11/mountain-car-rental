@@ -43,11 +43,19 @@ export default function NewReservationWizard({
   initialVehicleId,
   initialDate,
   editBooking,
+  initialType,
+  initialCustomerName,
+  initialDailyRate,
   onClose,
 }: {
   initialVehicleId?: string;
   initialDate?: string;
   editBooking?: Booking;
+  // Do „zamiany blokady na rezerwację": wymuś typ, podpowiedz imię klienta i
+  // stawkę wyciągnięte z notatki (importy z RentHelp mają je w tekście).
+  initialType?: BookingType;
+  initialCustomerName?: string;
+  initialDailyRate?: number;
   onClose: () => void;
 }) {
   const { vehicles, customers, bookings, addBooking, updateBooking, addCustomer } = useData();
@@ -60,7 +68,9 @@ export default function NewReservationWizard({
   const [vehicleId, setVehicleId] = useState(
     editBooking?.vehicleId ?? initialVehicleId ?? vehicles[0]?.id ?? "",
   );
-  const [type, setType] = useState<BookingType>(editBooking?.type ?? "reservation");
+  const [type, setType] = useState<BookingType>(
+    initialType ?? editBooking?.type ?? "reservation",
+  );
   const [start, setStart] = useState(editBooking?.start ?? initialDate ?? today);
   const [end, setEnd] = useState(
     editBooking?.end ?? addDays(initialDate ?? today, 2),
@@ -72,7 +82,9 @@ export default function NewReservationWizard({
 
   // Trzymane jako tekst (nie number) — pole jest type="text", żeby dało się
   // wpisać przecinek/kropkę dziesiętną; parsowanie dopiero przy użyciu wartości.
-  const [dailyRate, setDailyRate] = useState(String(editBooking?.dailyRate ?? 0));
+  const [dailyRate, setDailyRate] = useState(
+    String(editBooking?.dailyRate ?? initialDailyRate ?? 0),
+  );
   const [deposit, setDeposit] = useState(String(editBooking?.deposit ?? 0));
   // Stan licznika (km) — rozliczenie kilometrów z urzędem; puste = nie wpisany.
   const [odoStart, setOdoStart] = useState(
@@ -83,9 +95,17 @@ export default function NewReservationWizard({
   );
 
   const [customerId, setCustomerId] = useState<string | null>(editBooking?.customerId ?? null);
-  const [customerSearch, setCustomerSearch] = useState("");
-  const [showNewCustomer, setShowNewCustomer] = useState(false);
-  const [newCustomer, setNewCustomer] = useState({ name: "", email: "", phone: "" });
+  const [customerSearch, setCustomerSearch] = useState(initialCustomerName ?? "");
+  // Przy zamianie blokady bez klienta — od razu pokaż formularz nowego klienta
+  // z podpowiedzianym imieniem.
+  const [showNewCustomer, setShowNewCustomer] = useState(
+    !!initialCustomerName && !editBooking?.customerId,
+  );
+  const [newCustomer, setNewCustomer] = useState({
+    name: initialCustomerName ?? "",
+    email: "",
+    phone: "",
+  });
 
   const [notes, setNotes] = useState(editBooking?.notes ?? "");
 

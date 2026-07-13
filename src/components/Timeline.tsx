@@ -32,7 +32,28 @@ import {
   ClipboardCheck,
   Mail,
   Loader2,
+  ArrowLeftRight,
 } from "lucide-react";
+
+// Z importowanych blokad RentHelp (klient + kwota w notatce) wyciągamy podpowiedzi
+// do „zamiany na rezerwację": imię (po usunięciu liczb i słów typu messenger) i
+// stawkę (pierwsza liczba ≥ 3 cyfr). Użytkownik i tak może to poprawić w kreatorze.
+function suggestName(notes?: string) {
+  if (!notes) return undefined;
+  const n = notes
+    .replace(/\b\d[\d ]*\b/g, " ")
+    .replace(/\b(messenger|whatsapp|isk|kr|doba|dni|dzień|bez|namiotu?|zł|zl)\b/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return n || undefined;
+}
+function suggestAmount(notes?: string) {
+  if (!notes) return undefined;
+  const m = notes.match(/\d[\d ]{2,}/);
+  if (!m) return undefined;
+  const n = parseInt(m[0].replace(/\s/g, ""), 10);
+  return Number.isFinite(n) ? n : undefined;
+}
 
 const TYPE_STYLES: Record<
   BookingType,
@@ -95,6 +116,7 @@ export default function Timeline() {
   const [sendingPay, setSendingPay] = useState(false);
   const [iframe, setIframe] = useState<{ title: string; url: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Booking | null>(null);
+  const [promote, setPromote] = useState<Booking | null>(null);
 
   const isMobile = useIsMobile();
 
@@ -539,6 +561,14 @@ export default function Timeline() {
           />
 
           <div className="mt-6 space-y-2">
+            {selected.type !== "reservation" && (
+              <button
+                onClick={() => setPromote(selected)}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-3 text-sm font-medium text-blue-700 hover:bg-blue-100"
+              >
+                <ArrowLeftRight className="size-4" /> Zamień na rezerwację (przypisz klienta)
+              </button>
+            )}
             <button
               onClick={() => {
                 setEditing(selected);
@@ -638,6 +668,19 @@ export default function Timeline() {
 
       {editing && (
         <NewReservationWizard editBooking={editing} onClose={() => setEditing(null)} />
+      )}
+
+      {promote && (
+        <NewReservationWizard
+          editBooking={promote}
+          initialType="reservation"
+          initialCustomerName={suggestName(promote.notes)}
+          initialDailyRate={suggestAmount(promote.notes)}
+          onClose={() => {
+            setPromote(null);
+            setSelected(null);
+          }}
+        />
       )}
 
       {iframe && (
