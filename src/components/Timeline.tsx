@@ -10,6 +10,8 @@ import {
 import { parseISO, differenceInCalendarDays } from "date-fns";
 import Link from "next/link";
 import { useData } from "@/components/DataProvider";
+import { useToast } from "@/components/Toast";
+import { sendPaymentEmailAction } from "@/lib/actions";
 import NewReservationWizard from "@/components/NewReservationWizard";
 import RevolutPay from "@/components/RevolutPay";
 import { useIsMobile } from "@/lib/useIsMobile";
@@ -27,6 +29,8 @@ import {
   Search,
   UserRound,
   ClipboardCheck,
+  Mail,
+  Loader2,
 } from "lucide-react";
 
 const TYPE_STYLES: Record<
@@ -86,6 +90,8 @@ function withLanes(list: Booking[]) {
 
 export default function Timeline() {
   const { vehicles, bookings, removeBooking, customerById } = useData();
+  const showToast = useToast();
+  const [sendingPay, setSendingPay] = useState(false);
 
   const isMobile = useIsMobile();
 
@@ -562,6 +568,29 @@ export default function Timeline() {
                 phone={customerById(selected.customerId)?.phone}
                 customerName={customerById(selected.customerId)?.name}
               />
+            )}
+            {selected.type === "reservation" && customerById(selected.customerId)?.email && (
+              <button
+                onClick={async () => {
+                  setSendingPay(true);
+                  const res = await sendPaymentEmailAction({
+                    bookingId: selected.id,
+                    origin: window.location.origin,
+                  });
+                  setSendingPay(false);
+                  showToast(
+                    res.ok ? "success" : "error",
+                    res.ok
+                      ? `Mail z płatnością wysłany do ${customerById(selected.customerId)?.email}.`
+                      : res.message ?? "Nie udało się wysłać maila.",
+                  );
+                }}
+                disabled={sendingPay}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-60"
+              >
+                {sendingPay ? <Loader2 className="size-4 animate-spin" /> : <Mail className="size-4" />}
+                Wyślij płatność e-mailem (Revolut + QR)
+              </button>
             )}
             <button
               onClick={() => {

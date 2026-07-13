@@ -1,5 +1,7 @@
 import "server-only";
 import { fmtDate } from "./dates";
+import { isk } from "./contract";
+import { REVOLUT_HANDLE, REVOLUT_URL } from "./payment";
 
 // Transakcyjne maile przez Resend (HTTP API, bez SDK — minimalne zależności).
 // Degradacja: brak RESEND_API_KEY → log + pominięcie, żeby decyzja zespołu i tak
@@ -49,10 +51,29 @@ function p(text: string): string {
   return `<p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#3f3f46">${text}</p>`;
 }
 
+// Blok płatności Revolut do maili: kod QR (obraz hostowany w apce — potrzebny
+// absolutny URL, stąd `origin`) + link + dopisek. Klienci płacą głównie tym.
+function paymentBlock(origin: string, amount?: number): string {
+  const kwota =
+    amount != null
+      ? `<div style="font-size:16px;font-weight:600;margin:0 0 10px">Do zapłaty: ${isk(amount)}</div>`
+      : "";
+  return `<div style="border:1px solid #e4e4e7;border-radius:12px;padding:16px;margin:0 0 12px;text-align:center">
+      <div style="font-weight:600;font-size:14px;margin:0 0 10px">Płatność — Revolut</div>
+      ${kwota}
+      <img src="${origin}/revolut-qr.png" alt="Kod QR Revolut ${REVOLUT_HANDLE}" width="180" height="171" style="display:block;margin:0 auto 10px;border:1px solid #e4e4e7;border-radius:10px" />
+      <a href="${REVOLUT_URL}" style="display:inline-block;background:#18181b;color:#fff;text-decoration:none;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:500">Zapłać przez Revolut</a>
+      <div style="font-size:12px;color:#71717a;margin-top:10px">Zeskanuj kod lub kliknij — zapłacisz przez Revolut, także bez konta Revolut. (${REVOLUT_URL})</div>
+    </div>`;
+}
+
 export function emailConfirmed(o: {
   vehicleName: string;
   start: string;
   end: string;
+  // Gdy podane — do maila dochodzi blok płatności Revolut (QR + link).
+  origin?: string;
+  amount?: number;
 }): { subject: string; html: string } {
   return {
     subject: "Twoja rezerwacja została potwierdzona — Mountain Car Rental",
@@ -63,7 +84,33 @@ export function emailConfirmed(o: {
           <div><strong>${o.vehicleName}</strong></div>
           <div style="color:#71717a">${fmtDate(o.start)} – ${fmtDate(o.end)}</div>
         </div>` +
+        (o.origin ? p("Płatność możesz wygodnie wykonać przez Revolut:") + paymentBlock(o.origin, o.amount) : "") +
         p("Skontaktujemy się w sprawie odbioru pojazdu. Do zobaczenia!"),
+    ),
+  };
+}
+
+export function emailPayment(o: {
+  origin: string;
+  vehicleName?: string;
+  start?: string;
+  end?: string;
+  amount?: number;
+}): { subject: string; html: string } {
+  const summary =
+    o.vehicleName || o.start
+      ? `<div style="border:1px solid #e4e4e7;border-radius:12px;padding:14px;margin:0 0 12px;font-size:14px">
+          ${o.vehicleName ? `<div><strong>${o.vehicleName}</strong></div>` : ""}
+          ${o.start && o.end ? `<div style="color:#71717a">${fmtDate(o.start)} – ${fmtDate(o.end)}</div>` : ""}
+        </div>`
+      : "";
+  return {
+    subject: "Płatność za rezerwację — Mountain Car Rental",
+    html: wrap(
+      "Płatność za rezerwację",
+      p("Poniżej znajdziesz dane do zapłaty za wynajem:") +
+        summary +
+        paymentBlock(o.origin, o.amount),
     ),
   };
 }

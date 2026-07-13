@@ -9,7 +9,8 @@ import {
 import type { Vehicle, Customer, Booking, CustomerDocument, BookingLink } from "./types";
 import type { Contract } from "./contract";
 import { randomBytes } from "crypto";
-import { sendEmail, emailConfirmed, emailChanges, emailRejected } from "./email";
+import { sendEmail, emailConfirmed, emailChanges, emailRejected, emailPayment } from "./email";
+import { differenceInCalendarDays, parseISO } from "date-fns";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function toVehicle(r: any): Vehicle {
@@ -376,6 +377,60 @@ export async function insertContract(
   return toContract(data);
 }
 
+// Wyślij klientowi maila z płatnością Revolut (QR + link) dla danej rezerwacji.
+// Wołane z kalendarza; wymaga e-maila klienta i skonfigurowanego Resend.
+export async function sendPaymentEmail(input: {
+  bookingId: string;
+  origin: string;
+}): Promise<{ ok: boolean; message?: string }> {
+  await requireSession();
+  if (!supabase) return { ok: false, message: "Baza niedostępna." };
+  const { data: bk } = await supabase
+    .from("bookings")
+    .select("customer_id, vehicle_id, start_at, end_at, total_price, daily_rate")
+    .eq("id", input.bookingId)
+    .maybeSingle();
+  if (!bk) return { ok: false, message: "Nie znaleziono rezerwacji." };
+  if (!bk.customer_id) return { ok: false, message: "Rezerwacja bez przypisanego klienta." };
+
+  const { data: cust } = await supabase
+    .from("customers")
+    .select("email")
+    .eq("id", bk.customer_id)
+    .maybeSingle();
+  if (!cust?.email)
+    return { ok: false, message: "Klient nie ma adresu e-mail — dodaj go w profilu." };
+
+  const { data: veh } = await supabase
+    .from("vehicles")
+    .select("name")
+    .eq("id", bk.vehicle_id)
+    .maybeSingle();
+
+  const start = String(bk.start_at).slice(0, 10);
+  const end = String(bk.end_at).slice(0, 10);
+  let amount = bk.total_price != null ? Number(bk.total_price) : undefined;
+  if (amount == null && bk.daily_rate != null) {
+    const days = differenceInCalendarDays(parseISO(end), parseISO(start)) + 1;
+    amount = Number(bk.daily_rate) * Math.max(1, days);
+  }
+
+  const { subject, html } = emailPayment({
+    origin: input.origin,
+    vehicleName: veh?.name ?? undefined,
+    start,
+    end,
+    amount,
+  });
+  const ok = await sendEmail({ to: cust.email, subject, html });
+  return ok
+    ? { ok: true }
+    : {
+        ok: false,
+        message: "Nie udało się wysłać maila (sprawdź konfigurację Resend).",
+      };
+}
+
 /* ---------- Checklista wydania auta (per klient) ---------- */
 
 export async function fetchCustomerChecklist(
@@ -620,10 +675,22 @@ export async function decideBookingRequest(input: {
         .select("name")
         .eq("id", link.vehicle_id)
         .maybeSingle();
+      // Kwota do maila: stawka × liczba dni (jeśli znamy stawkę i termin).
+      let amount: number | undefined;
+      if (link.suggested_daily_rate != null && link.req_start && link.req_end) {
+        const days =
+          differenceInCalendarDays(
+            parseISO(String(link.req_end).slice(0, 10)),
+            parseISO(String(link.req_start).slice(0, 10)),
+          ) + 1;
+        amount = Number(link.suggested_daily_rate) * Math.max(1, days);
+      }
       const { subject, html } = emailConfirmed({
         vehicleName: veh?.name ?? "Pojazd",
         start: String(link.req_start).slice(0, 10),
         end: String(link.req_end).slice(0, 10),
+        origin: input.origin, // włącza blok płatności Revolut (QR + link) w mailu
+        amount,
       });
       await sendEmail({ to: link.client_email, subject, html });
     }

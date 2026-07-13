@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-13 (3)
+- **QR Revolut + link płatności w mailach.** Mail potwierdzenia rezerwacji (Wnioski → Potwierdź) zawiera teraz blok płatności: kod QR (`/revolut-qr.png`, absolutny URL z origin), przycisk „Zapłać przez Revolut" i kwotę (stawka × dni, jeśli znana). Nowy szablon `emailPayment`.
+- **Kalendarz → „Wyślij płatność e-mailem (Revolut + QR)".** W „Szczegóły wpisu" rezerwacji z klientem mającym e-mail nowy przycisk wysyła klientowi maila z QR i linkiem Revolut (akcja `sendPaymentEmail` — pobiera e-mail/pojazd/kwotę z bazy). Zwraca czytelny toast (sukces / brak e-maila / błąd Resend).
+- ⚠️ **Delivery maili nadal wymaga klucza Resend** — w vaulcie/prod nie ma `RESEND_API_KEY`, więc `sendEmail` degraduje się po cichu (potwierdzenie klienta z testu z linkiem NIE wyszło z tego powodu; sam wniosek zadziałał — klient dodany, rezerwacja utworzona i widoczna w kalendarzu/rezerwacjach). Do włączenia: konto Resend + weryfikacja domeny (mountaincar.is) + `RESEND_API_KEY` (i `EMAIL_FROM`) w env produkcyjnym Vercela.
+
 ## 2026-07-13 (2)
 - **Godzina wydania i odbioru na rezerwacji.** Nowe pola `pickup_time`/`return_time` (migracja `20260713100000`, wdrożona na prod; osobno od dat — logika kolizji i kalendarz bez zmian). Kreator (krok Termin, też edycja), szczegóły wpisu na Kalendarzu, tabela Rezerwacji (Od/Do), dashboard „Dziś — wydania i zwroty" i umowa (Data wydania/zwrotu z „godz. HH:MM"). Rezerwacji [klient 292] Kozłowskiego uzupełniono 01:00/18:00 z notatki.
 - **Kalendarz → szybkie akcje z wpisu.** „Szczegóły wpisu" mają teraz: **Dane klienta (edytuj/uzupełnij)** → profil, **Wygeneruj umowę** (dawny „Podgląd umowy") i **Checklista wydania** → `/checklist?customerId=…` (deep-link istniał, teraz jest dojście jednym klikiem).

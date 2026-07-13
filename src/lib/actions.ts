@@ -74,6 +74,10 @@ export async function setChecklistItemAction(
   return db.setChecklistItem(customerId, itemKey, done);
 }
 
+export async function sendPaymentEmailAction(input: { bookingId: string; origin: string }) {
+  return db.sendPaymentEmail(input);
+}
+
 /* ---------- Self-service booking links ---------- */
 
 export async function createBookingLinkAction(input: {
