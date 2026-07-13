@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-13 (8)
+- **Rezerwacje: klikalny pojazd i klient w wierszu.** Klik w nazwę pojazdu → podgląd/edycja tego wpisu (kreator). Klik w nazwę klienta → jego profil w okienku (IframeModal, jak na kalendarzu — bez wychodzenia z listy). Wpisy bez klienta (blokady) pokazują opis jako zwykły tekst. Ikonka ołówka do edycji zostaje.
+
 ## 2026-07-13 (7)
 - **Notatka wewnętrzna per rezerwacja — szybka edycja z kalendarza.** W „Szczegóły wpisu" notatka jest teraz edytowalnym polem (zapis do `bookings.notes`, przycisk „Zapisz notatkę" pojawia się po zmianie) — można coś dopisać bez otwierania pełnego kreatora. Notatki per klient już były na profilu („Notatki o kliencie — widoczne tylko dla zespołu"). Obie tylko do użytku wewnętrznego, nie widzi ich klient.
 

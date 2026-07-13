@@ -11,6 +11,7 @@ import SortableTh from "@/components/SortableTh";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import type { Booking, BookingType, BookingStatus } from "@/lib/types";
 import NewReservationWizard from "@/components/NewReservationWizard";
+import IframeModal from "@/components/IframeModal";
 import { matchesQuery } from "@/lib/search";
 import { Plus, X, Pencil, ChevronLeft, ChevronRight, Search } from "lucide-react";
 
@@ -49,6 +50,7 @@ function BookingsContent() {
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [monthFilter, setMonthFilter] = useState<MonthKey | null>(null);
   const [query, setQuery] = useState("");
+  const [iframe, setIframe] = useState<{ title: string; url: string } | null>(null);
 
   const today = nowIceland();
   const shownMonth = monthFilter ?? { y: today.getFullYear(), m: today.getMonth() };
@@ -212,10 +214,31 @@ function BookingsContent() {
                 return (
                   <tr key={b.id} className="hover:bg-zinc-50">
                     <td className="px-4 py-3 font-medium text-zinc-900">
-                      {vehicleById(b.vehicleId)?.name ?? "—"}
+                      <button
+                        onClick={() => setEditingBooking(b)}
+                        className="text-left hover:underline"
+                        title="Podgląd / edycja wpisu"
+                      >
+                        {vehicleById(b.vehicleId)?.name ?? "—"}
+                      </button>
                     </td>
                     <td className="px-4 py-3 text-zinc-600">
-                      {customerById(b.customerId)?.name ?? b.notes ?? "—"}
+                      {customerById(b.customerId) ? (
+                        <button
+                          onClick={() =>
+                            setIframe({
+                              title: "Dane klienta",
+                              url: `/customers/${b.customerId}`,
+                            })
+                          }
+                          className="text-left font-medium text-zinc-800 hover:text-zinc-900 hover:underline"
+                          title="Otwórz profil klienta"
+                        >
+                          {customerById(b.customerId)!.name}
+                        </button>
+                      ) : (
+                        (b.notes ?? "—")
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`rounded px-1.5 py-0.5 text-xs ${TYPE_CLS[b.type]}`}>
@@ -259,6 +282,13 @@ function BookingsContent() {
         <NewReservationWizard
           editBooking={editingBooking}
           onClose={() => setEditingBooking(null)}
+        />
+      )}
+      {iframe && (
+        <IframeModal
+          title={iframe.title}
+          url={iframe.url}
+          onClose={() => setIframe(null)}
         />
       )}
     </div>
