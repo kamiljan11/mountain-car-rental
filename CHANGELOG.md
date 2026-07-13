@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-13
+- **Dane Rebel Travel ehf. uzupełnione na umowie** — kennitala `600723-0140` i VSK-nr `149557`. Kennitala odczytana z umowy generowanej przez RentHelp (blok Wynajmującego, rezerwacja #1107) i potwierdzona w fyrirtækjaskrá Skatturinn (firma aktywna, zarej. 17.07.2023, ISAT 77.11.0 — wynajem samochodów); VSK-nr z rejestru (potwierdzony dwukrotnie). Ostrzeżenie „kennitala i VSK-nr do uzupełnienia" przy wyborze Rebel Travel znika samo; na umowie zamiast pustych linii są numery.
+
 ## 2026-07-12
 - **Naprawa „Drukuj / PDF" na Kontrakcie.** Wydruk ucinał się do jednej strony, bo podgląd umowy ma na ekranie `max-height:70vh` + przewijanie, a CSS druku tego nie zdejmował — PDF łapał tylko wysokość jednego ekranu. W `@media print` dochodzi `max-height:none`/`overflow:visible` (też na `html/body`) + marginesy stron `@page 14mm`. Zweryfikowane headless Chromem na replice strony: stary CSS → 1 strona bez końca dokumentu; nowy → 6 stron, pełna treść, interfejs apki ukryty.
 - **Pole „Dowód osobisty (numer)" w formularzu klienta** (Nowy klient i Edytuj klienta) — obok PESEL i prawa jazdy. Zapisuje się w istniejącym systemie dokumentów klienta (typ „Dowód osobisty"), więc umowa od razu podstawia go w linii „Dokument tożsamości", a ostrzeżenie „Brakujące dane klienta" na Kontrakcie znika. Przy edycji pole pokazuje obecny numer; zmiana podmienia wpis (daty wydania/ważności przenoszone); wyczyszczenie pola celowo NIE usuwa dokumentu (od tego zakładka Dokumenty).

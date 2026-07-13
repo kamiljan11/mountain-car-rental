@@ -34,10 +34,12 @@ export const COMPANIES: Company[] = [
   {
     key: "rebel",
     label: "Rebel Travel",
-    legalName: "Rebel Travel ehf",
+    legalName: "Rebel Travel ehf.",
     brand: "Rebel Travel",
-    kennitala: "", // do uzupełnienia (potwierdzić z Rebel Travel)
-    vat: "", // do uzupełnienia
+    // Źródła (2026-07-13): umowa RentHelp (blok Wynajmującego) + fyrirtækjaskrá
+    // Skatturinn (aktywna, zarej. 17.07.2023, ISAT 77.11.0 wynajem aut).
+    kennitala: "6007230140",
+    vat: "149557",
     address: "Skógarhlíð 10, 105 Reykjavík, Islandia",
     email: "info@rebeltravel.is",
     web: "https://rebeltravel.is",
