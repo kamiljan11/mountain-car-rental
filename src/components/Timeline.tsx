@@ -14,6 +14,7 @@ import { sendPaymentEmailAction } from "@/lib/actions";
 import NewReservationWizard from "@/components/NewReservationWizard";
 import IframeModal from "@/components/IframeModal";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import SendConfirmationModal from "@/components/SendConfirmationModal";
 import RevolutPay from "@/components/RevolutPay";
 import { useIsMobile } from "@/lib/useIsMobile";
 import { PL_MONTHS, PL_WD, fmtDate, toISODate, nowIceland } from "@/lib/dates";
@@ -117,6 +118,7 @@ export default function Timeline() {
   const [iframe, setIframe] = useState<{ title: string; url: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Booking | null>(null);
   const [promote, setPromote] = useState<Booking | null>(null);
+  const [confirmEmailId, setConfirmEmailId] = useState<string | null>(null);
 
   const isMobile = useIsMobile();
 
@@ -617,6 +619,14 @@ export default function Timeline() {
                 <ClipboardCheck className="size-4" /> Checklista wydania
               </button>
             )}
+            {customerById(selected.customerId)?.email && (
+              <button
+                onClick={() => setConfirmEmailId(selected.id)}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+              >
+                <Mail className="size-4" /> Wyślij potwierdzenie e-mail
+              </button>
+            )}
             {selected.customerId && (
               <RevolutPay
                 compact
@@ -662,6 +672,10 @@ export default function Timeline() {
         <NewReservationWizard
           initialVehicleId={draft.vehicleId}
           initialDate={draft.date}
+          onCreated={(b) => {
+            setDraft(null);
+            if (customerById(b.customerId)?.email) setConfirmEmailId(b.id);
+          }}
           onClose={() => setDraft(null)}
         />
       )}
@@ -680,6 +694,13 @@ export default function Timeline() {
             setPromote(null);
             setSelected(null);
           }}
+        />
+      )}
+
+      {confirmEmailId && (
+        <SendConfirmationModal
+          bookingId={confirmEmailId}
+          onClose={() => setConfirmEmailId(null)}
         />
       )}
 

@@ -431,6 +431,72 @@ export async function sendPaymentEmail(input: {
       };
 }
 
+// Potwierdzenie rezerwacji na e-mail (ręcznie z kalendarza/rezerwacji albo od razu
+// po utworzeniu). `bookingConfirmationParts` buduje treść (ten sam szablon co
+// self-service, z QR/kwotą); preview zwraca ją bez wysyłki, send wysyła.
+async function bookingConfirmationParts(
+  bookingId: string,
+  origin: string,
+  toOverride?: string,
+): Promise<{ to: string; subject: string; html: string } | { error: string }> {
+  const { data: bk } = await supabase!
+    .from("bookings")
+    .select("customer_id, vehicle_id, start_at, end_at, total_price, daily_rate")
+    .eq("id", bookingId)
+    .maybeSingle();
+  if (!bk) return { error: "Nie znaleziono rezerwacji." };
+  const { data: cust } = bk.customer_id
+    ? await supabase!.from("customers").select("email").eq("id", bk.customer_id).maybeSingle()
+    : { data: null };
+  const { data: veh } = await supabase!
+    .from("vehicles")
+    .select("name")
+    .eq("id", bk.vehicle_id)
+    .maybeSingle();
+  const start = String(bk.start_at).slice(0, 10);
+  const end = String(bk.end_at).slice(0, 10);
+  let amount = bk.total_price != null ? Number(bk.total_price) : undefined;
+  if (amount == null && bk.daily_rate != null) {
+    const days = differenceInCalendarDays(parseISO(end), parseISO(start)) + 1;
+    amount = Number(bk.daily_rate) * Math.max(1, days);
+  }
+  const { subject, html } = emailConfirmed({
+    vehicleName: veh?.name ?? "Pojazd",
+    start,
+    end,
+    origin,
+    amount,
+  });
+  return { to: (toOverride?.trim() || cust?.email || ""), subject, html };
+}
+
+export async function prepareBookingConfirmation(input: {
+  bookingId: string;
+  origin: string;
+}): Promise<{ ok: boolean; to?: string; subject?: string; html?: string; message?: string }> {
+  await requireSession();
+  if (!supabase) return { ok: false, message: "Baza niedostępna." };
+  const p = await bookingConfirmationParts(input.bookingId, input.origin);
+  if ("error" in p) return { ok: false, message: p.error };
+  return { ok: true, to: p.to, subject: p.subject, html: p.html };
+}
+
+export async function sendBookingConfirmation(input: {
+  bookingId: string;
+  origin: string;
+  to?: string;
+}): Promise<{ ok: boolean; message?: string }> {
+  await requireSession();
+  if (!supabase) return { ok: false, message: "Baza niedostępna." };
+  const p = await bookingConfirmationParts(input.bookingId, input.origin, input.to);
+  if ("error" in p) return { ok: false, message: p.error };
+  if (!p.to) return { ok: false, message: "Brak adresu e-mail klienta — uzupełnij." };
+  const ok = await sendEmail({ to: p.to, subject: p.subject, html: p.html });
+  return ok
+    ? { ok: true }
+    : { ok: false, message: "Nie udało się wysłać maila (sprawdź konfigurację Resend)." };
+}
+
 /* ---------- Checklista wydania auta (per klient) ---------- */
 
 export async function fetchCustomerChecklist(
@@ -587,15 +653,37 @@ export async function decideBookingRequest(input: {
   const note = input.adminNote?.trim() || null;
 
   if (input.decision === "confirm") {
-    // Dedup klienta po e-mailu; inaczej nowy rekord z pełnymi danymi pod umowę.
+    // Atomowe zajęcie wniosku — chroni przed podwójnym kliknięciem / wyścigiem
+    // dwóch adminów (inaczej powstałyby dwa duplikaty klienta i rezerwacji).
+    const { data: claimed, error: claimErr } = await supabase
+      .from("booking_links")
+      .update({ status: "confirming" })
+      .eq("id", input.id)
+      .eq("status", "submitted")
+      .select("id");
+    if (claimErr) {
+      console.error(claimErr);
+      return { ok: false, message: "Nie udało się przetworzyć wniosku." };
+    }
+    if (!claimed || claimed.length === 0)
+      return { ok: false, message: "Ten wniosek jest już przetwarzany lub rozstrzygnięty." };
+    // Gdy dalej coś padnie — cofnij do 'submitted', żeby dało się ponowić.
+    const revert = async () => {
+      await supabase!.from("booking_links").update({ status: "submitted" }).eq("id", input.id);
+    };
+
+    // Dedup klienta po e-mailu; .maybeSingle() sypie błędem gdy e-mail się dubluje
+    // (a takie są w bazie) → wtedy istniejący był ignorowany i powstawał kolejny
+    // duplikat. Bierzemy pierwszy pasujący rekord tablicą, bez błędu.
     let customerId: string | null = null;
     if (link.client_email) {
-      const { data: existing } = await supabase
+      const { data: existingRows } = await supabase
         .from("customers")
         .select("id")
         .eq("email", link.client_email)
-        .maybeSingle();
-      customerId = existing?.id ?? null;
+        .order("created_at", { ascending: true })
+        .limit(1);
+      customerId = existingRows?.[0]?.id ?? null;
     }
     if (!customerId) {
       const { data: cust, error: ce } = await supabase
@@ -613,6 +701,7 @@ export async function decideBookingRequest(input: {
         .single();
       if (ce) {
         console.error(ce);
+        await revert();
         return { ok: false, message: "Nie udało się zapisać klienta." };
       }
       customerId = cust.id;
@@ -657,6 +746,7 @@ export async function decideBookingRequest(input: {
       .single();
     if (be) {
       console.error(be);
+      await revert();
       return { ok: false, message: "Nie udało się utworzyć rezerwacji." };
     }
     await supabase

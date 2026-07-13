@@ -11,7 +11,15 @@ export const AUTH_COOKIE = "mcr_session";
 export const AUTH_MAX_AGE = 60 * 60 * 24 * 365; // 365 dni
 
 function secret() {
-  return process.env.APP_AUTH_SECRET || "dev-insecure-secret-change-me";
+  const s = process.env.APP_AUTH_SECRET;
+  if (s) return s;
+  // Fail-closed w produkcji: bez sekretu podpisy sesji byłyby do podrobienia
+  // (znanym domyślnym kluczem) → pełne obejście panelu. Lokalnie dopuszczamy
+  // dev-default, w produkcji rzucamy zamiast po cichu użyć publicznego stringa.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("APP_AUTH_SECRET nie jest ustawiony w produkcji.");
+  }
+  return "dev-insecure-secret-change-me";
 }
 
 function b64urlEncode(bytes: Uint8Array): string {

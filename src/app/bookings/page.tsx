@@ -12,8 +12,9 @@ import { differenceInCalendarDays, parseISO } from "date-fns";
 import type { Booking, BookingType, BookingStatus } from "@/lib/types";
 import NewReservationWizard from "@/components/NewReservationWizard";
 import IframeModal from "@/components/IframeModal";
+import SendConfirmationModal from "@/components/SendConfirmationModal";
 import { matchesQuery } from "@/lib/search";
-import { Plus, X, Pencil, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Plus, X, Pencil, ChevronLeft, ChevronRight, Search, Mail } from "lucide-react";
 
 const TYPE_LABEL: Record<BookingType, string> = {
   reservation: "Rezerwacja",
@@ -51,6 +52,7 @@ function BookingsContent() {
   const [monthFilter, setMonthFilter] = useState<MonthKey | null>(null);
   const [query, setQuery] = useState("");
   const [iframe, setIframe] = useState<{ title: string; url: string } | null>(null);
+  const [confirmEmailId, setConfirmEmailId] = useState<string | null>(null);
 
   const today = nowIceland();
   const shownMonth = monthFilter ?? { y: today.getFullYear(), m: today.getMonth() };
@@ -261,13 +263,25 @@ function BookingsContent() {
                     <td className="px-4 py-3 text-zinc-600">{isk(b.total)}</td>
                     <td className="px-4 py-3 text-zinc-500">{STATUS_LABEL[b.status]}</td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => setEditingBooking(b)}
-                        aria-label="Edytuj"
-                        className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
-                      >
-                        <Pencil className="size-4" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        {customerById(b.customerId)?.email && (
+                          <button
+                            onClick={() => setConfirmEmailId(b.id)}
+                            aria-label="Wyślij potwierdzenie e-mail"
+                            title="Wyślij potwierdzenie e-mail"
+                            className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+                          >
+                            <Mail className="size-4" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setEditingBooking(b)}
+                          aria-label="Edytuj"
+                          className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+                        >
+                          <Pencil className="size-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -277,7 +291,15 @@ function BookingsContent() {
         </table>
       </div>
 
-      {showWizard && <NewReservationWizard onClose={() => setShowWizard(false)} />}
+      {showWizard && (
+        <NewReservationWizard
+          onCreated={(b) => {
+            setShowWizard(false);
+            if (customerById(b.customerId)?.email) setConfirmEmailId(b.id);
+          }}
+          onClose={() => setShowWizard(false)}
+        />
+      )}
       {editingBooking && (
         <NewReservationWizard
           editBooking={editingBooking}
@@ -289,6 +311,12 @@ function BookingsContent() {
           title={iframe.title}
           url={iframe.url}
           onClose={() => setIframe(null)}
+        />
+      )}
+      {confirmEmailId && (
+        <SendConfirmationModal
+          bookingId={confirmEmailId}
+          onClose={() => setConfirmEmailId(null)}
         />
       )}
     </div>

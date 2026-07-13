@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-13 (13) — audyt: naprawy P1
+- **Fix P1 (dedup po e‑mailu).** W potwierdzaniu wniosku (`decideBookingRequest`) dedup klienta używał `.eq(email).maybeSingle()`, które **sypie błędem, gdy e‑mail się dubluje** (a takie są w bazie) → istniejący klient był ignorowany i powstawał kolejny duplikat dokładnie dla już zduplikowanych. Teraz bierzemy pierwszy pasujący rekord tablicą (`order+limit(1)`), bez błędu.
+- **Fix P1 (wyścig podwójnego potwierdzenia).** `decideBookingRequest`/confirm robił read‑then‑write bez atomowej blokady — dwa kliknięcia/dwóch adminów tworzyło dwa duplikaty klienta+rezerwacji i dwa maile. Dodane atomowe „zajęcie" (`update ... where id=? and status='submitted' → 'confirming'`, sprawdzenie liczby wierszy) + cofnięcie do `submitted` przy błędzie.
+- **Fix P1 (fail‑closed `APP_AUTH_SECRET`).** Bez sekretu kod po cichu używał publicznego `dev-insecure-secret-change-me` → sesje do podrobienia = obejście panelu. Teraz w produkcji rzuca zamiast użyć domyślnego. Zweryfikowane na żywo, że prod ma ustawiony własny sekret (forged cookie odrzucony), więc zmiana nic nie psuje.
+
+## 2026-07-13 (12) — potwierdzenie rezerwacji na e‑mail
+- **Wysyłka potwierdzenia rezerwacji na e‑mail — ręcznie i automatycznie.** Nowe okienko `SendConfirmationModal`: **podgląd treści maila** (iframe), **edytowalny adres odbiorcy** („popraw email") i akcje **Akceptuj — wyślij / Odrzuć**. Dostępne z **kalendarza** (przycisk „Wyślij potwierdzenie e‑mail" w Szczegółach wpisu) i z **Rezerwacji** (ikona maila w wierszu). Po **utworzeniu nowej rezerwacji z klientem mającym e‑mail** okienko otwiera się od razu (auto‑prompt). Mail = ten sam szablon potwierdzenia co self‑service (z QR Revolut + kwotą). Serwer: `prepareBookingConfirmation` (podgląd) + `sendBookingConfirmation` (wysyłka na podany adres).
+
 ## 2026-07-13 (11)
 - **Fix: QR/statyki spod Basic Auth (mail z QR do klienta był zepsuty).** Weryfikacja na żywo na produkcji wykazała, że `/revolut-qr.png` (a także ikony PWA, manifest) zwraca **401 Basic Auth** — więc kod QR w mailu potwierdzenia/płatności do klienta **nie ładował się** (klient nie ma haseł zespołu). `proxy.ts` wyłącza teraz pliki statyczne (po rozszerzeniu: png/jpg/svg/ico/webmanifest/js/json/…) spod Basic Auth i spod redirectu sesji — są niewrażliwe, a muszą być publiczne dla maili i PWA. `/book/*` i `/api/book/*` publiczne bez zmian; strony i API panelu nadal za bramką. (Produkcyjny alias publiczny: `mountain-car-rental.vercel.app`; per-deploy URL-e są za Vercel SSO.)
 

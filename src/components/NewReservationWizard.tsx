@@ -46,6 +46,7 @@ export default function NewReservationWizard({
   initialType,
   initialCustomerName,
   initialDailyRate,
+  onCreated,
   onClose,
 }: {
   initialVehicleId?: string;
@@ -56,6 +57,9 @@ export default function NewReservationWizard({
   initialType?: BookingType;
   initialCustomerName?: string;
   initialDailyRate?: number;
+  // Woła się po utworzeniu NOWEJ rezerwacji (rodzic może od razu zaproponować
+  // wysłanie potwierdzenia e-mail).
+  onCreated?: (b: Booking) => void;
   onClose: () => void;
 }) {
   const { vehicles, customers, bookings, addBooking, updateBooking, addCustomer } = useData();
@@ -176,11 +180,19 @@ export default function NewReservationWizard({
       odometerEnd: odo(odoEnd),
       notes: notes || undefined,
     };
-    const ok = editBooking
-      ? await updateBooking(editBooking.id, payload)
-      : await addBooking({ ...payload, status: "confirmed" });
+    let saved: Booking | null = null;
+    let success: boolean;
+    if (editBooking) {
+      success = await updateBooking(editBooking.id, payload);
+    } else {
+      saved = await addBooking({ ...payload, status: "confirmed" });
+      success = !!saved;
+    }
     setSubmitting(false);
-    if (ok) setDone(true);
+    if (success) {
+      setDone(true);
+      if (saved && saved.type === "reservation" && saved.customerId) onCreated?.(saved);
+    }
   };
 
   const createCustomer = async () => {

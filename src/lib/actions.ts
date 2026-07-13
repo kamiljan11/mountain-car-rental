@@ -78,6 +78,18 @@ export async function sendPaymentEmailAction(input: { bookingId: string; origin:
   return db.sendPaymentEmail(input);
 }
 
+export async function prepareBookingConfirmationAction(input: { bookingId: string; origin: string }) {
+  return db.prepareBookingConfirmation(input);
+}
+
+export async function sendBookingConfirmationAction(input: {
+  bookingId: string;
+  origin: string;
+  to?: string;
+}) {
+  return db.sendBookingConfirmation(input);
+}
+
 /* ---------- Self-service booking links ---------- */
 
 export async function createBookingLinkAction(input: {
