@@ -9,6 +9,7 @@ import { isk } from "@/lib/contract";
 import { isHiddenVehicleName } from "@/lib/hiddenVehicles";
 import type { Booking, BookingType, Vehicle, Customer } from "@/lib/types";
 import NewReservationWizard from "@/components/NewReservationWizard";
+import SendConfirmationModal from "@/components/SendConfirmationModal";
 import {
   Plus,
   ArrowDownToLine,
@@ -20,6 +21,7 @@ import {
   Wallet,
   ShieldAlert,
   AlertTriangle,
+  Mail,
 } from "lucide-react";
 
 const TYPE_LABEL: Record<BookingType, string> = {
@@ -155,6 +157,9 @@ export default function DashboardPage() {
   const [showWizard, setShowWizard] = useState(false);
   // Klik wpisu na dashboardzie otwiera edycję (jak w Rezerwacjach).
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
+  // Szybkie „Potwierdź" w kaflu Do potwierdzenia → okno wysyłki maila potwierdzenia
+  // (po wysłaniu serwer podnosi status wstępna→potwierdzona i wpis znika z kafla).
+  const [confirmEmailId, setConfirmEmailId] = useState<string | null>(null);
 
   const today = todayISO(); // „dzisiaj" po islandzku (UTC)
   const tomorrow = toISODate(addDays(parseISO(today), 1));
@@ -356,13 +361,24 @@ export default function DashboardPage() {
             <Empty text="Brak rezerwacji czekających na potwierdzenie." />
           ) : (
             tentative.map((b) => (
-              <BookingRow
-                key={b.id}
-                b={b}
-                vehicleName={vehicleById(b.vehicleId)?.name ?? "—"}
-                customerName={`${customerById(b.customerId)?.name ?? b.notes ?? "—"} · od ${fmtDate(b.start)}`}
-                onClick={() => setEditingBooking(b)}
-              />
+              <div key={b.id} className="flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <BookingRow
+                    b={b}
+                    vehicleName={vehicleById(b.vehicleId)?.name ?? "—"}
+                    customerName={`${customerById(b.customerId)?.name ?? b.notes ?? "—"} · od ${fmtDate(b.start)}`}
+                    onClick={() => setEditingBooking(b)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setConfirmEmailId(b.id)}
+                  title="Wyślij potwierdzenie e-mail"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-zinc-800"
+                >
+                  <Mail className="size-3.5" /> Potwierdź
+                </button>
+              </div>
             ))
           )}
         </div>
@@ -426,6 +442,12 @@ export default function DashboardPage() {
         <NewReservationWizard
           editBooking={editingBooking}
           onClose={() => setEditingBooking(null)}
+        />
+      )}
+      {confirmEmailId && (
+        <SendConfirmationModal
+          bookingId={confirmEmailId}
+          onClose={() => setConfirmEmailId(null)}
         />
       )}
     </div>
