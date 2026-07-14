@@ -596,6 +596,16 @@ export async function sendBookingConfirmation(input: {
   if ("error" in p) return { ok: false, message: p.error };
   if (!p.to) return { ok: false, message: "Brak adresu e-mail klienta — uzupełnij." };
   const ok = await sendEmail({ to: p.to, subject: p.subject, html: p.html });
+  if (ok) {
+    // Wysłane potwierdzenie = rezerwacja przestaje być „wstępna" — odznacza się
+    // w systemie (kafel „Do potwierdzenia" znika). Tylko tentative → confirmed;
+    // statusów active/completed nie ruszamy.
+    await supabase
+      .from("bookings")
+      .update({ status: "confirmed" })
+      .eq("id", input.bookingId)
+      .eq("status", "tentative");
+  }
   return ok
     ? { ok: true }
     : { ok: false, message: "Nie udało się wysłać maila (sprawdź konfigurację Resend)." };

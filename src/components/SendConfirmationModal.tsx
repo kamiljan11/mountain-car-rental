@@ -6,6 +6,7 @@ import {
   sendBookingConfirmationAction,
 } from "@/lib/actions";
 import { useToast } from "@/components/Toast";
+import { useData } from "@/components/DataProvider";
 import { useModalChrome } from "@/lib/useModalChrome";
 import { Loader2, X, Check, Mail, AlertTriangle } from "lucide-react";
 
@@ -19,6 +20,7 @@ export default function SendConfirmationModal({
   onClose: () => void;
 }) {
   const showToast = useToast();
+  const { refresh } = useData();
   useModalChrome();
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
@@ -55,6 +57,9 @@ export default function SendConfirmationModal({
     setSending(false);
     if (r.ok) {
       showToast("success", `Potwierdzenie wysłane do ${to.trim()}.`);
+      // Serwer podniósł status wstępna→potwierdzona — dociągamy świeże dane,
+      // żeby „Do potwierdzenia" i statusy w listach odznaczyły się od razu.
+      void refresh();
       onClose();
     } else {
       showToast("error", r.message || "Nie udało się wysłać.");
