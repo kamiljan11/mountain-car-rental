@@ -5,7 +5,7 @@ import { differenceInCalendarDays, parseISO } from "date-fns";
 import { useData } from "@/components/DataProvider";
 import { fmtDate, toISODate, todayISO } from "@/lib/dates";
 import { useModalChrome } from "@/lib/useModalChrome";
-import type { Booking, BookingType } from "@/lib/types";
+import type { Booking, BookingStatus, BookingType } from "@/lib/types";
 import {
   X,
   Check,
@@ -28,6 +28,16 @@ const TYPE_LABEL: Record<BookingType, string> = {
   reservation: "Rezerwacja",
   block: "Blokada",
   service: "Serwis",
+};
+
+// Status w kreatorze: domyślnie „potwierdzona" (dogadka na messengerze = w 95% pewna,
+// grunt to od razu wysłać maila) — „wstępna" zostaje w dropboxie w razie czego.
+const STATUS_LABEL: Record<BookingStatus, string> = {
+  tentative: "Wstępna — do potwierdzenia",
+  confirmed: "Potwierdzona",
+  active: "Aktywna (w trakcie)",
+  completed: "Zakończona",
+  cancelled: "Anulowana",
 };
 
 function addDays(iso: string, n: number) {
@@ -82,6 +92,8 @@ export default function NewReservationWizard({
     editBooking?.end ?? addDays(initialDate ?? today, 2),
   );
   const [location, setLocation] = useState(editBooking?.location ?? LOCATIONS[0]);
+  // Status rezerwacji — domyślnie potwierdzona; „wstępna" wybieralna z dropboxa.
+  const [status, setStatus] = useState<BookingStatus>(editBooking?.status ?? "confirmed");
   // Godzina wydania/odbioru ("HH:MM") — opcjonalna, osobno od dat.
   const [pickupTime, setPickupTime] = useState(editBooking?.pickupTime ?? "");
   const [returnTime, setReturnTime] = useState(editBooking?.returnTime ?? "");
@@ -185,12 +197,18 @@ export default function NewReservationWizard({
       location: type === "reservation" ? location : undefined,
       notes: notes || undefined,
     };
+    // Status z dropboxa dotyczy rezerwacji; przy edycji blokady/serwisu statusu
+    // nie ruszamy (undefined = pole pominięte w patchu).
+    const statusPatch = type === "reservation" ? { status } : {};
     let saved: Booking | null = null;
     let success: boolean;
     if (editBooking) {
-      success = await updateBooking(editBooking.id, payload, override);
+      success = await updateBooking(editBooking.id, { ...payload, ...statusPatch }, override);
     } else {
-      saved = await addBooking({ ...payload, status: "confirmed" }, override);
+      saved = await addBooking(
+        { ...payload, status: type === "reservation" ? status : "confirmed" },
+        override,
+      );
       success = !!saved;
     }
     setSubmitting(false);
@@ -309,6 +327,25 @@ export default function NewReservationWizard({
                       )}
                     </div>
                   </div>
+
+                  {type === "reservation" && (
+                    <div>
+                      <label className={labelCls}>Status rezerwacji</label>
+                      <select
+                        value={status}
+                        onChange={(e) => setStatus(e.target.value as BookingStatus)}
+                        className={inputCls}
+                      >
+                        <option value="confirmed">{STATUS_LABEL.confirmed}</option>
+                        <option value="tentative">{STATUS_LABEL.tentative}</option>
+                        {/* Przy edycji wpisu w innym stanie (aktywna/zakończona/anulowana)
+                            pokazujemy go, żeby edycja nie zmieniała statusu po cichu. */}
+                        {status !== "confirmed" && status !== "tentative" && (
+                          <option value={status}>{STATUS_LABEL[status]}</option>
+                        )}
+                      </select>
+                    </div>
+                  )}
 
                   <div>
                     <label className={labelCls}>Pojazd</label>
