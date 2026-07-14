@@ -1,4 +1,16 @@
-# Roadmapa ulepszeń — Mountain Car Rental (stan: 2026-07-12)
+# Roadmapa ulepszeń — Mountain Car Rental (stan: 2026-07-14)
+
+> **UPDATE 2026-07-14 — co się zamknęło od 2026-07-12** (szczegóły per zmiana: CHANGELOG wpisy 8–18):
+> - ✅ **A1 Resend** — klucz w Vercelu, domena mountaincar.is zweryfikowana, maile realnie wychodzą (potwierdzenia z okienkiem-walidatorem przed wysyłką).
+> - ✅ **A2 Dane Rebel Travel** — kennitala 600723-0140, VSK 149557 w umowach.
+> - ✅ **A3 Domena** — panel działa na `app.rental.mountaincar.is` (+ Google login origins).
+> - ✅ **A4 Duplikaty klientów** — scalone/wyczyszczone; baza zweryfikowana 1:1 z RentHelp.
+> - ✅ **B1 Godziny wydania/odbioru**, ✅ **B2 twarda blokada kolizji** (kreator + serwerowy re-check + **constraint w bazie** `bookings_no_overlap`, half-open — zmiana auta tego samego dnia OK), ✅ **B3 wyszukiwarka w Rezerwacjach**, ✅ **B6 kafel wygasających OC/AC/przeglądów**.
+> - ✅ **Ceny zsynchronizowane z RentHelp** (30 rezerwacji + 14 blokad; „PLN"=ISK) — przychód na dashboardzie realny (37/59 wycenione; 5 wpisanych jako 0 do poprawki).
+> - ✅ **Flow statusów domknięty**: kreator z dropdownem Potwierdzona/Wstępna, przycisk „Potwierdź" na dashboardzie, wysłanie potwierdzenia auto-odznacza wstępną; sekcja „Zaległe zwroty" z „Oznacz jako zwrócone".
+> - ✅ Dashboard: Dziś+Jutro, klikalne wpisy, ukryte Pajero/Vito; fix „flasha" starych danych (seed poza bundlem = też punkt prywatności).
+> - ✅ Security: headers (HSTS/CSP/X-Frame-Options), fail-closed read-path, unikalne numery umów (UNIQUE + serwerowa numeracja), miejsce wydania/odbioru zapisywane do bazy i umowy.
+> - **Nadal otwarte z tej listy:** B4/B5 (stawka km + raport dla urzędu), B7 (umowa realnie mailem — dziś „Wyślij" tylko zapisuje), cały moduł **C (płatności 30/70/kaucja)**, sekcja **D** i higiena techniczna poniżej.
 
 Przegląd braków zrobiony z perspektywy codziennej pracy ekipy w szczycie sezonu.
 Każdy punkt: co, po co, rozmiar (S = ~1-2h, M = ~pół dnia, L = duży moduł),
