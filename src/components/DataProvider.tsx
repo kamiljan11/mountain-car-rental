@@ -2,11 +2,6 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
-  vehicles as seedVehicles,
-  customers as seedCustomers,
-  bookings as seedBookings,
-} from "@/lib/data";
-import {
   fetchAllAction as fetchAll,
   insertBookingAction as insertBooking,
   updateBookingAction as updateBookingDb,
@@ -55,9 +50,13 @@ export default function DataProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [vehicles, setVehicles] = useState<Vehicle[]>(seedVehicles);
-  const [customers, setCustomers] = useState<Customer[]>(seedCustomers);
-  const [bookings, setBookings] = useState<Booking[]>(seedBookings);
+  // Start od PUSTYCH danych + ekran ładowania — NIE od wbudowanego seeda.
+  // Seed renderowany przed fetchem powodował „flash" nieaktualnych danych przy
+  // każdym odświeżeniu (stare wpisy pojawiały się i znikały), a przy okazji
+  // wysyłał dane klientów w bundlu JS. Seed żyje już tylko server-side (dev).
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loaded, setLoaded] = useState(false);
   // Stan błędu wczytania: gdy fetchAll padnie, pokazujemy jasny ekran błędu/retry
   // zamiast po cichu renderować nieaktualny seed jako dane produkcyjne.
@@ -93,8 +92,18 @@ export default function DataProvider({
     [vehicles, customers],
   );
 
+  // Ekran ładowania do pierwszego fetcha — dzięki temu przy odświeżeniu nie ma
+  // żadnego „przebłysku" innych danych. (Po wszystkich hookach, reguły hooków.)
+  if (!loaded && !loadError) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-zinc-50">
+        <div className="size-8 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-900" />
+        <p className="text-sm text-zinc-500">Wczytywanie danych…</p>
+      </div>
+    );
+  }
+
   // Twardy stan błędu — nie renderuj aplikacji na nieaktualnym seedzie.
-  // (Po wszystkich hookach powyżej, zgodnie z regułami hooków.)
   if (loadError) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
