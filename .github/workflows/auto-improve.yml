@@ -1,0 +1,54 @@
+name: Auto Improve (weekly loop)
+# Tygodniowa petla samodoskonalenia kodu (nasz odpowiednik CodeRabbit:
+# scheduled scan + autofix + learnings). NIGDY nie pushuje do main — tylko PR,
+# ktory przechodzi przez normalne Quality Gate + Claude review.
+
+on:
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+jobs:
+  improve:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+      id-token: write
+    steps:
+      - id: token
+        name: Check secret present
+        env:
+          HAS_OAUTH: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+          HAS_API: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        run: echo "ok=$([ "$HAS_OAUTH" = "true" ] || [ "$HAS_API" = "true" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        if: steps.token.outputs.ok == 'true'
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@3553f84341b92da26052e28acf1aa898f9511f32 # v1
+        if: steps.token.outputs.ok == 'true'
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Jestes cotygodniowa petla jakosci tego repo. Dzialasz WYLACZNIE przez branch + PR — nigdy push do main.
+            KROK 1 — PAMIEC: przeczytaj CLAUDE.md oraz docs/REVIEW-LEARNINGS.md (jesli istnieja) i stosuj ich reguly.
+            KROK 2 — NAUKA: przejrzyj przez gh dyskusje PR z ostatnich 14 dni. Kazda korekta lub decyzja Kamila
+            wzgledem review -> dopisz zwiezly wpis do docs/REVIEW-LEARNINGS.md, format:
+            - [RRRR-MM-DD] regula (zrodlo: PR #n). Nie duplikuj istniejacych wpisow.
+            KROK 3 — ANALIZA REPO: znajdz realne problemy: bezpieczenstwo, bugi, duplikacja logiki, martwy kod,
+            brakujace testy krytycznych sciezek, podatne zaleznosci (npm audit). Uzyj twardych metryk:
+            `npx --yes jscpd src --min-lines 10` (duplikacja) i `npx --yes knip --no-exit-code` (martwy kod,
+            nieuzywane exporty/zaleznosci). Wybierz MAKS 3 najbardziej wartosciowe i BEZPIECZNE poprawki —
+            male, atomowe, bez zmiany zachowania produktu.
+            ZASADA NET-NEGATIVE: kod ma MALEC albo stac w miejscu przy tej samej funkcjonalnosci. Preferuj
+            poprawki USUWAJACE (martwy kod, duplikaty scalone do wspolnej funkcji, nieuzywane zaleznosci
+            z package.json) nad dodajacymi. W opisie PR podaj bilans linii (+X/-Y) i wynik jscpd przed/po.
+            KROK 4 — WYKONANIE: branch chore/auto-improve-<data>. Poprawki + testy w tej samej zmianie.
+            Uruchom testy i typecheck — dowod (exit 0) wklej do opisu PR. Czerwone = nie otwieraj PR z ta zmiana.
+            KROK 5 — PR: jeden PR: co, dlaczego, dowod, ryzyko. Jesli nie znalazles nic wartosciowego —
+            zakoncz BEZ PR i bez wymyslania pracy na sile. Wpisy z KROKU 2 commituj w tym samym PR.

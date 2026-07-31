@@ -1,0 +1,13 @@
+-- UNIQUE na numerze umowy — numer prawnej „umowy" musi być niepowtarzalny.
+-- Dotąd numer liczył się po stronie klienta (max()+1 z jego migawki), bez żadnej blokady
+-- w bazie — dwie karty/dwóch adminów mogło wybić ten sam numer. Ten indeks + retry na 23505
+-- w insertContract (db.ts) gwarantuje unikat serwerowo.
+--
+-- Zakres GLOBALNY (cała kolumna, nie per miesiąc): format numeru to NN/MM/RRRR, więc miesiąc
+-- i rok są zaszyte w samym stringu — pełny numer jest już niepowtarzalny w skali całej tabeli.
+--
+-- ⚠️ UWAGA OPERATORA: jeśli w rental.contracts SĄ już zduplikowane numery (skutek starego
+-- błędu), CREATE UNIQUE INDEX padnie. Najpierw znajdź i rozdziel duplikaty:
+--   select number, count(*) from rental.contracts group by number having count(*) > 1;
+-- nadaj kolidującym wpisom nowe numery, dopiero potem zastosuj tę migrację.
+create unique index if not exists contracts_number_unique on rental.contracts (number);

@@ -1,0 +1,239 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { useData } from "@/components/DataProvider";
+import { PL_MONTHS, fmtDate, nowIceland } from "@/lib/dates";
+import { useSort } from "@/lib/useSort";
+import SortableTh from "@/components/SortableTh";
+import { differenceInCalendarDays, parseISO } from "date-fns";
+import type { Booking, Vehicle } from "@/lib/types";
+import VehicleFormModal from "@/components/VehicleFormModal";
+import { matchesQuery } from "@/lib/search";
+import { isk } from "@/lib/contract";
+import { Pencil, Plus, Search, X } from "lucide-react";
+
+function Expiry({ iso }: { iso?: string }) {
+  if (!iso) return <span className="text-zinc-400">—</span>;
+  const d = differenceInCalendarDays(parseISO(iso), nowIceland());
+  const cls =
+    d < 0
+      ? "bg-red-100 text-red-700"
+      : d < 30
+        ? "bg-amber-100 text-amber-700"
+        : "bg-zinc-100 text-zinc-600";
+  const txt = d < 0 ? "po terminie" : d < 30 ? `za ${d} dni` : fmtDate(iso);
+  return <span className={`rounded px-1.5 py-0.5 text-xs ${cls}`}>{txt}</span>;
+}
+
+function monthUtilization(vehicleBookings: Booking[], monthStart: Date, monthEnd: Date) {
+  const daysInMonth = monthEnd.getDate();
+  const occupied = new Array(daysInMonth).fill(false);
+  for (const b of vehicleBookings) {
+    if (b.status === "cancelled") continue;
+    const s = parseISO(b.start);
+    const e = parseISO(b.end);
+    if (e < monthStart || s > monthEnd) continue;
+    const from = s < monthStart ? 1 : s.getDate();
+    const to = e > monthEnd ? daysInMonth : e.getDate();
+    for (let d = from; d <= to; d++) occupied[d - 1] = true;
+  }
+  return Math.round((occupied.filter(Boolean).length / daysInMonth) * 100);
+}
+
+function UtilizationRing({ percent }: { percent: number }) {
+  const size = 40;
+  const stroke = 4;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const offset = c * (1 - percent / 100);
+  const color = percent >= 70 ? "#059669" : percent >= 40 ? "#d97706" : "#a1a1aa";
+  return (
+    <div className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#f4f4f5" strokeWidth={stroke} />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth={stroke}
+          strokeDasharray={c}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+        />
+      </svg>
+      <span className="absolute text-[10px] font-semibold text-zinc-700">{percent}%</span>
+    </div>
+  );
+}
+
+export default function FleetPage() {
+  const { vehicles, bookings, updateVehicle, addVehicle } = useData();
+  const [editing, setEditing] = useState<Vehicle | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const filteredVehicles = query.trim()
+    ? vehicles.filter((v) =>
+        matchesQuery([v.name, v.plate, v.vin, v.notes].filter(Boolean).join(" "), query),
+      )
+    : vehicles;
+
+  const now = nowIceland();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  const utilization = useMemo(() => {
+    const byVehicle = new Map<string, Booking[]>();
+    for (const b of bookings) {
+      const list = byVehicle.get(b.vehicleId);
+      if (list) list.push(b);
+      else byVehicle.set(b.vehicleId, [b]);
+    }
+    const map = new Map<string, number>();
+    for (const v of vehicles) {
+      map.set(v.id, monthUtilization(byVehicle.get(v.id) ?? [], monthStart, monthEnd));
+    }
+    return map;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vehicles, bookings]);
+
+  const { sorted: sortedVehicles, sortKey, sortDir, toggleSort } = useSort(
+    filteredVehicles,
+    {
+      name: (v) => v.name,
+      year: (v) => v.year ?? -1,
+      mileage: (v) => v.mileage ?? -1,
+      dailyRate: (v) => v.dailyRate ?? -1,
+      ocExpiry: (v) => v.ocExpiry ?? "",
+      inspectionExpiry: (v) => v.inspectionExpiry ?? "",
+      utilization: (v) => utilization.get(v.id) ?? -1,
+    },
+    "name",
+  );
+
+  return (
+    <div className="p-6">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="mb-1 text-xl font-semibold tracking-tight">Flota</h1>
+          <p className="text-sm text-zinc-500">
+            {vehicles.length} pojazdów. Ostrzeżenie gdy OC/AC/przegląd wygasa w ciągu 30 dni.
+            Wykorzystanie dla {PL_MONTHS[now.getMonth()]} {now.getFullYear()}.
+          </p>
+        </div>
+        <button
+          onClick={() => setAdding(true)}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-3 text-sm font-medium text-white hover:bg-zinc-800"
+        >
+          <Plus className="size-4" /> Dodaj pojazd
+        </button>
+      </div>
+
+      <div className="relative mb-4">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Szukaj: nazwa, rejestracja, VIN…"
+          className="w-full rounded-lg border border-zinc-200 bg-white py-2.5 pl-9 pr-9 text-base outline-none transition-colors focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 md:text-sm"
+        />
+        {query && (
+          <button
+            onClick={() => setQuery("")}
+            aria-label="Wyczyść"
+            className="absolute right-1.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+          >
+            <X className="size-4" />
+          </button>
+        )}
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
+        <table className="w-full min-w-[640px] text-sm">
+          <thead className="bg-zinc-50 text-left text-xs uppercase tracking-wide text-zinc-500">
+            <tr>
+              <SortableTh label="Pojazd" sortKey="name" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Rok" sortKey="year" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Przebieg" sortKey="mileage" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Stawka/doba" sortKey="dailyRate" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="OC" sortKey="ocExpiry" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Przegląd" sortKey="inspectionExpiry" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <SortableTh label="Wykorzystanie" sortKey="utilization" activeKey={sortKey} dir={sortDir} onSort={toggleSort} />
+              <th className="px-4 py-3 font-medium" />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-zinc-100">
+            {sortedVehicles.map((v) => (
+              <tr key={v.id} className="hover:bg-zinc-50">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className="size-2.5 rounded-full"
+                      style={{ background: v.color }}
+                    />
+                    <div>
+                      <div className="font-medium text-zinc-900">{v.name}</div>
+                      <div className="text-xs text-zinc-500">{v.plate}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-zinc-600">{v.year ?? "—"}</td>
+                <td className="px-4 py-3 text-zinc-600">
+                  {v.mileage ? `${v.mileage.toLocaleString("pl-PL")} km` : "—"}
+                </td>
+                <td className="px-4 py-3 text-zinc-600">{isk(v.dailyRate)}</td>
+                <td className="px-4 py-3">
+                  <Expiry iso={v.ocExpiry} />
+                </td>
+                <td className="px-4 py-3">
+                  <Expiry iso={v.inspectionExpiry} />
+                </td>
+                <td className="px-4 py-3">
+                  <UtilizationRing percent={utilization.get(v.id) ?? 0} />
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <button
+                    onClick={() => setEditing(v)}
+                    aria-label="Edytuj pojazd"
+                    className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+                  >
+                    <Pencil className="size-4" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {sortedVehicles.length === 0 && (
+              <tr>
+                <td colSpan={8} className="px-4 py-6 text-center text-zinc-400">
+                  Brak pojazdów pasujących do „{query}”.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {editing && (
+        <VehicleFormModal
+          vehicle={editing}
+          onClose={() => setEditing(null)}
+          onSubmit={async (patch) => {
+            const ok = await updateVehicle(editing.id, patch);
+            if (ok) setEditing(null);
+          }}
+        />
+      )}
+      {adding && (
+        <VehicleFormModal
+          onClose={() => setAdding(false)}
+          onSubmit={async (patch) => {
+            const v = await addVehicle(patch as Omit<Vehicle, "id">);
+            if (v) setAdding(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}

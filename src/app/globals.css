@@ -1,0 +1,214 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  /* Wyłącza NATYWNY pull-to-refresh przeglądarki (pełny reload), bo mamy własny
+     w PullToRefresh.tsx — dociąga dane bez utraty kontekstu. */
+  overscroll-behavior-y: contain;
+}
+
+/* Płynne przejście między stronami (Chrome/Edge — inne przeglądarki po
+   prostu ignorują tę regułę, więc to czyste wzbogacenie, nie zależność). */
+@view-transition {
+  navigation: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Skeleton (shimmer) — szary blok z przesuwającym się rozjaśnieniem.
+   Przy prefers-reduced-motion globalna reguła wyżej ścina animację do 0.01ms,
+   więc zostaje spokojny szary placeholder (nadal czytelny jako „ładuje się"). */
+.sk {
+  background-color: #e4e4e7;
+  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: sk-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes sk-shimmer {
+  0% {
+    background-position: -150% 0;
+  }
+  100% {
+    background-position: 250% 0;
+  }
+}
+
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+.tl-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d8 transparent;
+}
+.tl-scroll::-webkit-scrollbar {
+  height: 10px;
+}
+.tl-scroll::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+  border-radius: 6px;
+}
+
+/* Wygląd dokumentu umowy (renderowany z HTML szablonu) */
+.contract {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #27272a;
+}
+.contract h1 {
+  font-size: 19px;
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+.contract h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 20px 0 6px;
+  padding-top: 10px;
+  border-top: 1px solid #e4e4e7;
+}
+.contract h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 14px 0 4px;
+}
+/* Nagłówki paragrafów OWU (§1, §2…) — bez tej reguły Tailwind preflight
+   zeruje h4 i sekcje zlewałyby się z tekstem. */
+.contract h4 {
+  font-size: 12.5px;
+  font-weight: 600;
+  margin: 12px 0 3px;
+}
+.contract p {
+  margin: 6px 0;
+}
+.contract ol,
+.contract ul {
+  margin: 6px 0;
+  padding-left: 22px;
+}
+.contract li {
+  margin: 4px 0;
+}
+.contract .muted {
+  color: #71717a;
+  font-size: 12px;
+}
+.contract .parties {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 14px 0;
+}
+.contract table.kv {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 8px 0;
+}
+.contract table.kv td {
+  padding: 4px 8px;
+  border-bottom: 1px solid #f4f4f5;
+  vertical-align: top;
+}
+.contract table.kv td:first-child {
+  color: #71717a;
+  width: 42%;
+}
+.contract .amount {
+  font-weight: 600;
+}
+.contract .total {
+  font-size: 15px;
+  font-weight: 700;
+  margin-top: 10px;
+}
+.contract .sign {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 40px;
+}
+.contract .sign > span {
+  flex: 1;
+  text-align: center;
+}
+.contract .sign .sigval {
+  display: block;
+  min-height: 30px;
+  margin-bottom: 2px;
+}
+.contract .sign .sigline {
+  display: block;
+  border-top: 1px solid #a1a1aa;
+  padding-top: 6px;
+  font-size: 12px;
+  color: #71717a;
+}
+/* Podpis „ręczną" czcionką (kursywa systemowa — bez zależności/CSP). */
+.contract .signature {
+  font-family: "Segoe Script", "Bradley Hand", "Lucida Handwriting", "Brush Script MT", cursive;
+  font-size: 22px;
+  line-height: 1.15;
+  color: #1a1a2e;
+}
+.contract .sigval small {
+  display: block;
+  font-size: 10px;
+  color: #71717a;
+}
+@media (max-width: 640px) {
+  .contract .parties {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  /* Kontener podglądu ma na ekranie max-h + overflow (scroll) — w druku musi
+     być zdjęty, inaczej wydruk/PDF ucina się do wysokości jednego ekranu. */
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  #contract-print,
+  #contract-print *,
+  #invoice-print,
+  #invoice-print * {
+    visibility: visible;
+  }
+  #contract-print,
+  #invoice-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-height: none !important;
+    overflow: visible !important;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+  @page {
+    margin: 14mm;
+  }
+}
