@@ -1,0 +1,4 @@
+# False-positive: localStorage key name ("rebel_contracts_v1"), not an API secret.
+# Rule generic-api-key matched `const KEY = "..."` — verified 2026-08-09.
+# Fingerprint format for `gitleaks detect --no-git`: <file>:<rule-id>:<line>
+src/lib/contract.ts:generic-api-key:511
