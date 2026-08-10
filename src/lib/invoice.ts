@@ -5,20 +5,30 @@ import { fmtDate, todayISO } from "./dates";
 import { REVOLUT_URL } from "./payment";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 
-// Numer konta bankowego Sprzedawcy (do przelewu na fakturze). Pojawia się na
-// każdej fakturze — nie jest sekretem. Źródło: COMPANY_MAS_DETAILS (Infisical).
-// Tylko Mountain ma zweryfikowane konto; Rebel — do uzupełnienia.
+// Dane bankowe Sprzedawcy do przelewu na fakturze.
+//
+// Trzymane w env, NIE w repo: repozytorium jest publiczne, a to numery kont i dane
+// osoby prywatnej (odbiorca konta PL). Na samej fakturze pojawiają się jawnie wobec
+// klienta, dlatego prefiks NEXT_PUBLIC_ (komponent /invoices renderuje je w przeglądarce)
+// — ale w kodzie źródłowym ma być tylko odwołanie do env, nigdy wartość.
+//
+// Wartości ustawia się w Vercel → Project → Settings → Environment Variables.
+// Brak env => na fakturze widać jawny placeholder (a nie ciche puste pole).
+const PLACEHOLDER = "(skonfiguruj w env)";
+const env = (k: string) =>
+  (process.env[`NEXT_PUBLIC_${k}`] ?? "").trim();
+
+// ISK per Sprzedawca (klucz = company.key). Tylko Mountain ma zweryfikowane konto.
 export const COMPANY_BANK: Record<string, string> = {
-  mountain: "[konto usuniete z historii]",
+  mountain: env("BANK_ISK_MOUNTAIN"),
 };
 
 // Alternatywne konto polskie (dla klientów wolących przelew w PLN/EU).
-// Dane podane przez Kamila 2026-07-21 — nie sekret (na każdej fakturze).
 export const BANK_PL = {
-  owner: "[wlasciciel konta usuniety]",
-  iban: "[IBAN usuniety z historii]",
-  bank: "UniCredit NV/SA Oddział w Polsce",
-  address: "Dobra 40, 00-344 Warszawa, Poland",
+  owner: env("BANK_PL_OWNER") || PLACEHOLDER,
+  iban: env("BANK_PL_IBAN") || PLACEHOLDER,
+  bank: env("BANK_PL_BANK") || PLACEHOLDER,
+  address: env("BANK_PL_ADDRESS") || PLACEHOLDER,
 };
 
 // Metody płatności do wyboru na fakturze.
