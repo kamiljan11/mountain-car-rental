@@ -101,523 +101,523 @@ export const vehicles: Vehicle[] = [
 export const customers: Customer[] = [
   {
     "id": "c1",
-    "name": "Weronika Kozlowski",
-    "email": "weronika.kozlowski1@example.com",
-    "phone": "+48527507442",
+    "name": "Klient Demo 01",
+    "email": "klient01@example.com",
+    "phone": "+48500000001",
     "source": "RentHelp"
   },
   {
     "id": "c2",
-    "name": "Maria Lewandowski",
-    "email": "maria.lewandowski2@example.com",
-    "phone": "+48545484208",
+    "name": "Klient Demo 02",
+    "email": "klient02@example.com",
+    "phone": "+48500000002",
     "source": "RentHelp"
   },
   {
     "id": "c3",
-    "name": "[klient 375] Zielinski",
-    "phone": "+48555532898",
+    "name": "Klient Demo 03",
+    "phone": "+48500000003",
     "source": "RentHelp"
   },
   {
     "id": "c4",
-    "name": "[klient 458] Kozlowski",
-    "email": "jakub.kozlowski4@example.com",
-    "phone": "+48510322810",
+    "name": "Klient Demo 04",
+    "email": "klient04@example.com",
+    "phone": "+48500000004",
     "source": "RentHelp"
   },
   {
     "id": "c5",
-    "name": "[klient 809] Dabrowski",
-    "email": "karolina.dabrowski5@example.com",
-    "phone": "+48546088410",
+    "name": "Klient Demo 05",
+    "email": "klient05@example.com",
+    "phone": "+48500000005",
     "source": "RentHelp"
   },
   {
     "id": "c6",
-    "name": "Marek Wozniak",
-    "email": "marek.wozniak6@example.com",
-    "phone": "+48531800297",
+    "name": "Klient Demo 06",
+    "email": "klient06@example.com",
+    "phone": "+48500000006",
     "source": "RentHelp"
   },
   {
     "id": "c7",
-    "name": "Adam Kowalski",
-    "email": "adam.kowalski7@example.com",
-    "phone": "+48504201721",
+    "name": "Klient Demo 07",
+    "email": "klient07@example.com",
+    "phone": "+48500000007",
     "source": "RentHelp"
   },
   {
     "id": "c8",
-    "name": "Adam Dabrowski",
-    "email": "adam.dabrowski8@example.com",
-    "phone": "+48526772524",
+    "name": "Klient Demo 08",
+    "email": "klient08@example.com",
+    "phone": "+48500000008",
     "source": "RentHelp"
   },
   {
     "id": "c9",
-    "name": "[klient 458] Jankowski",
-    "email": "jakub.jankowski9@example.com",
-    "phone": "+48583582937",
+    "name": "Klient Demo 09",
+    "email": "klient09@example.com",
+    "phone": "+48500000009",
     "source": "RentHelp"
   },
   {
     "id": "c10",
-    "name": "[klient 249] Kowalczyk",
-    "email": "piotr.kowalczyk10@example.com",
-    "phone": "+48533356744",
+    "name": "Klient Demo 10",
+    "email": "klient10@example.com",
+    "phone": "+48500000010",
     "source": "RentHelp"
   },
   {
     "id": "c11",
-    "name": "[klient 539] Szymanski",
-    "email": "tomasz.szymanski11@example.com",
-    "phone": "+48584719168",
+    "name": "Klient Demo 11",
+    "email": "klient11@example.com",
+    "phone": "+48500000011",
     "source": "RentHelp"
   },
   {
     "id": "c12",
-    "name": "[klient 375] Kozlowski",
-    "email": "grzegorz.kozlowski12@example.com",
-    "phone": "+48586711310",
+    "name": "Klient Demo 12",
+    "email": "klient12@example.com",
+    "phone": "+48500000012",
     "source": "RentHelp"
   },
   {
     "id": "c13",
-    "name": "[klient 037] Dabrowski",
-    "email": "natalia.dabrowski13@example.com",
-    "phone": "+48516839741",
+    "name": "Klient Demo 13",
+    "email": "klient13@example.com",
+    "phone": "+48500000013",
     "source": "RentHelp"
   },
   {
     "id": "c14",
-    "name": "Lukasz Mazur",
-    "email": "lukasz.mazur14@example.com",
-    "phone": "+48518068089",
+    "name": "Klient Demo 14",
+    "email": "klient14@example.com",
+    "phone": "+48500000014",
     "source": "RentHelp"
   },
   {
     "id": "c15",
-    "name": "[klient 561] Jankowski",
-    "email": "michal.jankowski15@example.com",
-    "phone": "+48588963925",
+    "name": "Klient Demo 15",
+    "email": "klient15@example.com",
+    "phone": "+48500000015",
     "source": "RentHelp"
   },
   {
     "id": "c16",
-    "name": "[klient 737] Nowak",
-    "email": "monika.nowak16@example.com",
-    "phone": "+48594885136",
+    "name": "Klient Demo 16",
+    "email": "klient16@example.com",
+    "phone": "+48500000016",
     "source": "RentHelp"
   },
   {
     "id": "c17",
-    "name": "Marek Dabrowski",
-    "email": "marek.dabrowski17@example.com",
-    "phone": "+48568278962",
+    "name": "Klient Demo 17",
+    "email": "klient17@example.com",
+    "phone": "+48500000017",
     "source": "RentHelp"
   },
   {
     "id": "c18",
-    "name": "[klient 955] Krawczyk",
-    "email": "magdalena.krawczyk18@example.com",
-    "phone": "+48505331337",
+    "name": "Klient Demo 18",
+    "email": "klient18@example.com",
+    "phone": "+48500000018",
     "source": "RentHelp"
   },
   {
     "id": "c19",
-    "name": "Marek Mazur",
-    "email": "marek.mazur19@example.com",
-    "phone": "+48589434218",
+    "name": "Klient Demo 19",
+    "email": "klient19@example.com",
+    "phone": "+48500000019",
     "source": "RentHelp"
   },
   {
     "id": "c20",
-    "name": "[klient 037] Lewandowski",
-    "email": "natalia.lewandowski20@example.com",
-    "phone": "+48524439091",
+    "name": "Klient Demo 20",
+    "email": "klient20@example.com",
+    "phone": "+48500000020",
     "source": "RentHelp"
   },
   {
     "id": "c21",
-    "name": "Ewa Lewandowski",
-    "email": "ewa.lewandowski21@example.com",
-    "phone": "+48578317334",
+    "name": "Klient Demo 21",
+    "email": "klient21@example.com",
+    "phone": "+48500000021",
     "source": "RentHelp"
   },
   {
     "id": "c22",
-    "name": "[klient 737] Nowak",
-    "email": "monika.nowak22@example.com",
-    "phone": "+48511650464",
+    "name": "Klient Demo 22",
+    "email": "klient22@example.com",
+    "phone": "+48500000022",
     "source": "RentHelp"
   },
   {
     "id": "c23",
-    "name": "[klient 539] Zielinski",
-    "email": "tomasz.zielinski23@example.com",
-    "phone": "+48580747410",
+    "name": "Klient Demo 23",
+    "email": "klient23@example.com",
+    "phone": "+48500000023",
     "source": "RentHelp"
   },
   {
     "id": "c24",
-    "name": "[klient 809] Mazur",
-    "email": "karolina.mazur24@example.com",
-    "phone": "+48584029238",
+    "name": "Klient Demo 24",
+    "email": "klient24@example.com",
+    "phone": "+48500000024",
     "source": "RentHelp"
   },
   {
     "id": "c25",
-    "name": "Julia Zielinski",
-    "email": "julia.zielinski25@example.com",
-    "phone": "+48509670130",
+    "name": "Klient Demo 25",
+    "email": "klient25@example.com",
+    "phone": "+48500000025",
     "source": "RentHelp"
   },
   {
     "id": "c26",
-    "name": "[klient 561] Wozniak",
-    "email": "michal.wozniak26@example.com",
-    "phone": "+48563862989",
+    "name": "Klient Demo 26",
+    "email": "klient26@example.com",
+    "phone": "+48500000026",
     "source": "RentHelp"
   },
   {
     "id": "c27",
-    "name": "Lukasz Lewandowski",
-    "email": "lukasz.lewandowski27@example.com",
-    "phone": "+48595707080",
+    "name": "Klient Demo 27",
+    "email": "klient27@example.com",
+    "phone": "+48500000027",
     "source": "RentHelp"
   },
   {
     "id": "c28",
-    "name": "[klient 375] Mazur",
-    "email": "grzegorz.mazur28@example.com",
-    "phone": "+48513265496",
+    "name": "Klient Demo 28",
+    "email": "klient28@example.com",
+    "phone": "+48500000028",
     "source": "RentHelp"
   },
   {
     "id": "c29",
-    "name": "[klient 809] Wozniak",
-    "email": "karolina.wozniak29@example.com",
-    "phone": "+48540256363",
+    "name": "Klient Demo 29",
+    "email": "klient29@example.com",
+    "phone": "+48500000029",
     "source": "RentHelp"
   },
   {
     "id": "c30",
-    "name": "Bartosz Dabrowski",
-    "email": "bartosz.dabrowski30@example.com",
-    "phone": "+48565743451",
+    "name": "Klient Demo 30",
+    "email": "klient30@example.com",
+    "phone": "+48500000030",
     "source": "RentHelp"
   },
   {
     "id": "c31",
-    "name": "Bartosz Dabrowski",
-    "email": "bartosz.dabrowski31@example.com",
-    "phone": "+48515056754",
+    "name": "Klient Demo 31",
+    "email": "klient31@example.com",
+    "phone": "+48500000031",
     "source": "RentHelp"
   },
   {
     "id": "c32",
-    "name": "[klient 539] Wozniak",
-    "email": "tomasz.wozniak32@example.com",
-    "phone": "+48524479551",
+    "name": "Klient Demo 32",
+    "email": "klient32@example.com",
+    "phone": "+48500000032",
     "source": "RentHelp"
   },
   {
     "id": "c33",
-    "name": "Rafal Lewandowski",
-    "email": "rafal.lewandowski33@example.com",
-    "phone": "+48584053497",
+    "name": "Klient Demo 33",
+    "email": "klient33@example.com",
+    "phone": "+48500000033",
     "source": "RentHelp"
   },
   {
     "id": "c34",
-    "name": "[klient 037] Wisniewski",
-    "email": "natalia.wisniewski34@example.com",
-    "phone": "+48514726819",
+    "name": "Klient Demo 34",
+    "email": "klient34@example.com",
+    "phone": "+48500000034",
     "source": "RentHelp"
   },
   {
     "id": "c35",
-    "name": "[klient 561] Szymanski",
-    "email": "michal.szymanski35@example.com",
-    "phone": "+48540425761",
+    "name": "Klient Demo 35",
+    "email": "klient35@example.com",
+    "phone": "+48500000035",
     "source": "RentHelp"
   },
   {
     "id": "c36",
-    "name": "[klient 955] Mazur",
-    "email": "magdalena.mazur36@example.com",
-    "phone": "+48528282316",
+    "name": "Klient Demo 36",
+    "email": "klient36@example.com",
+    "phone": "+48500000036",
     "source": "RentHelp"
   },
   {
     "id": "c37",
-    "name": "Katarzyna Kowalczyk",
-    "email": "katarzyna.kowalczyk37@example.com",
+    "name": "Klient Demo 37",
+    "email": "klient37@example.com",
     "source": "RentHelp"
   },
   {
     "id": "c38",
-    "name": "Katarzyna Dabrowski",
-    "email": "katarzyna.dabrowski38@example.com",
-    "phone": "+48592466332",
+    "name": "Klient Demo 38",
+    "email": "klient38@example.com",
+    "phone": "+48500000038",
     "source": "RentHelp"
   },
   {
     "id": "c39",
-    "name": "[klient 539] Kowalczyk",
-    "email": "tomasz.kowalczyk39@example.com",
-    "phone": "+48563843591",
+    "name": "Klient Demo 39",
+    "email": "klient39@example.com",
+    "phone": "+48500000039",
     "source": "RentHelp"
   },
   {
     "id": "c40",
-    "name": "Ewa Kaminski",
-    "email": "ewa.kaminski40@example.com",
-    "phone": "+48533844922",
+    "name": "Klient Demo 40",
+    "email": "klient40@example.com",
+    "phone": "+48500000040",
     "source": "RentHelp"
   },
   {
     "id": "c41",
-    "name": "Alicja Wisniewski",
-    "email": "alicja.wisniewski41@example.com",
-    "phone": "+48534216536",
+    "name": "Klient Demo 41",
+    "email": "klient41@example.com",
+    "phone": "+48500000041",
     "source": "RentHelp"
   },
   {
     "id": "c42",
-    "name": "Rafal Wozniak",
-    "email": "rafal.wozniak42@example.com",
-    "phone": "+48551089376",
+    "name": "Klient Demo 42",
+    "email": "klient42@example.com",
+    "phone": "+48500000042",
     "source": "RentHelp"
   },
   {
     "id": "c43",
-    "name": "[klient 249] Dabrowski",
-    "email": "piotr.dabrowski43@example.com",
-    "phone": "+48594128808",
+    "name": "Klient Demo 43",
+    "email": "klient43@example.com",
+    "phone": "+48500000043",
     "source": "RentHelp"
   },
   {
     "id": "c44",
-    "name": "Adam Lewandowski",
-    "email": "adam.lewandowski44@example.com",
-    "phone": "+48506906632",
+    "name": "Klient Demo 44",
+    "email": "klient44@example.com",
+    "phone": "+48500000044",
     "source": "RentHelp"
   },
   {
     "id": "c45",
-    "name": "[klient 016] Wozniak",
-    "email": "anna.wozniak45@example.com",
-    "phone": "+48599674808",
+    "name": "Klient Demo 45",
+    "email": "klient45@example.com",
+    "phone": "+48500000045",
     "source": "RentHelp"
   },
   {
     "id": "c46",
-    "name": "[klient 458] Mazur",
-    "email": "jakub.mazur46@example.com",
+    "name": "Klient Demo 46",
+    "email": "klient46@example.com",
     "source": "RentHelp"
   },
   {
     "id": "c47",
-    "name": "[klient 955] Wisniewski",
-    "email": "magdalena.wisniewski47@example.com",
-    "phone": "+48507228390",
+    "name": "Klient Demo 47",
+    "email": "klient47@example.com",
+    "phone": "+48500000047",
     "source": "RentHelp"
   },
   {
     "id": "c48",
-    "name": "[klient 080] Zielinski",
-    "email": "pawel.zielinski48@example.com",
-    "phone": "+48579014316",
+    "name": "Klient Demo 48",
+    "email": "klient48@example.com",
+    "phone": "+48500000048",
     "source": "RentHelp"
   },
   {
     "id": "c49",
-    "name": "[klient 249] Jankowski",
-    "email": "piotr.jankowski49@example.com",
-    "phone": "+48571898231",
+    "name": "Klient Demo 49",
+    "email": "klient49@example.com",
+    "phone": "+48500000049",
     "source": "RentHelp"
   },
   {
     "id": "c50",
-    "name": "Weronika Kozlowski",
-    "email": "weronika.kozlowski50@example.com",
-    "phone": "+48550878332",
+    "name": "Klient Demo 50",
+    "email": "klient50@example.com",
+    "phone": "+48500000050",
     "source": "RentHelp"
   },
   {
     "id": "c51",
-    "name": "[klient 918] Lewandowski",
-    "email": "agnieszka.lewandowski51@example.com",
-    "phone": "+48518774745",
+    "name": "Klient Demo 51",
+    "email": "klient51@example.com",
+    "phone": "+48500000051",
     "source": "RentHelp"
   },
   {
     "id": "c52",
-    "name": "Krzysztof Kowalski",
-    "email": "krzysztof.kowalski52@example.com",
-    "phone": "+48560086911",
+    "name": "Klient Demo 52",
+    "email": "klient52@example.com",
+    "phone": "+48500000052",
     "source": "RentHelp"
   },
   {
     "id": "c53",
-    "name": "Weronika Kowalski",
-    "email": "weronika.kowalski53@example.com",
-    "phone": "+48598981337",
+    "name": "Klient Demo 53",
+    "email": "klient53@example.com",
+    "phone": "+48500000053",
     "source": "RentHelp"
   },
   {
     "id": "c54",
-    "name": "Krzysztof Kaminski",
-    "email": "krzysztof.kaminski54@example.com",
-    "phone": "+48576788520",
+    "name": "Klient Demo 54",
+    "email": "klient54@example.com",
+    "phone": "+48500000054",
     "source": "RentHelp"
   },
   {
     "id": "c55",
-    "name": "Adam Krawczyk",
-    "email": "adam.krawczyk55@example.com",
-    "phone": "+48555798442",
+    "name": "Klient Demo 55",
+    "email": "klient55@example.com",
+    "phone": "+48500000055",
     "source": "RentHelp"
   },
   {
     "id": "c56",
-    "name": "Weronika Lewandowski",
-    "email": "weronika.lewandowski56@example.com",
-    "phone": "+48559644737",
+    "name": "Klient Demo 56",
+    "email": "klient56@example.com",
+    "phone": "+48500000056",
     "source": "RentHelp"
   },
   {
     "id": "c57",
-    "name": "Krzysztof Krawczyk",
-    "email": "krzysztof.krawczyk57@example.com",
-    "phone": "+48561401386",
+    "name": "Klient Demo 57",
+    "email": "klient57@example.com",
+    "phone": "+48500000057",
     "source": "RentHelp"
   },
   {
     "id": "c58",
-    "name": "Lukasz Mazur",
-    "email": "lukasz.mazur58@example.com",
-    "phone": "+48506812687",
+    "name": "Klient Demo 58",
+    "email": "klient58@example.com",
+    "phone": "+48500000058",
     "source": "RentHelp"
   },
   {
     "id": "c59",
-    "name": "Ewa Mazur",
-    "email": "ewa.mazur59@example.com",
-    "phone": "+48517483593",
+    "name": "Klient Demo 59",
+    "email": "klient59@example.com",
+    "phone": "+48500000059",
     "source": "RentHelp"
   },
   {
     "id": "c60",
-    "name": "Marek Kaminski",
-    "email": "marek.kaminski60@example.com",
-    "phone": "+48500711520",
+    "name": "Klient Demo 60",
+    "email": "klient60@example.com",
+    "phone": "+48500000060",
     "source": "RentHelp"
   },
   {
     "id": "c61",
-    "name": "[klient 016] Dabrowski",
-    "email": "anna.dabrowski61@example.com",
-    "phone": "+48502484676",
+    "name": "Klient Demo 61",
+    "email": "klient61@example.com",
+    "phone": "+48500000061",
     "source": "RentHelp"
   },
   {
     "id": "c62",
-    "name": "[klient 080] Szymanski",
-    "email": "pawel.szymanski62@example.com",
-    "phone": "+48562151406",
+    "name": "Klient Demo 62",
+    "email": "klient62@example.com",
+    "phone": "+48500000062",
     "source": "RentHelp"
   },
   {
     "id": "c63",
-    "name": "Adam Szymanski",
-    "email": "adam.szymanski63@example.com",
-    "phone": "+48555086987",
+    "name": "Klient Demo 63",
+    "email": "klient63@example.com",
+    "phone": "+48500000063",
     "source": "RentHelp"
   },
   {
     "id": "c64",
-    "name": "Julia Kowalski",
-    "email": "julia.kowalski64@example.com",
-    "phone": "+48587572846",
+    "name": "Klient Demo 64",
+    "email": "klient64@example.com",
+    "phone": "+48500000064",
     "source": "RentHelp"
   },
   {
     "id": "c65",
-    "name": "[klient 249] Wisniewski",
-    "email": "piotr.wisniewski65@example.com",
-    "phone": "+48577495368",
+    "name": "Klient Demo 65",
+    "email": "klient65@example.com",
+    "phone": "+48500000065",
     "source": "RentHelp"
   },
   {
     "id": "c66",
-    "name": "[klient 080] Kowalski",
-    "email": "pawel.kowalski66@example.com",
-    "phone": "+48566347504",
+    "name": "Klient Demo 66",
+    "email": "klient66@example.com",
+    "phone": "+48500000066",
     "source": "RentHelp"
   },
   {
     "id": "c67",
-    "name": "[klient 737] Dabrowski",
-    "email": "monika.dabrowski67@example.com",
-    "phone": "+48566971731",
+    "name": "Klient Demo 67",
+    "email": "klient67@example.com",
+    "phone": "+48500000067",
     "source": "RentHelp"
   },
   {
     "id": "c68",
-    "name": "[klient 080] Krawczyk",
-    "email": "pawel.krawczyk68@example.com",
-    "phone": "+48586403652",
+    "name": "Klient Demo 68",
+    "email": "klient68@example.com",
+    "phone": "+48500000068",
     "source": "RentHelp"
   },
   {
     "id": "c69",
-    "name": "Katarzyna Kozlowski",
-    "email": "katarzyna.kozlowski69@example.com",
-    "phone": "+48554845734",
+    "name": "Klient Demo 69",
+    "email": "klient69@example.com",
+    "phone": "+48500000069",
     "source": "RentHelp"
   },
   {
     "id": "c70",
-    "name": "[klient 080] Jankowski",
-    "email": "pawel.jankowski70@example.com",
-    "phone": "+48563599758",
+    "name": "Klient Demo 70",
+    "email": "klient70@example.com",
+    "phone": "+48500000070",
     "source": "RentHelp"
   },
   {
     "id": "c71",
-    "name": "Ewa Lewandowski",
-    "email": "ewa.lewandowski71@example.com",
-    "phone": "+48518937684",
+    "name": "Klient Demo 71",
+    "email": "klient71@example.com",
+    "phone": "+48500000071",
     "source": "RentHelp"
   },
   {
     "id": "c72",
-    "name": "[klient 080] Wozniak",
-    "email": "pawel.wozniak72@example.com",
-    "phone": "+48545030467",
+    "name": "Klient Demo 72",
+    "email": "klient72@example.com",
+    "phone": "+48500000072",
     "source": "RentHelp"
   },
   {
     "id": "c73",
-    "name": "Weronika Zielinski",
-    "phone": "+48529691905",
+    "name": "Klient Demo 73",
+    "phone": "+48500000073",
     "source": "RentHelp"
   },
   {
     "id": "c74",
-    "name": "Adam Krawczyk",
-    "email": "adam.krawczyk74@example.com",
-    "phone": "+48582276810",
+    "name": "Klient Demo 74",
+    "email": "klient74@example.com",
+    "phone": "+48500000074",
     "source": "RentHelp"
   },
   {
     "id": "c75",
-    "name": "[klient 737] Wojcik",
-    "email": "monika.wojcik75@example.com",
-    "phone": "+48541086040",
+    "name": "Klient Demo 75",
+    "email": "klient75@example.com",
+    "phone": "+48500000075",
     "source": "RentHelp"
   }
 ];
