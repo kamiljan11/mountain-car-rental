@@ -8,7 +8,7 @@
 -- UWAGA: baza produkcyjna dostała te zmiany 2026-07-04 przez REST (service_role);
 -- ten plik jest zapisem 1:1 do odtworzenia środowiska od zera.
 
--- Korekta 1: blok [klient 361] Paszko na BPS82 miał błędny koniec 2026-08-25 (przeniesione
+-- Korekta 1: blok [klient 361] [klient 243] na BPS82 miał błędny koniec 2026-08-25 (przeniesione
 -- daty bliźniaczego bloku z FZZ82); wg RentHelp: 2026-08-30.
 update rental.bookings set end_at = '2026-08-30' where id = '3a09d989-ba69-4afa-a8a9-e93de00a4ea1';
 
@@ -104,11 +104,11 @@ select 'babe8ddd-649c-4ec1-ad10-12a4822c005b','73033ff2-e194-487b-9875-e709e3401
 where not exists (select 1 from rental.bookings where external_ref = 'RH-BACKFILL-L23');
 
 insert into rental.bookings (id,vehicle_id,customer_id,type,status,start_at,end_at,notes,external_ref)
-select '131a686a-7c69-4c22-8488-55242abefb59','60058650-64f5-4e7f-a141-6dd03f058280',null,'block','confirmed','2026-03-31','2026-04-07','[klient 918] - joga  20000 isk doba','RH-BACKFILL-L25'
+select '131a686a-7c69-4c22-8488-55242abefb59','60058650-64f5-4e7f-a141-6dd03f058280',null,'block','confirmed','2026-03-31','2026-04-07','zapytanie messenger, 20000 ISK/doba','RH-BACKFILL-L25'
 where not exists (select 1 from rental.bookings where external_ref = 'RH-BACKFILL-L25');
 
 insert into rental.bookings (id,vehicle_id,customer_id,type,status,start_at,end_at,notes,external_ref)
-select '9c88b421-2373-4389-afad-e4dea5293726','304e9c73-3690-4e8f-81c6-24a95459fdd4',null,'block','confirmed','2026-04-23','2026-04-27','Fotelik, Nikola messenger rental 14000','RH-BACKFILL-L30'
+select '9c88b421-2373-4389-afad-e4dea5293726','304e9c73-3690-4e8f-81c6-24a95459fdd4',null,'block','confirmed','2026-04-23','2026-04-27','rezerwacja telefoniczna, 14000 ISK/doba','RH-BACKFILL-L30'
 where not exists (select 1 from rental.bookings where external_ref = 'RH-BACKFILL-L30');
 
 insert into rental.bookings (id,vehicle_id,customer_id,type,status,start_at,end_at,notes,external_ref)
@@ -120,7 +120,7 @@ select '58c3633e-848f-4ece-90ca-fae86e521ccf','304e9c73-3690-4e8f-81c6-24a95459f
 where not exists (select 1 from rental.bookings where external_ref = 'RH-BACKFILL-L34');
 
 insert into rental.bookings (id,vehicle_id,customer_id,type,status,start_at,end_at,notes,external_ref)
-select '8c328c70-8c12-414e-80ec-58e46b0973cf','26d78c9f-1064-46d4-8c57-26c4feacd582',null,'block','confirmed','2026-05-25','2026-05-30','Marzena biuro podrozy 35000 doba 792 870 231','RH-BACKFILL-L35'
+select '8c328c70-8c12-414e-80ec-58e46b0973cf','26d78c9f-1064-46d4-8c57-26c4feacd582',null,'block','confirmed','2026-05-25','2026-05-30','biuro podrozy, 35000 ISK/doba','RH-BACKFILL-L35'
 where not exists (select 1 from rental.bookings where external_ref = 'RH-BACKFILL-L35');
 
 insert into rental.bookings (id,vehicle_id,customer_id,type,status,start_at,end_at,notes,external_ref)
@@ -128,21 +128,21 @@ select '84e07f7e-1bcd-44bb-9f62-96b0d99f9243','a8b551db-a504-41c5-b38d-ad04f35ad
 where not exists (select 1 from rental.bookings where external_ref = 'RH-BACKFILL-L42');
 
 insert into rental.bookings (id,vehicle_id,customer_id,type,status,start_at,end_at,notes,external_ref)
-select '1c20077c-975f-4309-b895-914f02294626','60058650-64f5-4e7f-a141-6dd03f058280',null,'block','confirmed','2026-07-16','2026-07-26','Mattthew [klient 808] 28000 isk doba','RH-BACKFILL-L58'
+select '1c20077c-975f-4309-b895-914f02294626','60058650-64f5-4e7f-a141-6dd03f058280',null,'block','confirmed','2026-07-16','2026-07-26','zapytanie e-mail, 28000 ISK/doba','RH-BACKFILL-L58'
 where not exists (select 1 from rental.bookings where external_ref = 'RH-BACKFILL-L58');
 
 insert into rental.bookings (id,vehicle_id,customer_id,type,status,start_at,end_at,notes,external_ref)
-select '14f62df9-07e5-4c8c-95d9-fc0c3d1e8416','3376f68b-0075-4d29-8e00-52439c10b1a4',null,'block','confirmed','2026-08-16','2026-08-25','[klient 361] Paszko 12000 messenger','RH-BACKFILL-L78'
+select '14f62df9-07e5-4c8c-95d9-fc0c3d1e8416','3376f68b-0075-4d29-8e00-52439c10b1a4',null,'block','confirmed','2026-08-16','2026-08-25','zapytanie messenger, 12000 ISK/doba','RH-BACKFILL-L78'
 where not exists (select 1 from rental.bookings where external_ref = 'RH-BACKFILL-L78');
 
 insert into rental.bookings (id,vehicle_id,customer_id,type,status,start_at,end_at,notes,external_ref)
-select '97b61df9-2b93-4550-89e5-5a3649814e3e','60058650-64f5-4e7f-a141-6dd03f058280',null,'block','confirmed','2026-08-22','2026-08-30','25000 [klient 908] messenger','RH-BACKFILL-L80'
+select '97b61df9-2b93-4550-89e5-5a3649814e3e','60058650-64f5-4e7f-a141-6dd03f058280',null,'block','confirmed','2026-08-22','2026-08-30','klient staly, 25000 ISK/doba','RH-BACKFILL-L80'
 where not exists (select 1 from rental.bookings where external_ref = 'RH-BACKFILL-L80');
 
 insert into rental.bookings (id,vehicle_id,customer_id,type,status,start_at,end_at,notes,external_ref)
-select 'e7aea0ea-a823-4c88-b8d7-8dc0d3c56f8c','73033ff2-e194-487b-9875-e709e340179c',null,'block','confirmed','2026-09-18','2026-09-28','[klient 771] [e-mail klienta usuniety] 602752959','RH-BACKFILL-L82'
+select 'e7aea0ea-a823-4c88-b8d7-8dc0d3c56f8c','73033ff2-e194-487b-9875-e709e340179c',null,'block','confirmed','2026-09-18','2026-09-28','zapytanie e-mail, 18000 ISK/doba','RH-BACKFILL-L82'
 where not exists (select 1 from rental.bookings where external_ref = 'RH-BACKFILL-L82');
 
 insert into rental.bookings (id,vehicle_id,customer_id,type,status,start_at,end_at,notes,external_ref)
-select '1c9ecf69-1a9b-4748-b19b-e229a1cdb19e','cd61cfa1-a55a-4bd6-9e70-56ed8924ace7',null,'block','confirmed','2026-09-19','2026-09-27','[klient 766] 20000 isk doba - Arek','RH-BACKFILL-L83'
+select '1c9ecf69-1a9b-4748-b19b-e229a1cdb19e','cd61cfa1-a55a-4bd6-9e70-56ed8924ace7',null,'block','confirmed','2026-09-19','2026-09-27','polecenie, 20000 ISK/doba','RH-BACKFILL-L83'
 where not exists (select 1 from rental.bookings where external_ref = 'RH-BACKFILL-L83');

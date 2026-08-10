@@ -27,10 +27,10 @@ To realne ryzyko operacyjne — te auta w aplikacji wyglądają na WOLNE w termi
 
 | Typ | Od | Do | Pojazd | Opis |
 |---|---|---|---|---|
-| blokada | 2026-07-16 | 2026-07-26 | Renault Master (UNZ27) | Mattthew [klient 808] 28000 isk doba |
-| blokada | 2026-08-16 | 2026-08-30 | Dacia Duster Namiot II (BPS82) | [klient 361] Paszko 12000 messenger |
+| blokada | 2026-07-16 | 2026-07-26 | Renault Master (UNZ27) | [klient 305] [klient 808] 28000 isk doba |
+| blokada | 2026-08-16 | 2026-08-30 | Dacia Duster Namiot II (BPS82) | [klient 528] 12000 messenger |
 | blokada | 2026-08-22 | 2026-08-30 | Renault Master (UNZ27) | 25000 [klient 908] messenger |
-| blokada | 2026-09-18 | 2026-09-28 | VW Caddy California (PYL41) | [klient 771] [e-mail klienta usuniety] 602752959 |
+| blokada | 2026-09-18 | 2026-09-28 | VW Caddy California (PYL41) | [klient 771] [e-mail klienta usuniety] [tel. usuniety] |
 | blokada | 2026-09-19 | 2026-09-27 | Renault Trafic (ROB64) | [klient 766] 20000 isk doba - Arek |
 
 ---
@@ -42,8 +42,8 @@ Niższy priorytet — zakończone. Ale jeśli aplikacja ma być pełnym archiwum
 | Od | Do | Pojazd | Klient |
 |---|---|---|---|
 | 2024-07-13 | 2024-07-27 | Mitsubishi Pajero | [klient 939] |
-| 2024-07-24 | 2024-07-26 | Mitsubishi Pajero | [klient 167] |
-| 2025-06-01 | 2025-06-07 | Volkswagen Caddy | [klient 214] |
+| 2024-07-24 | 2024-07-26 | Mitsubishi Pajero | [klient 284] [klient 379] |
+| 2025-06-01 | 2025-06-07 | Volkswagen Caddy | [klient 754]-[klient 260] |
 | 2025-06-11 | 2025-06-22 | Mitsubishi Pajero | [klient 202] |
 | 2025-06-15 | 2025-06-24 | Mitsubishi Pajero | [klient 859] |
 | 2025-06-26 | 2025-07-05 | Volkswagen Caddy | [klient 128] |
@@ -69,11 +69,11 @@ Niższy priorytet — zakończone. Ale jeśli aplikacja ma być pełnym archiwum
 ### Blokady historyczne (5)
 | Od | Do | Pojazd | Opis |
 |---|---|---|---|
-| 2026-03-31 | 2026-04-07 | Renault Master (UNZ27) | [klient 918] - joga 20000 isk doba |
-| 2026-04-23 | 2026-04-27 | VW Caddy Beach Biały (ZLH03) | Fotelik, Nikola messenger rental 14000 |
+| 2026-03-31 | 2026-04-07 | Renault Master (UNZ27) | [klient 157] 20000 isk doba |
+| 2026-04-23 | 2026-04-27 | VW Caddy Beach Biały (ZLH03) | Fotelik, [klient 401] messenger rental 14000 |
 | 2026-04-30 | 2026-05-04 | VW Caddy Beach (JKF73) | (bez opisu) |
 | 2026-05-25 | 2026-05-28 | VW Caddy Beach Biały (ZLH03) | (bez opisu) |
-| 2026-05-25 | 2026-05-30 | Vito (PKP90) | Marzena biuro podrozy 35000 doba 792 870 231 |
+| 2026-05-25 | 2026-05-30 | Vito (PKP90) | [klient 691] biuro podrozy 35000 doba [tel. usuniety] |
 
 ---
 
@@ -88,4 +88,4 @@ Niższy priorytet — zakończone. Ale jeśli aplikacja ma być pełnym archiwum
 - Czego ten audyt **nie** gwarantuje: że sam `renthelp_kalendarz.csv` złapał 100% RentHelp. CSV powstał w sesji Cowork (task „2 przebiegi"). Żeby domknąć ostatni procent, trzeba porównać liczbę wpisów w samym RentHelp z 82 z CSV — do tego potrzebny dostęp do RentHelp albo jego natywny eksport.
 
 ## Dodatkowa uwaga jakościowa
-Blokada [klient 361] Paszko, która JEST w bazie (2026-08-16→08-25), siedzi prawdopodobnie na złym fizycznym Dusterze względem dat CSV (dopasowana do „gorki", zapisana na „Namiot II"). Do sprawdzenia przy imporcie brakujących.
+Blokada [klient 361] [klient 243], która JEST w bazie (2026-08-16→08-25), siedzi prawdopodobnie na złym fizycznym Dusterze względem dat CSV (dopasowana do „gorki", zapisana na „Namiot II"). Do sprawdzenia przy imporcie brakujących.

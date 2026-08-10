@@ -62,7 +62,7 @@ nie zapłacił i komu oddać kaucję.
 
 ## D. Po sezonie / rozwój
 
-- D1. **Umowa po angielsku** — w bazie są klienci zagraniczni ([klient 477], Kara
+- D1. **Umowa po angielsku** — w bazie są klienci zagraniczni ([klient 677] Ho, Kara
   [klient 978], [klient 994] [klient 536]…); OWU już jest dwujęzyczne, sama umowa nie.
 - D2. **Statystyki** (przychód/mc, obłożenie per auto, źródła klientów) — parytet
   z RentHelp „Statystyki".
