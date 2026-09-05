@@ -12,9 +12,9 @@ jobs:
     name: Build + Lint + Typecheck + Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         if: hashFiles('package.json') != ''
         with:
           node-version: 20
@@ -29,7 +29,9 @@ jobs:
 
       - name: Typecheck
         if: hashFiles('tsconfig.json') != ''
-        run: npx tsc --noEmit
+        # Project references ("files": [] + "references", vite) => `tsc --noEmit` sprawdza NIC. Wtedy `tsc -b`.
+        run: |
+          if grep -q '"references"' tsconfig.json; then npx tsc -b; else npx tsc --noEmit; fi
 
       - name: Tests
         if: hashFiles('package.json') != ''
@@ -61,13 +63,23 @@ jobs:
         continue-on-error: true
         run: npx --yes knip --no-exit-code --reporter compact || true
 
+  secrets-scan:
+    name: Gitleaks secrets scan
+    runs-on: ubuntu-latest
+    container:
+      image: zricethezav/gitleaks:latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Gitleaks (working tree)
+        run: gitleaks detect --source . --no-git --redact -v
+
   security:
     name: Semgrep SAST
     runs-on: ubuntu-latest
     container:
       image: semgrep/semgrep
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Semgrep scan
         run: semgrep scan --config auto --error --exclude node_modules --exclude dist
 
@@ -75,9 +87,9 @@ jobs:
     name: E2E smoke (Playwright)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         if: hashFiles('playwright.config.ts', 'playwright.config.js') != ''
         with:
           node-version: 20
@@ -88,13 +100,3 @@ jobs:
           npm ci || npm install
           npx playwright install --with-deps chromium
           npx playwright test --reporter=line
-
-  secrets-scan:
-    name: Gitleaks secrets scan
-    runs-on: ubuntu-latest
-    container:
-      image: zricethezav/gitleaks:latest
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - name: Gitleaks (working tree)
-        run: gitleaks detect --source . --no-git --redact -v
