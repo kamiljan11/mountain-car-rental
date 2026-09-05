@@ -115,7 +115,9 @@ export function invoiceAmounts(booking?: Booking): {
 
 // Liczba dni = różnica dat (dzień zwrotu NIE wliczony) — spójnie z umową i
 // kreatorem: 16→26 to 10 dni. Godziny wydania/odbioru nie wpływają na liczbę dni.
-function rentalDays(booking?: Booking): number | null {
+// Eksportowana (nie tylko lokalna) — to reguła biznesowa z realnym incydentem
+// rozliczeniowym w historii, więc ma własny test (invoice.test.ts).
+export function rentalDays(booking?: Booking): number | null {
   if (!booking) return null;
   return differenceInCalendarDays(parseISO(booking.end), parseISO(booking.start));
 }
