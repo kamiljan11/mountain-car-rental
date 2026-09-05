@@ -36,15 +36,162 @@ import { getFxRate } from "./fx";
 import { buildInvoicePdf } from "./invoice-pdf";
 import { fmtDate, todayISO } from "./dates";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-function toVehicle(r: any): Vehicle {
+// Raw PostgREST row shapes (snake_case, as Supabase returns them — the client here
+// has no generated `Database` generic, so `.data` comes back untyped). Numeric
+// Postgres columns often arrive as strings (precision-safe transport), hence the
+// `number | string` unions below wherever the mapper calls `Number(...)`.
+interface VehicleRow {
+  id: string;
+  name: string;
+  registration: string | null;
+  vin: string | null;
+  year: number | string | null;
+  mileage: number | string | null;
+  daily_rate: number | string | null;
+  color: string | null;
+  status: Vehicle["status"] | null;
+  insurance_oc_expiry: string | null;
+  insurance_ac_expiry: string | null;
+  inspection_expiry: string | null;
+  notes: string | null;
+}
+interface CustomerRow {
+  id: string;
+  full_name: string;
+  phone: string | null;
+  email: string | null;
+  license_number: string | null;
+  id_number: string | null;
+  address: string | null;
+  source: string | null;
+  company_name: string | null;
+  nip: string | null;
+  company_address: string | null;
+  company_email: string | null;
+  company_phone: string | null;
+  notes: string | null;
+  is_suspect: boolean | null;
+}
+interface CustomerDocumentRow {
+  id: string;
+  customer_id: string;
+  doc_type: CustomerDocument["docType"];
+  doc_number: string | null;
+  issued_at: string | null;
+  expires_at: string | null;
+}
+interface BookingRow {
+  id: string;
+  vehicle_id: string;
+  customer_id: string | null;
+  type: Booking["type"];
+  status: Booking["status"];
+  start_at: string;
+  end_at: string;
+  pickup_time: string | null;
+  return_time: string | null;
+  daily_rate: number | string | null;
+  total_price: number | string | null;
+  vat_rate: number | string | null;
+  deposit: number | string | null;
+  odometer_start: number | string | null;
+  odometer_end: number | string | null;
+  location: string | null;
+  platform: string | null;
+  external_ref: string | null;
+  notes: string | null;
+}
+interface ContractRow {
+  id: string;
+  number: string;
+  template_id: string;
+  template_name: string;
+  customer_id: string;
+  vehicle_id: string | null;
+  booking_id: string | null;
+  created_at: string;
+  status: Contract["status"];
+  content: string | null;
+  signed_at: string | null;
+  signer_name: string | null;
+  sign_token: string | null;
+}
+interface InvoiceRow {
+  id: string;
+  number: string;
+  customer_id: string | null;
+  vehicle_id: string | null;
+  booking_id: string | null;
+  company_key: string | null;
+  status: Invoice["status"];
+  total: number | string | null;
+  net: number | string | null;
+  vat_rate: number | string | null;
+  currency: string | null;
+  payment_method: PaymentMethod | null;
+  payment_term: PaymentTerm | null;
+  display_currency: string | null;
+  fx_rate: number | string | null;
+  content: string | null;
+  issued_at: string | null;
+  created_at: string;
+}
+interface BookingLinkRow {
+  id: string;
+  token: string;
+  vehicle_id: string;
+  status: BookingLink["status"];
+  expires_at: string;
+  suggested_start: string | null;
+  suggested_end: string | null;
+  suggested_daily_rate: number | string | null;
+  suggested_deposit: number | string | null;
+  note_to_client: string | null;
+  client_name: string | null;
+  client_email: string | null;
+  client_phone: string | null;
+  client_address: string | null;
+  client_id_number: string | null;
+  client_id_issued: string | null;
+  client_id_expires: string | null;
+  client_license: string | null;
+  client_license_issued: string | null;
+  client_license_expires: string | null;
+  req_start: string | null;
+  req_end: string | null;
+  client_note: string | null;
+  admin_note: string | null;
+  decided_at: string | null;
+  created_booking_id: string | null;
+  created_customer_id: string | null;
+  supersedes_id: string | null;
+  created_by: string | null;
+  submitted_at: string | null;
+  created_at: string | null;
+}
+interface BookingOverlapRow {
+  id: string;
+  start_at: string;
+  end_at: string;
+  status: string;
+}
+interface ChecklistItemRow {
+  item_key: string;
+  done: boolean | null;
+}
+
+function toVehicle(r: VehicleRow): Vehicle {
   return {
     id: r.id,
     name: r.name,
     plate: r.registration ?? "",
     vin: r.vin ?? undefined,
-    year: r.year ?? undefined,
-    mileage: r.mileage ?? undefined,
+    // Number(...): Postgres numeric/int columns can arrive as strings over
+    // PostgREST (see VehicleRow above) — matches dailyRate below. Latent bug
+    // surfaced by replacing `any` with real types: pre-refactor this silently
+    // let a string through into a field typed `number`.
+    year: r.year != null ? Number(r.year) : undefined,
+    mileage: r.mileage != null ? Number(r.mileage) : undefined,
     dailyRate: r.daily_rate != null ? Number(r.daily_rate) : undefined,
     color: r.color ?? "#378ADD",
     status: r.status ?? "active",
@@ -54,7 +201,7 @@ function toVehicle(r: any): Vehicle {
     notes: r.notes ?? undefined,
   };
 }
-function toCustomer(r: any): Customer {
+function toCustomer(r: CustomerRow): Customer {
   return {
     id: r.id,
     name: r.full_name,
@@ -73,7 +220,7 @@ function toCustomer(r: any): Customer {
     suspect: r.is_suspect ?? false,
   };
 }
-function toCustomerDocument(r: any): CustomerDocument {
+function toCustomerDocument(r: CustomerDocumentRow): CustomerDocument {
   return {
     id: r.id,
     customerId: r.customer_id,
@@ -83,7 +230,7 @@ function toCustomerDocument(r: any): CustomerDocument {
     expiresAt: r.expires_at ?? undefined,
   };
 }
-function toBooking(r: any): Booking {
+function toBooking(r: BookingRow): Booking {
   return {
     id: r.id,
     vehicleId: r.vehicle_id,
@@ -106,7 +253,7 @@ function toBooking(r: any): Booking {
     notes: r.notes ?? undefined,
   };
 }
-function toContract(r: any): Contract {
+function toContract(r: ContractRow): Contract {
   return {
     id: r.id,
     number: r.number,
@@ -124,7 +271,7 @@ function toContract(r: any): Contract {
   };
 }
 
-function toInvoice(r: any): Invoice {
+function toInvoice(r: InvoiceRow): Invoice {
   return {
     id: r.id,
     number: r.number,
@@ -260,8 +407,8 @@ async function hasOverlap(
     .select("id,start_at,end_at,status")
     .eq("vehicle_id", vehicleId);
   const iso = (x: unknown) => String(x).slice(0, 10);
-  return (data ?? []).some(
-    (r: any) =>
+  return ((data ?? []) as BookingOverlapRow[]).some(
+    (r) =>
       r.id !== excludeId &&
       r.status !== "cancelled" &&
       // Dotknięcie na styku (istniejący.end === nowy.start lub odwrotnie) to NIE konflikt.
@@ -1047,7 +1194,7 @@ export async function fetchCustomerChecklist(
     return {};
   }
   const out: Record<string, boolean> = {};
-  for (const r of data ?? []) out[(r as any).item_key] = !!(r as any).done;
+  for (const r of (data ?? []) as ChecklistItemRow[]) out[r.item_key] = !!r.done;
   return out;
 }
 
@@ -1080,7 +1227,7 @@ function newToken(): string {
   return randomBytes(24).toString("base64url");
 }
 
-function toBookingLink(r: any): BookingLink {
+function toBookingLink(r: BookingLinkRow): BookingLink {
   return {
     id: r.id,
     token: r.token,
