@@ -72,7 +72,8 @@ export async function verifySession(
     const payload = JSON.parse(dec.decode(b64urlDecode(data)));
     if (!payload.exp || Date.now() > payload.exp) return null;
     return { u: String(payload.u) };
-  } catch {
+  } catch (e) {
+    console.error("verifySession: malformed session cookie", e);
     return null;
   }
 }

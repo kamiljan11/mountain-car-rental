@@ -40,7 +40,8 @@ export default function ConfirmDialog({
     try {
       await onConfirm();
       onClose();
-    } catch {
+    } catch (e) {
+      console.error("ConfirmDialog: confirmed action failed", e);
       setBusy(false); // zostaw okno otwarte, gdy akcja rzuci błąd
     }
   };

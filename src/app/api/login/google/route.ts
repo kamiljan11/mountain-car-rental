@@ -22,7 +22,8 @@ export async function POST(req: Request) {
   let body: { credential?: string };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    console.error("POST /api/login/google: invalid JSON body", e);
     return NextResponse.json({ ok: false, message: "Błędne dane." }, { status: 400 });
   }
 

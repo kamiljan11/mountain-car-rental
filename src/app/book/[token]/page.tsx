@@ -55,7 +55,8 @@ export default function BookPage() {
         if (!alive) return;
         if (!r.ok || !j?.ok) setNotFound(true);
         else setView(j.view as PublicBookingView);
-      } catch {
+      } catch (e) {
+        console.error("BookPage: failed to load booking link", e);
         if (alive) setNotFound(true);
       } finally {
         if (alive) setLoading(false);
@@ -244,7 +245,8 @@ function Wizard({
         return;
       }
       onDone();
-    } catch {
+    } catch (e) {
+      console.error("BookPage: submit failed", e);
       setErr("Błąd połączenia. Spróbuj ponownie.");
       setSubmitting(false);
     }
