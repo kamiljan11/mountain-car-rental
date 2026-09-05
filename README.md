@@ -1,10 +1,13 @@
 # Mountain Car Rental — Fleet & Booking Manager
 
-**Status:** production, internal · **Built & operated by** [Kamil Jan](https://kamiljan.com)
+**Status:** closed 2026 — reference / demo only · **Built & operated by**
+[Kamil Jan](https://kamiljan.com)
 
-The internal booking system for [Mountain Car](https://mountaincar.is), a car rental near
-Keflavík airport. It replaced RentHelp, a rented SaaS that priced per booking and could not be
-changed when the business needed something different.
+The internal booking system for Mountain Car, a car rental near Keflavík airport that has since
+stopped operating. It replaced RentHelp, a rented SaaS that priced per booking and could not be
+changed when the business needed something different. The rental business is closed; this repo
+is kept public as a working reference/demo of the codebase (no live database, no production
+deploy is being operated from it — see `docs/adr/` for the decisions that shaped it).
 
 Code-first and mobile-friendly, because most of the actual use happens standing next to a car
 with a phone in one hand.
@@ -25,8 +28,9 @@ with a phone in one hand.
 
 ## Stack
 
-Next.js 16 (App Router) · TypeScript · Tailwind v4 · Supabase (Postgres + Auth) · Resend for
-transactional e-mail · deployed on Vercel. Schema history in `supabase/migrations/`.
+Next.js 16 (App Router) · TypeScript · Tailwind v4 · Supabase (Postgres only — no Supabase Auth,
+see below) · Resend for transactional e-mail · deployed on Vercel. Schema history in
+`supabase/migrations/`.
 
 ## Running locally
 
@@ -62,10 +66,15 @@ Rental days are counted by date difference without an off-by-one bump, and VAT d
   only in the database and in backups.
 - **No secrets in the repo.** Production values live in Vercel's environment settings; the
   Resend key is used server-side only.
-- **Row Level Security** in Postgres is the authorisation boundary.
+- **The app's own session gates every request**, not Postgres RLS — the server holds a
+  `service_role` key that bypasses RLS by design, so authorisation happens in
+  `requireSession()` before any database call (see `docs/adr/0001-supabase-service-role-app-gated.md`).
+  The `anon` role has no table access at all.
 - **CI gates every push** — build, lint, typecheck, Semgrep static analysis and a Gitleaks
   secret scan; a pre-commit hook blocks credential-shaped strings.
-- **This repository is private**, because it contains the operating logic of a live business.
+- **This repository is public.** The business it ran is closed, real customer data was removed
+  from the history before making it public, and nothing in it points at a live database or a
+  running deployment.
 
 ## Licence
 
