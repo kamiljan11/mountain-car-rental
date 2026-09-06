@@ -466,7 +466,7 @@ export function buildFilled(
   });
 }
 
-const KEY = "rebel_contracts_v1";
+const KEY = "rebel_contracts_v1"; // gitleaks:allow — nazwa klucza w localStorage, nie sekret
 
 export function getContracts(): Contract[] {
   if (typeof window === "undefined") return [];

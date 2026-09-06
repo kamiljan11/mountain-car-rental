@@ -1,4 +1,9 @@
-# False-positive: localStorage key name ("rebel_contracts_v1"), not an API secret.
-# Rule generic-api-key matched `const KEY = "..."` — verified 2026-08-09.
-# Fingerprint format for `gitleaks detect --no-git`: <file>:<rule-id>:<line>
-src/lib/contract.ts:generic-api-key:511
+# Pusto celowo.
+#
+# Jedyny znany false-positive (`const KEY = "rebel_contracts_v1"` w src/lib/contract.ts —
+# nazwa klucza localStorage, nie sekret) jest wyciszony INLINE komentarzem `gitleaks:allow`
+# przy samej linii. Odciski w tym pliku maja postac <plik>:<regula>:<NUMER LINII>, wiec
+# rozjezdzaja sie przy kazdej edycji powyzej — dokladnie to wysadzilo CI w PR #3, gdy
+# usuniecie 42 linii przesunelo znalezisko z 511 na 469.
+#
+# Nowe wyciszenie dodawaj inline razem z powodem, nie tutaj.
