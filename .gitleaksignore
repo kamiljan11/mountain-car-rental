@@ -1,4 +1,9 @@
-# False-positive: localStorage key name ("rebel_contracts_v1"), not an API secret.
-# Rule generic-api-key matched `const KEY = "..."` — verified 2026-08-09.
-# Fingerprint format for `gitleaks detect --no-git`: <file>:<rule-id>:<line>
-src/lib/contract.ts:generic-api-key:511
+# Pusto celowo — nie dopisuj tu odciskow.
+#
+# Odcisk ma postac <plik>:<regula>:<NUMER LINII>, wiec rozjezdza sie przy kazdej edycji
+# powyzej znaleziska. Dokladnie to wysadzilo CI w PR #3: usuniecie 42 linii przesunelo
+# znany false-positive w src/lib/contract.ts z linii 511 na 469 i odcisk przestal pasowac.
+#
+# Nowe wyciszenie dodawaj INLINE komentarzem gitleaks:allow przy samej linii, z powodem.
+# Nie cytuj tu wyciszanego kodu — skaner czyta rowniez ten plik i sam cytat zaplonie
+# jako znalezisko (to bylo drugie czerwone CI w tym samym PR).

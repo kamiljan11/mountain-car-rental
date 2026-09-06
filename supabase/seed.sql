@@ -1,6 +1,10 @@
--- Mountain Car Rental — schema rental + seed z RentHelp (audyt pelny 2026-07-01).
--- Idempotentne (drop+recreate rental). 12 pojazdow (autorytatywna Flota), 75 klientow,
--- 33 rezerwacje + 15 blokad + 3 serwisy = 51 wpisow kalendarza, zero kolizji dat.
+-- Schema rental + dane WYLACZNIE syntetyczne, do lokalnej bazy na jeden raz.
+-- Ksztalt danych odwzorowuje audyt z 2026-07-01, ale klienci to "Klient Demo NN"
+-- z adresami @example.com — zadnych prawdziwych osob.
+-- 12 pojazdow, 75 klientow, 33 rezerwacje + 15 blokad + 3 serwisy = 51 wpisow kalendarza.
+--
+-- UWAGA: pierwsza instrukcja to `drop schema rental cascade`. Odpalasz to tylko na bazie,
+-- ktorej nie zal. Produkcja i kazda baza z realnymi danymi stawiana jest z supabase/migrations/.
 drop schema if exists rental cascade;
 create schema rental;
 grant usage on schema rental to anon, authenticated, service_role;
@@ -15,7 +19,11 @@ create unique index if not exists contracts_number_unique on rental.contracts (n
 -- E-podpis (lustro migracji 20260720150000)
 alter table rental.contracts add column if not exists sign_token text, add column if not exists sign_expires_at timestamptz, add column if not exists signed_at timestamptz, add column if not exists signer_name text, add column if not exists signer_meta text;
 create unique index if not exists contracts_sign_token_unique on rental.contracts (sign_token) where sign_token is not null;
-create table rental.settings (id int primary key default 1, brand text default 'Mountain Car Rental', legal_name text default 'Mountain All Service ehf.', kennitala text default '6907250450', vat text default '158052', address text default 'Njarðarbraut 3i, 260 Njarðvík', email text default 'mountainallservice@gmail.com', web text default 'https://mountaincar.is');
+-- Tabela zostaje dla zgodnosci ksztaltu z migracjami, ale BEZ danych operatora:
+-- aplikacja jej nie czyta (zero trafien na rental.settings w src/), a dane firmy
+-- na umowach i fakturach biora sie z src/lib/company.ts. Wczesniej stal tu adres
+-- z literowka, ktory osobna migracja juz raz poprawiala — seed po cichu go wracal.
+create table rental.settings (id int primary key default 1, brand text, legal_name text, kennitala text, vat text, address text, email text, web text);
 
 alter table rental.vehicles enable row level security;
 create policy "public" on rental.vehicles for all to anon, authenticated using (true) with check (true);

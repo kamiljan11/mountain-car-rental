@@ -1,6 +1,20 @@
 # Changelog
 
 ## [Unreleased]
+- **Rebel Travel profile removed** from `src/lib/company.ts`: this repo is public and does not
+  keep another company's registration data. Issued documents are unaffected — their rendered
+  content is stored — but nothing can be issued as Rebel Travel any more. Resolving a landlord
+  now goes through `requireCompany()`, which throws on an unknown key instead of quietly
+  falling back to the default: on an invoice that would have swapped the seller unnoticed.
+- **Self-hostable**: the operator's identity (brand, kennitala, VSK-nr, address, phone,
+  pickup points) moved out of 45 places in 11 files into `src/lib/company.ts`, the only
+  file in the application code that names a company. Rendered output is unchanged.
+  `src/lib/company.test.ts` covers the two display formatters and fails if those details
+  reappear elsewhere under `src/` or in `supabase/seed.sql`. README gains "Running it
+  yourself": migrations give an empty database, the single account comes from
+  `APP_USER`/`APP_PASSWORD`, there is deliberately no hosted demo. `supabase/seed.sql`
+  no longer seeds `rental.settings` with the real company — it carried a stale address a
+  migration had already fixed.
 - **Docs, not behaviour** — repo made "github-ready" for its public, closed/reference status:
   `README.md` status corrected to closed/reference (was still saying "production, internal";
   the repo visibility claim was also stale), `docs/ARCHITECTURE.md` + `docs/GLOSSARY.md` (new,

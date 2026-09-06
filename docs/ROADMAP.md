@@ -2,7 +2,11 @@
 
 > **UPDATE 2026-07-14 — co się zamknęło od 2026-07-12** (szczegóły per zmiana: CHANGELOG wpisy 8–18):
 > - ✅ **A1 Resend** — klucz w Vercelu, domena mountaincar.is zweryfikowana, maile realnie wychodzą (potwierdzenia z okienkiem-walidatorem przed wysyłką).
-> - ✅ **A2 Dane Rebel Travel** — kennitala 600723-0140, VSK 149557 w umowach.
+> - ✅ **A2 Dane Rebel Travel** — kennitala i VSK-nr byly uzupelnione w umowach.
+>   **Wycofane 2026-09-06:** profil Rebel Travel usuniety z `src/lib/company.ts`, bo repo jest
+>   publiczne i nie trzymamy w nim danych rejestrowych obcego podmiotu. Wystawione dokumenty
+>   maja swoja tresc zapisana i sie nie zmieniaja; nowego dokumentu jako Rebel Travel juz nie
+>   wystawisz, a proba uzycia tego klucza konczy sie bledem zamiast cicha podmiana sprzedawcy.
 > - ✅ **A3 Domena** — panel działa na `app.rental.mountaincar.is` (+ Google login origins).
 > - ✅ **A4 Duplikaty klientów** — scalone/wyczyszczone; baza zweryfikowana 1:1 z RentHelp.
 > - ✅ **B1 Godziny wydania/odbioru**, ✅ **B2 twarda blokada kolizji** (kreator + serwerowy re-check + **constraint w bazie** `bookings_no_overlap`, half-open — zmiana auta tego samego dnia OK), ✅ **B3 wyszukiwarka w Rezerwacjach**, ✅ **B6 kafel wygasających OC/AC/przeglądów**.
@@ -20,7 +24,7 @@ i czy coś jest potrzebne od Kamila.
 
 Kalendarz z nieskończonym pasem czasu i szeroką wyszukiwarką · rezerwacje z licznikiem
 i czasem islandzkim · klienci z profilami/dokumentami/wyszukiwarką · umowy z
-auto-numeracją i wyborem firmy (Mountain Car / Rebel Travel) · protokoły z przebiegiem ·
+auto-numeracją i wyborem firmy (profile w `src/lib/company.ts`) · protokoły z przebiegiem ·
 self-service linki z kolejką Wniosków · checklista wydania per klient + poglądowa ·
 płatność Revolut (QR + WhatsApp) · PWA na telefon · Google login · dashboard dnia.
 
@@ -31,7 +35,7 @@ płatność Revolut (QR + WhatsApp) · PWA na telefon · Google login · dashboa
 | # | Co | Po co | Rozmiar | Od Kamila |
 |---|----|-------|---------|-----------|
 | A1 | **Klucz Resend** (konto + weryfikacja domeny) | Wnioski dziś NIE wysyłają maili do klientów (potwierdzenie/odrzucenie/prośba o zmianę są pomijane po cichu) | S (po stronie kodu zero — tylko env) | ✅ konto Resend + klucz |
-| A2 | **Kennitala + VSK-nr Rebel Travel** | Umowa jako Rebel Travel ma dziś puste linie zamiast numerów | S (1 linia) | ✅ dwa numery |
+| A2 | **Kennitala + VSK-nr Rebel Travel** | ~~Umowa jako Rebel Travel ma dziś puste linie zamiast numerów~~ — nieaktualne: profil Rebel Travel usunięty 2026-09-06 (publiczne repo) | S (1 linia) | ✅ potem wycofane |
 | A3 | **Domena app.mountaincar.is → Vercel** | Panel jest dziś dostępny tylko przez brzydki per-deploy URL Vercela; domena pokazuje błąd. Ekipa potrzebuje stałego adresu (i PWA na telefonie się do niego przypina) | S-M | ✅ dostęp do DNS mountaincar.is |
 | A4 | **Duplikaty klientów** ([klient 380] ×2, [klient 221] ×2 — z importu RentHelp) | Rezerwacje/umowy rozjeżdżają się między dwoma profilami tej samej osoby | S (scalenie w bazie) | decyzja „scalaj" |
 

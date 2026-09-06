@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
+import { BRAND } from "@/lib/company";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Mountain Car Rental — Rental Manager",
+    name: `${BRAND} — Rental Manager`,
     short_name: "MCR Manager",
     description: "Wewnętrzny system rezerwacji floty",
     start_url: "/",

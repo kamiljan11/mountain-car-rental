@@ -31,7 +31,8 @@ import {
   termLabel,
   fxEquiv,
 } from "./invoice";
-import { COMPANIES, isk } from "./contract";
+import { isk } from "./contract";
+import { requireCompany } from "./company";
 import { getFxRate } from "./fx";
 import { buildInvoicePdf } from "./invoice-pdf";
 import { fmtDate, todayISO } from "./dates";
@@ -815,7 +816,7 @@ export async function insertInvoice(input: {
         .maybeSingle()
         .then(({ data }) => (data ? toVehicle(data) : undefined))
     : undefined;
-  const company = COMPANIES.find((c) => c.key === input.companyKey) ?? COMPANIES[0];
+  const company = requireCompany(input.companyKey);
   const { net, gross, vatRate } = invoiceAmounts(booking);
   const today = fmtDate(todayISO());
 
@@ -918,7 +919,9 @@ export async function sendInvoiceEmail(input: {
     }
   }
 
-  const company = COMPANIES.find((c) => c.key === inv.company_key) ?? COMPANIES[0];
+  // Faktura juz wystawiona: sprzedawca musi byc TEN, pod ktorym ja wystawiono.
+  // Podmiana na domyslnego bylaby cicha zmiana strony na dokumencie ksiegowym.
+  const company = requireCompany(inv.company_key ?? undefined);
   const gross = inv.total != null ? Number(inv.total) : undefined;
   const net = inv.net != null ? Number(inv.net) : undefined;
   const vatRate = inv.vat_rate != null ? Number(inv.vat_rate) : 0;

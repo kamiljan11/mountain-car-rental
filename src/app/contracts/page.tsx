@@ -4,7 +4,8 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useData } from "@/components/DataProvider";
-import { TEMPLATES, COMPANIES, buildFilled, makeNumber, type Contract } from "@/lib/contract";
+import { TEMPLATES, buildFilled, makeNumber, type Contract } from "@/lib/contract";
+import { COMPANIES } from "@/lib/company";
 import {
   insertContractAction as insertContract,
   sendContractForSignatureAction as sendContractForSignature,
