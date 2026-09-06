@@ -1,9 +1,9 @@
-# Pusto celowo.
+# Pusto celowo — nie dopisuj tu odciskow.
 #
-# Jedyny znany false-positive (`const KEY = "rebel_contracts_v1"` w src/lib/contract.ts —
-# nazwa klucza localStorage, nie sekret) jest wyciszony INLINE komentarzem `gitleaks:allow`
-# przy samej linii. Odciski w tym pliku maja postac <plik>:<regula>:<NUMER LINII>, wiec
-# rozjezdzaja sie przy kazdej edycji powyzej — dokladnie to wysadzilo CI w PR #3, gdy
-# usuniecie 42 linii przesunelo znalezisko z 511 na 469.
+# Odcisk ma postac <plik>:<regula>:<NUMER LINII>, wiec rozjezdza sie przy kazdej edycji
+# powyzej znaleziska. Dokladnie to wysadzilo CI w PR #3: usuniecie 42 linii przesunelo
+# znany false-positive w src/lib/contract.ts z linii 511 na 469 i odcisk przestal pasowac.
 #
-# Nowe wyciszenie dodawaj inline razem z powodem, nie tutaj.
+# Nowe wyciszenie dodawaj INLINE komentarzem gitleaks:allow przy samej linii, z powodem.
+# Nie cytuj tu wyciszanego kodu — skaner czyta rowniez ten plik i sam cytat zaplonie
+# jako znalezisko (to bylo drugie czerwone CI w tym samym PR).
