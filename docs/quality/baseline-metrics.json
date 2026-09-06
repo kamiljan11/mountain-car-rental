@@ -1,28 +1,27 @@
 {
-  "repo": ".",
-  "name": ".",
+  "name": "rebel-rental",
   "ok": true,
   "error": null,
-  "parser": "regex",
+  "parser": "typescript",
   "parserFallbackFiles": 0,
   "timedOut": false,
-  "elapsedMs": 193,
+  "elapsedMs": 455,
   "warnings": [],
   "files": 71,
   "loc": 14501,
   "testFiles": 2,
   "srcToTestRatio": 34.5,
   "functions": {
-    "total": 278,
-    "over60": 27,
-    "over100": 18,
+    "total": 912,
+    "over60": 43,
+    "over100": 27,
     "maxLen": {
       "length": 883,
       "name": "Timeline",
       "file": "src/components/Timeline.tsx"
     },
-    "paramsOver4": 2,
-    "nestingOver3": 22
+    "paramsOver4": 1,
+    "nestingOver3": 1
   },
   "largeFiles": {
     "over400Count": 11,
@@ -51,47 +50,47 @@
     "over1000Count": 3
   },
   "shortIdentifiers": {
-    "count": 174,
+    "count": 390,
     "top10": [
       {
-        "name": "r",
-        "count": 27
-      },
-      {
-        "name": "v",
-        "count": 21
-      },
-      {
-        "name": "d",
-        "count": 21
-      },
-      {
         "name": "b",
-        "count": 17
+        "count": 79
       },
       {
         "name": "c",
-        "count": 16
+        "count": 56
+      },
+      {
+        "name": "v",
+        "count": 55
+      },
+      {
+        "name": "r",
+        "count": 39
+      },
+      {
+        "name": "d",
+        "count": 38
       },
       {
         "name": "s",
-        "count": 15
+        "count": 33
       },
       {
         "name": "n",
+        "count": 13
+      },
+      {
+        "name": "a",
         "count": 9
+      },
+      {
+        "name": "m",
+        "count": 7
       },
       {
         "name": "o",
         "count": 7
-      },
-      {
-        "name": "m",
-        "count": 5
-      },
-      {
-        "name": "q",
-        "count": 4
       }
     ]
   },
@@ -110,16 +109,17 @@
     "ratio": 0.0439
   },
   "docCoverage": {
-    "exportedTotal": 180,
+    "exportedTotal": 192,
     "documented": 0,
     "ratio": 0
   },
-  "jsxHardcodedText": 628,
+  "jsxHardcodedText": 334,
   "python": {
     "functionsTotal": 0,
     "publicFunctionsTotal": 0,
     "functionsOver60": 0,
     "missingDocstring": 0,
     "bareExcept": 0
-  }
+  },
+  "generatedAt": "2026-09-06"
 }
