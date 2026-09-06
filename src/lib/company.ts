@@ -46,26 +46,27 @@ export const COMPANIES: Company[] = [
     phone: "+354 888 8005",
     web: "https://mountaincar.is",
   },
-  {
-    key: "rebel",
-    label: "Rebel Travel",
-    legalName: "Rebel Travel ehf.",
-    brand: "Rebel Travel",
-    // Źródła (2026-07-13): umowa RentHelp (blok Wynajmującego) + fyrirtækjaskrá
-    // Skatturinn (aktywna, zarej. 17.07.2023, ISAT 77.11.0 wynajem aut).
-    kennitala: "6007230140",
-    vat: "149557",
-    address: "Skógarhlíð 10, 105 Reykjavík, Islandia",
-    addressShort: "Skógarhlíð 10, 105 Reykjavík",
-    email: "info@rebeltravel.is",
-    contactEmail: "info@rebeltravel.is",
-    phone: "",
-    web: "https://rebeltravel.is",
-  },
 ];
 
 /** Wynajmujący domyślny: pierwszy na liście. */
 export const COMPANY = COMPANIES[0];
+
+/**
+ * Wynajmujący o podanym kluczu. Rzuca, gdy klucza nie ma — na fakturze i umowie
+ * cicha podmiana sprzedawcy na domyślnego byłaby błędem, którego nikt nie zauważy.
+ * Brak klucza (nowy dokument, nikt jeszcze nie wybrał) = wynajmujący domyślny.
+ */
+export function requireCompany(key: string | undefined): Company {
+  if (!key) return COMPANY;
+  const found = COMPANIES.find((c) => c.key === key);
+  if (!found) {
+    throw new Error(
+      `Nieznany wynajmujący "${key}". Dostępne: ${COMPANIES.map((c) => c.key).join(", ")}. ` +
+        "Dokument nie został wystawiony — dodaj profil w src/lib/company.ts albo popraw wybór.",
+    );
+  }
+  return found;
+}
 
 /** Nazwa, którą podpisujemy panel, maile i stronę publiczną. */
 export const BRAND = COMPANY.brand;

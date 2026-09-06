@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { COMPANIES, COMPANY, kennitalaLabel, webLabel, type Company } from "./company";
+import { COMPANIES, COMPANY, kennitalaLabel, requireCompany, webLabel, type Company } from "./company";
 
 describe("kennitalaLabel", () => {
   it("formats a ten-digit kennitala as DDMMYY-NNNN", () => {
@@ -18,6 +18,22 @@ describe("webLabel", () => {
   it("strips the protocol for display", () => {
     expect(webLabel({ web: "https://example.is" } as Company)).toBe("example.is");
     expect(webLabel({ web: "http://example.is" } as Company)).toBe("example.is");
+  });
+});
+
+describe("requireCompany", () => {
+  it("returns the default when no key was stored", () => {
+    expect(requireCompany(undefined)).toBe(COMPANY);
+  });
+
+  it("returns the profile matching a stored key", () => {
+    expect(requireCompany(COMPANY.key)).toBe(COMPANY);
+  });
+
+  // Faktura i umowa nosza nazwe sprzedawcy. Cicha podmiana na domyslnego przy
+  // usunietym profilu zmienilaby strone dokumentu, i nikt by tego nie zobaczyl.
+  it("throws on a key no profile answers to, instead of substituting one", () => {
+    expect(() => requireCompany("rebel")).toThrowError(/Nieznany wynajmuj/);
   });
 });
 

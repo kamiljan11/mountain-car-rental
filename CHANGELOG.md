@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+- **Rebel Travel profile removed** from `src/lib/company.ts`: this repo is public and does not
+  keep another company's registration data. Issued documents are unaffected — their rendered
+  content is stored — but nothing can be issued as Rebel Travel any more. Resolving a landlord
+  now goes through `requireCompany()`, which throws on an unknown key instead of quietly
+  falling back to the default: on an invoice that would have swapped the seller unnoticed.
 - **Self-hostable**: the operator's identity (brand, kennitala, VSK-nr, address, phone,
   pickup points) moved out of 45 places in 11 files into `src/lib/company.ts`, the only
   file in the application code that names a company. Rendered output is unchanged.
