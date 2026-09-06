@@ -67,7 +67,8 @@ export default function LoginPage() {
         return;
       }
       goToNext();
-    } catch {
+    } catch (e) {
+      console.error("LoginPage: Google sign-in failed", e);
       setErr("Błąd połączenia. Spróbuj ponownie.");
       setLoading(false);
     }
@@ -109,7 +110,8 @@ export default function LoginPage() {
         return;
       }
       goToNext();
-    } catch {
+    } catch (e) {
+      console.error("LoginPage: sign-in failed", e);
       setErr("Błąd połączenia. Spróbuj ponownie.");
       setLoading(false);
     }

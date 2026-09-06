@@ -2,7 +2,13 @@ import "server-only";
 import { supabaseAdmin as supabase } from "./supabase-admin";
 import type { PublicBookingView, BookingLinkStatus } from "./types";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// Raw PostgREST row shape for the narrow `start_at,end_at,status` selects below
+// (this client has no generated `Database` generic, so `.data` is untyped).
+interface BookingRangeRow {
+  start_at: string;
+  end_at: string;
+  status: string;
+}
 
 // ⚠️ ŚCIEŻKA PUBLICZNA — te funkcje są celowo BEZ requireSession() i wołane
 // wyłącznie z /api/book/[token]. Każde zapytanie jest scoped po tokenie linku;
@@ -37,9 +43,9 @@ export async function getPublicBookingLink(token: string): Promise<PublicResult>
     .from("bookings")
     .select("start_at,end_at,status")
     .eq("vehicle_id", link.vehicle_id);
-  const bookedRanges = (bk ?? [])
-    .filter((b: any) => b.status !== "cancelled")
-    .map((b: any) => ({ start: iso(b.start_at), end: iso(b.end_at) }));
+  const bookedRanges = ((bk ?? []) as BookingRangeRow[])
+    .filter((b) => b.status !== "cancelled")
+    .map((b) => ({ start: iso(b.start_at), end: iso(b.end_at) }));
 
   const { data: veh } = await supabase
     .from("vehicles")
@@ -145,8 +151,8 @@ export async function submitBookingRequest(
     .from("bookings")
     .select("start_at,end_at,status")
     .eq("vehicle_id", link.vehicle_id);
-  const conflict = (bk ?? []).some(
-    (b: any) =>
+  const conflict = ((bk ?? []) as BookingRangeRow[]).some(
+    (b) =>
       b.status !== "cancelled" && iso(b.start_at) < end && iso(b.end_at) > start,
   );
   if (conflict)

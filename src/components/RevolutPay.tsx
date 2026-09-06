@@ -35,7 +35,8 @@ export default function RevolutPay({
     try {
       await navigator.clipboard.writeText(REVOLUT_URL);
       showToast("success", "Skopiowano link Revolut.");
-    } catch {
+    } catch (e) {
+      console.error("RevolutPay: clipboard write failed", e);
       showToast("error", "Nie udało się skopiować.");
     }
   };

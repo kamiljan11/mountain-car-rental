@@ -1,5 +1,38 @@
 # Changelog
 
+## [Unreleased]
+- **Docs, not behaviour** — repo made "github-ready" for its public, closed/reference status:
+  `README.md` status corrected to closed/reference (was still saying "production, internal";
+  the repo visibility claim was also stale), `docs/ARCHITECTURE.md` + `docs/GLOSSARY.md` (new,
+  grounded in the current code), two real ADRs (`docs/adr/0001-...`, `docs/adr/0002-...`),
+  `LICENSE` (was missing — all rights reserved), `docs/quality/BACKLOG.md` (SQL-lint HIGH
+  findings + large-file split plan, all deliberately deferred with a reason).
+- **Type safety**: removed the remaining `any`/`eslint-disable` in `src/lib/db.ts` and
+  `src/lib/book-public.ts` in favour of row types matching the actual Supabase `select()`
+  columns. This surfaced one real latent bug while typechecking: `toVehicle()` assigned
+  `year`/`mileage` straight from the row without the `Number(...)` coercion every other numeric
+  field already had (`dailyRate` right below it, and every field in `toBooking`/`toInvoice`) —
+  harmless while Postgres returns a JS `number`, but a string would have silently flowed into a
+  field typed `number`. Fixed to match the existing pattern; every other mapper was already
+  correct (checked all of them).
+- **Silent catches now log with context** (`console.error("<where>: <what failed>", e)`) across
+  the API routes, `auth.ts`, and the client pages/components that previously swallowed the
+  error entirely — same user-facing behaviour, but a failure is now visible in logs/console
+  instead of disappearing.
+- **Test**: `src/lib/invoice.test.ts` (new) — regression coverage for `rentalDays` (the
+  16→26 = 10-days billing bug) and `invoiceAmounts` (VAT defaulting to 0%). `rentalDays` is now
+  exported from `invoice.ts` so it's testable; no change to either function's logic.
+- **CI**: `actions/checkout`/`setup-node` pins bumped to `v4.4.0`, `release.yml`'s checkout pin
+  restored (was accidentally left unpinned), `tsc -b` vs `--noEmit` now auto-selected by whether
+  `tsconfig.json` uses project references, `secrets-scan` (gitleaks) job reordered next to the
+  other quality jobs. `.env.example` corrected to the variable names the code actually reads
+  (`SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`/`EMAIL_FROM` — it previously
+  listed `NEXT_PUBLIC_SUPABASE_*` names that `src/lib/supabase-admin.ts` never reads).
+- `package.json`: added `vitest` + a `test` script (previously no test runner was wired up at
+  all, despite `docs`/CI referring to one). New `vitest.config.ts` excludes `e2e/**` — vitest's
+  default file matching was picking up the scaffolded (Playwright) `e2e/smoke.spec.ts` and
+  failing the whole run on a missing `@playwright/test`, unrelated to the unit tests.
+
 ## 2026-07-31 (41) — Pojazdy „inactive" znikają z kalendarza/pulpitu/kreatora (3 Dustery poza flotą)
 - **Status pojazdu `inactive` = auto już nie w naszej flocie**: kalendarz nie pokazuje jego wiersza, pulpit pomija je we wszystkich kaflach, kreator rezerwacji nie oferuje go przy nowym wpisie (przy edycji starego wpisu opcja zostaje, żeby select nie przestawił auta po cichu). Wpisy/historia w bazie i Flota (ze statusem) — bez zmian. Odwracalne: status z powrotem na „active" i auto wraca wszędzie.
 - **Dane: 3 Dustery oznaczone `inactive` na prod** (Dacia Duster - górki FZZ82, Dacia Duster Namiot II BPS82, Daci Duster Namiot PFS75) — Kamil: „już tych aut nie mamy". ⚠️ Na tych autach zostały żywe wpisy (rez. 90 000 ISK do 04.08 na BPS82 + 4 blokady z klientami z notatek) — NIE anulowane, decyzja Kamila. — OWU: twarde zabezpieczenie Wynajmującego (research 6 wypożyczalni IS + prawo islandzkie)

@@ -1,0 +1,125 @@
+{
+  "repo": ".",
+  "name": ".",
+  "ok": true,
+  "error": null,
+  "parser": "regex",
+  "parserFallbackFiles": 0,
+  "timedOut": false,
+  "elapsedMs": 193,
+  "warnings": [],
+  "files": 71,
+  "loc": 14501,
+  "testFiles": 2,
+  "srcToTestRatio": 34.5,
+  "functions": {
+    "total": 278,
+    "over60": 27,
+    "over100": 18,
+    "maxLen": {
+      "length": 883,
+      "name": "Timeline",
+      "file": "src/components/Timeline.tsx"
+    },
+    "paramsOver4": 2,
+    "nestingOver3": 22
+  },
+  "largeFiles": {
+    "over400Count": 11,
+    "over400Top5": [
+      {
+        "file": "src/lib/db.ts",
+        "loc": 1562
+      },
+      {
+        "file": "src/lib/data.ts",
+        "loc": 1137
+      },
+      {
+        "file": "src/components/Timeline.tsx",
+        "loc": 1077
+      },
+      {
+        "file": "src/components/NewReservationWizard.tsx",
+        "loc": 884
+      },
+      {
+        "file": "src/app/book/[token]/page.tsx",
+        "loc": 631
+      }
+    ],
+    "over1000Count": 3
+  },
+  "shortIdentifiers": {
+    "count": 174,
+    "top10": [
+      {
+        "name": "r",
+        "count": 27
+      },
+      {
+        "name": "v",
+        "count": 21
+      },
+      {
+        "name": "d",
+        "count": 21
+      },
+      {
+        "name": "b",
+        "count": 17
+      },
+      {
+        "name": "c",
+        "count": 16
+      },
+      {
+        "name": "s",
+        "count": 15
+      },
+      {
+        "name": "n",
+        "count": 9
+      },
+      {
+        "name": "o",
+        "count": 7
+      },
+      {
+        "name": "m",
+        "count": 5
+      },
+      {
+        "name": "q",
+        "count": 4
+      }
+    ]
+  },
+  "anyUsage": 0,
+  "tsIgnore": 0,
+  "eslintDisable": 5,
+  "catchBlocks": {
+    "total": 23,
+    "silent": 5
+  },
+  "consoleLog": 0,
+  "todoFixmeHack": 2,
+  "comments": {
+    "commentLines": 637,
+    "loc": 14501,
+    "ratio": 0.0439
+  },
+  "docCoverage": {
+    "exportedTotal": 180,
+    "documented": 0,
+    "ratio": 0
+  },
+  "jsxHardcodedText": 628,
+  "python": {
+    "functionsTotal": 0,
+    "publicFunctionsTotal": 0,
+    "functionsOver60": 0,
+    "missingDocstring": 0,
+    "bareExcept": 0
+  }
+}

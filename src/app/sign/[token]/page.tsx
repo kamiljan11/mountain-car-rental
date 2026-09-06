@@ -46,7 +46,10 @@ export default function SignContractPage({
         if (j?.ok) setView(j.view);
         else setFailed(true);
       })
-      .catch(() => alive && setFailed(true));
+      .catch((e) => {
+        console.error("SignPage: failed to load contract", e);
+        if (alive) setFailed(true);
+      });
     return () => {
       alive = false;
     };
@@ -71,7 +74,8 @@ export default function SignContractPage({
       } else {
         setError(j?.message ?? "Nie udało się zapisać podpisu.");
       }
-    } catch {
+    } catch (e) {
+      console.error("SignPage: submit failed", e);
       setError("Błąd połączenia — spróbuj ponownie.");
     } finally {
       setSubmitting(false);

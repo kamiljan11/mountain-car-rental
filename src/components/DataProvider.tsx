@@ -76,8 +76,9 @@ export default function DataProvider({
         setLoaded(true);
         setLoadError(false); // udany retry czyści ekran błędu
       })
-      .catch(() => {
+      .catch((e) => {
         // Baza niedostępna / błąd zapytania — nie serwuj cicho seeda, zgłoś błąd.
+        console.error("DataProvider: fetchAll failed", e);
         if (alive) setLoadError(true);
       });
     return () => {
@@ -135,6 +136,7 @@ export default function DataProvider({
         setBookings((prev) => [...prev, nb]);
         return nb;
       } catch (e) {
+        console.error("DataProvider: addBooking failed", e);
         showToast(
           "error",
           e instanceof Error && /zaj/i.test(e.message)
@@ -162,7 +164,8 @@ export default function DataProvider({
       setBookings((prev) => prev.filter((x) => x.id !== id));
       try {
         await deleteBookingDb(id);
-      } catch {
+      } catch (e) {
+        console.error("DataProvider: removeBooking failed", e);
         if (prevBooking) setBookings((prev) => [...prev, prevBooking]);
         showToast("error", "Nie udało się usunąć wpisu. Spróbuj ponownie.");
       }
@@ -172,7 +175,8 @@ export default function DataProvider({
         const nc = await insertCustomer(c);
         setCustomers((prev) => [...prev, nc]);
         return nc;
-      } catch {
+      } catch (e) {
+        console.error("DataProvider: addCustomer failed", e);
         showToast("error", "Nie udało się dodać klienta. Spróbuj ponownie.");
         return null;
       }
@@ -195,7 +199,8 @@ export default function DataProvider({
       setCustomers((prev) => prev.filter((c) => c.id !== id));
       try {
         await deleteCustomerDb(id);
-      } catch {
+      } catch (e) {
+        console.error("DataProvider: removeCustomer failed", e);
         if (prevCustomer) setCustomers((prev) => [...prev, prevCustomer]);
         showToast("error", "Nie udało się usunąć klienta. Spróbuj ponownie.");
       }
