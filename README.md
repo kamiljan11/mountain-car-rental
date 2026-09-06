@@ -60,8 +60,11 @@ starts empty — your own database, your own account, your own company on the pa
    deliberate, because a rental office has one operator, not a directory of users.
 3. **Your company.** Everything the customer sees — the rental agreement, the invoice, e-mails,
    the public booking page, the panel header — reads from `src/lib/company.ts`. Replace the
-   profiles there with your own; it is the only file with a company name, kennitala or address in
-   it, and a test fails the build if those details start spreading back into components.
+   profiles there with your own; it is the only file in the application code that names a company,
+   and `company.test.ts` fails the build if those details start spreading back into components or
+   into `supabase/seed.sql`. The schema also has a `rental.settings` table left over from an
+   earlier design, carrying its own copy of those columns — the app never reads it, and the
+   migration that created it stays as-is because applied migrations are history.
 4. **E-mail.** Optional. Without `RESEND_API_KEY` the app skips sending and keeps working; with it,
    `EMAIL_FROM` has to be a domain you verified in Resend.
 

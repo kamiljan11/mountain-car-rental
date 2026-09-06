@@ -57,4 +57,14 @@ describe("operator identity lives in one file", () => {
       .map((path) => path.slice(src.length + 1));
     expect(offenders).toEqual([]);
   });
+
+  // Seed jest opcjonalny i syntetyczny — nie ma prawa wstawiac prawdziwego operatora
+  // do bazy, ktora ktos wlasnie postawil u siebie. Migracje sa historia i zostaja.
+  it("keeps them out of supabase/seed.sql too", () => {
+    const seed = readFileSync(resolve(process.cwd(), "supabase/seed.sql"), "utf8");
+    const hits = seed
+      .split(/\r?\n/)
+      .filter((line) => IDENTITY.test(line) && !line.trimStart().startsWith("--"));
+    expect(hits).toEqual([]);
+  });
 });
