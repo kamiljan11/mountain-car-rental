@@ -1,6 +1,7 @@
 import type { Customer, Vehicle, Booking } from "./types";
 import { isCompanyCustomer } from "./types";
-import { COMPANIES, isk, type Company } from "./contract";
+import { isk } from "./contract";
+import { COMPANIES, type Company } from "./company";
 import { fmtDate, todayISO } from "./dates";
 import { REVOLUT_URL } from "./payment";
 import { differenceInCalendarDays, parseISO } from "date-fns";

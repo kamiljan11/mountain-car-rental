@@ -1,4 +1,5 @@
 import "server-only";
+import { BRAND, COMPANY } from "./company";
 import { fmtDate } from "./dates";
 import { isk } from "./contract";
 import { REVOLUT_HANDLE, REVOLUT_URL } from "./payment";
@@ -48,12 +49,12 @@ export async function sendEmailResult(opts: {
 }): Promise<SendResult> {
   const key = process.env.RESEND_API_KEY;
   // Nadawca: obie konwencje nazw (EMAIL_FROM oraz RESEND_FROM_EMAIL z vaulta/Vercela).
-  // MUSI być z domeny zweryfikowanej w Resend (mountaincar.is) — onboarding@resend.dev
+  // MUSI być z domeny zweryfikowanej w Resend (Twojej wlasnej) — onboarding@resend.dev
   // dowozi tylko na adres właściciela konta, nie do klientów.
   const from =
     process.env.EMAIL_FROM ||
     process.env.RESEND_FROM_EMAIL ||
-    "Mountain Car Rental <onboarding@resend.dev>";
+    `${BRAND} <onboarding@resend.dev>`;
   if (!key) {
     console.warn(`[email] RESEND_API_KEY nie ustawiony — pomijam wysyłkę do ${opts.to}`);
     return { ok: false, error: "brak konfiguracji RESEND_API_KEY (env Vercela)" };
@@ -87,12 +88,12 @@ export async function sendEmailResult(opts: {
 
 function wrap(heading: string, bodyHtml: string): string {
   return `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;color:#18181b">
-  <div style="padding:20px 0;text-align:center;font-weight:600;font-size:15px;color:#18181b">Mountain Car Rental</div>
+  <div style="padding:20px 0;text-align:center;font-weight:600;font-size:15px;color:#18181b">${BRAND}</div>
   <div style="border:1px solid #e4e4e7;border-radius:16px;padding:24px">
     <h1 style="margin:0 0 12px;font-size:18px">${heading}</h1>
     ${bodyHtml}
   </div>
-  <div style="padding:16px 0;text-align:center;font-size:12px;color:#a1a1aa">Mountain Car Rental · Njarðarbraut 6i, 260 Njarðvík</div>
+  <div style="padding:16px 0;text-align:center;font-size:12px;color:#a1a1aa">${BRAND} · ${COMPANY.addressShort}</div>
 </div>`;
 }
 
@@ -126,7 +127,7 @@ export function emailConfirmed(o: {
   amount?: number;
 }): { subject: string; html: string } {
   return {
-    subject: "Twoja rezerwacja została potwierdzona — Mountain Car Rental",
+    subject: `Twoja rezerwacja została potwierdzona — ${BRAND}`,
     html: wrap(
       "Rezerwacja potwierdzona ✅",
       p("Dziękujemy! Potwierdzamy Twoją rezerwację:") +
@@ -162,7 +163,7 @@ export function emailPayment(o: {
         </div>`
       : "";
   return {
-    subject: "Płatność za rezerwację — Mountain Car Rental",
+    subject: `Płatność za rezerwację — ${BRAND}`,
     html: wrap(
       "Płatność za rezerwację",
       p("Poniżej znajdziesz dane do zapłaty za wynajem:") +
@@ -176,7 +177,7 @@ export function emailPayment(o: {
 export function emailPlaces(o: { firstName?: string }): { subject: string; html: string } {
   const hi = o.firstName ? `Cześć ${o.firstName}!` : "Cześć!";
   return {
-    subject: "Polecane miejsca w Islandii — Mountain Car Rental",
+    subject: `Polecane miejsca w Islandii — ${BRAND}`,
     html: wrap(
       "Nasze ulubione miejsca w Islandii 🗺️",
       p(`${hi} Przygotowaliśmy dla Ciebie mapę z naszymi ulubionymi punktami — wodospady, widoki, parkingi, kawiarnie i miejscówki, których nie znajdziesz w typowym przewodniku.`) +
@@ -209,7 +210,7 @@ export function emailContractSign(o: {
         </div>`
       : "";
   return {
-    subject: `Umowa najmu nr ${o.number} do podpisu — Mountain Car Rental`,
+    subject: `Umowa najmu nr ${o.number} do podpisu — ${BRAND}`,
     html: wrap(
       "Umowa gotowa do podpisu ✍️",
       p(
@@ -257,7 +258,7 @@ export function emailInvoice(o: {
     )
     .join("");
   return {
-    subject: `Faktura nr ${o.number} — Mountain Car Rental`,
+    subject: `Faktura nr ${o.number} — ${BRAND}`,
     html: wrap(
       "Faktura za wynajem",
       p(`W załączeniu faktura nr <strong>${o.number}</strong> z dnia ${o.date}.`) +
@@ -290,7 +291,7 @@ export function emailChanges(o: { reason: string; link: string }): {
   html: string;
 } {
   return {
-    subject: "Prośba o uzupełnienie rezerwacji — Mountain Car Rental",
+    subject: `Prośba o uzupełnienie rezerwacji — ${BRAND}`,
     html: wrap(
       "Poprosiliśmy o zmianę danych",
       (o.reason ? p(`Uwaga od zespołu: <em>${o.reason}</em>`) : "") +
@@ -303,7 +304,7 @@ export function emailChanges(o: { reason: string; link: string }): {
 
 export function emailRejected(o: { reason: string }): { subject: string; html: string } {
   return {
-    subject: "W sprawie Twojej rezerwacji — Mountain Car Rental",
+    subject: `W sprawie Twojej rezerwacji — ${BRAND}`,
     html: wrap(
       "Nie możemy przyjąć tej rezerwacji",
       p("Dziękujemy za zainteresowanie. Niestety nie możemy przyjąć tej rezerwacji.") +

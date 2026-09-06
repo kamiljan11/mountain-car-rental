@@ -24,13 +24,11 @@ import {
   Car,
   CircleAlert,
 } from "lucide-react";
+import { PICKUP_LOCATIONS } from "@/lib/company";
 
 const STEPS = ["Termin i pojazd", "Oferta", "Klient", "Podsumowanie"];
 
-const LOCATIONS = [
-  "Biuro — Njarðvík, Njarðarbraut 6i",
-  "Lotnisko Keflavik — Keflavikurflugvollur",
-];
+const LOCATIONS = PICKUP_LOCATIONS;
 
 const TYPE_LABEL: Record<BookingType, string> = {
   reservation: "Rezerwacja",

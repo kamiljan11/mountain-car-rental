@@ -1,13 +1,15 @@
 import RevolutPay from "@/components/RevolutPay";
+import { COMPANY, webLabel } from "@/lib/company";
 
+// Podglad danych z src/lib/company.ts — tam sie je zmienia, tu tylko widac.
 const company = [
-  { label: "Nazwa (marka)", value: "Mountain Car Rental" },
-  { label: "Podmiot / nazwa formalna", value: "Mountain All Service ehf." },
-  { label: "Kennitala", value: "6907250450" },
-  { label: "VSK-nr (VAT)", value: "158052" },
-  { label: "Adres", value: "Njarðarbraut 6i, 260 Njarðvík" },
-  { label: "E-mail", value: "mountainallservice@gmail.com" },
-  { label: "Strona", value: "mountaincar.is" },
+  { label: "Nazwa (marka)", value: COMPANY.brand },
+  { label: "Podmiot / nazwa formalna", value: COMPANY.legalName },
+  { label: "Kennitala", value: COMPANY.kennitala },
+  { label: "VSK-nr (VAT)", value: COMPANY.vat },
+  { label: "Adres", value: COMPANY.addressShort },
+  { label: "E-mail", value: COMPANY.email },
+  { label: "Strona", value: webLabel(COMPANY) },
 ];
 
 export default function SettingsPage() {
@@ -29,7 +31,7 @@ export default function SettingsPage() {
         ))}
       </div>
       <p className="mt-4 text-xs text-zinc-400">
-        Po podłączeniu Supabase te dane trafią do tabeli ustawień i będą edytowalne z poziomu apki.
+        Dane pochodzą z pliku src/lib/company.ts. Stawiasz aplikację u siebie? Podmieniasz je tam.
       </p>
 
       <div className="mt-8 max-w-xl">

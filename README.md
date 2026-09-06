@@ -43,6 +43,28 @@ npm run dev
 `supabase/seed.sql` gives a local database with a synthetic fleet, customers and bookings.
 There is deliberately no real customer data in this repo.
 
+## Running it yourself
+
+There is no hosted demo to click. The way to see this working is to run it, and a fresh install
+starts empty — your own database, your own account, your own company on the paperwork.
+
+1. **Database.** Create a Supabase project and apply `supabase/migrations/` in order. That gives
+   you the schema and the constraints, and nothing else — no vehicles, no customers, no bookings.
+   `supabase/seed.sql` is optional and only for a throwaway local database: it drops and recreates
+   the `rental` schema and fills it with obviously fake data, so never point it at anything you
+   care about.
+2. **Account.** There is no sign-up form and no user table. You are the only account, and you
+   define it in `.env.local`: `APP_USER`, `APP_PASSWORD` and a random `APP_AUTH_SECRET`. Set
+   `NEXT_PUBLIC_GOOGLE_CLIENT_ID` as well and you can sign in with Google, restricted to that same
+   address. Changing the password means changing the environment variable and redeploying —
+   deliberate, because a rental office has one operator, not a directory of users.
+3. **Your company.** Everything the customer sees — the rental agreement, the invoice, e-mails,
+   the public booking page, the panel header — reads from `src/lib/company.ts`. Replace the
+   profiles there with your own; it is the only file with a company name, kennitala or address in
+   it, and a test fails the build if those details start spreading back into components.
+4. **E-mail.** Optional. Without `RESEND_API_KEY` the app skips sending and keeps working; with it,
+   `EMAIL_FROM` has to be a domain you verified in Resend.
+
 ```bash
 npm run lint
 npm run build

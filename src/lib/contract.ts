@@ -1,53 +1,11 @@
 import type { Customer, Vehicle, Booking, CustomerDocument } from "./types";
 import { isCompanyCustomer, DOC_TYPES } from "./types";
+import { COMPANIES, type Company } from "./company";
 import { fmtDate, todayISO } from "./dates";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 
-export interface Company {
-  key: "mountain" | "rebel";
-  label: string; // krótka nazwa do przełącznika
-  legalName: string;
-  brand: string;
-  kennitala: string;
-  vat: string;
-  address: string;
-  email: string;
-  web: string;
-}
+// Tozsamosc wynajmujacego mieszka w ./company — tu tylko z niej korzystamy.
 
-// Dwie firmy do wyboru przy generowaniu umowy (Wynajmujący). Mountain Car ma
-// komplet danych. Rebel Travel — nazwa/adres/kontakt zweryfikowane (rebeltravel.is,
-// RentHelp: Skógarhlíð 10), ale kennitala i VSK-nr do potwierdzenia — nie wpisujemy
-// zmyślonych numerów na umowę prawną; puste = linia do uzupełnienia na dokumencie.
-export const COMPANIES: Company[] = [
-  {
-    key: "mountain",
-    label: "Mountain Car",
-    legalName: "Mountain All Service ehf.",
-    brand: "Mountain Car Rental",
-    kennitala: "6907250450",
-    vat: "158052",
-    address: "Njarðarbraut 6i, 260 Njarðvík, Islandia",
-    email: "mountainallservice@gmail.com",
-    web: "https://mountaincar.is",
-  },
-  {
-    key: "rebel",
-    label: "Rebel Travel",
-    legalName: "Rebel Travel ehf.",
-    brand: "Rebel Travel",
-    // Źródła (2026-07-13): umowa RentHelp (blok Wynajmującego) + fyrirtækjaskrá
-    // Skatturinn (aktywna, zarej. 17.07.2023, ISAT 77.11.0 wynajem aut).
-    kennitala: "6007230140",
-    vat: "149557",
-    address: "Skógarhlíð 10, 105 Reykjavík, Islandia",
-    email: "info@rebeltravel.is",
-    web: "https://rebeltravel.is",
-  },
-];
-
-// Domyślna firma (zgodność wstecz) = Mountain Car, to co było dotąd.
-export const COMPANY = COMPANIES[0];
 
 export interface ContractTemplate {
   id: string;

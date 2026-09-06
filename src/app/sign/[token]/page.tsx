@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { CheckCircle2, Clock, FileSignature, Loader2, ShieldCheck } from "lucide-react";
+import { BRAND } from "@/lib/company";
 
 // Publiczna strona e-podpisu umowy (wzorzec ContractGate z Reykjawwwik:
 // treść umowy + dane podpisującego + checkbox → elektroniczny podpis).
@@ -87,7 +88,7 @@ export default function SignContractPage({
       <div className="mx-auto max-w-3xl">
         <div className="mb-6 text-center">
           <div className="text-lg font-semibold tracking-tight text-zinc-900">
-            Mountain Car Rental
+            {BRAND}
           </div>
           <div className="text-sm text-zinc-500">Podpis umowy online</div>
         </div>

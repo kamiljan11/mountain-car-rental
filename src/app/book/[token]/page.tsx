@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import { BRAND, COMPANY, kennitalaLabel, webLabel } from "@/lib/company";
 import {
   Car,
   Check,
@@ -75,7 +76,7 @@ export default function BookPage() {
             <Car className="size-6" />
           </div>
           <h1 className="text-base font-semibold tracking-tight text-zinc-900">
-            Mountain Car Rental
+            {BRAND}
           </h1>
           <p className="text-sm text-zinc-500">Rezerwacja pojazdu</p>
         </div>
@@ -90,13 +91,13 @@ export default function BookPage() {
           <Info
             icon={<AlertTriangle className="size-7" />}
             title="Link nieprawidłowy lub wygasł"
-            text="Poproś Mountain Car Rental o nowy link do rezerwacji."
+            text={`Poproś ${BRAND} o nowy link do rezerwacji.`}
           />
         ) : submitted || view.status === "submitted" ? (
           <Info
             icon={<Clock className="size-7" />}
             title="Dziękujemy! Poczekaj na potwierdzenie"
-            text="Twoje zgłoszenie trafiło do Mountain Car Rental. Skontaktujemy się mailowo, gdy tylko potwierdzimy rezerwację."
+            text={`Twoje zgłoszenie trafiło do ${BRAND}. Skontaktujemy się mailowo, gdy tylko potwierdzimy rezerwację.`}
             tone="ok"
           />
         ) : view.status === "expired" ? (
@@ -116,7 +117,7 @@ export default function BookPage() {
           <Info
             icon={<AlertTriangle className="size-7" />}
             title="Prośba odrzucona"
-            text="Ta prośba o rezerwację nie została przyjęta. W razie pytań skontaktuj się z Mountain Car Rental."
+            text={`Ta prośba o rezerwację nie została przyjęta. W razie pytań skontaktuj się z ${BRAND}.`}
           />
         ) : (
           <Wizard token={token} view={view} onDone={() => setSubmitted(true)} />
@@ -127,7 +128,7 @@ export default function BookPage() {
           <p className="flex items-start gap-1.5">
             <Lock className="mt-0.5 size-3.5 shrink-0 text-zinc-400" />
             Połączenie jest szyfrowane (HTTPS), a dane wpisujesz samodzielnie — trafiają
-            wyłącznie do Mountain Car Rental.
+            wyłącznie do {BRAND}.
           </p>
           <p className="flex items-start gap-1.5">
             <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-zinc-400" />
@@ -135,12 +136,12 @@ export default function BookPage() {
             (RODO/GDPR). Nie przekazujemy ich nikomu innemu.
           </p>
           <p className="border-t border-zinc-100 pt-2 text-[11px] leading-relaxed text-zinc-400">
-            Mountain Car Rental — Mountain All Service ehf. · kennitala 690725-0450 ·
-            Njarðarbraut 6i, 260 Njarðvík, Islandia ·{" "}
-            <a href="https://mountaincar.is" className="underline hover:text-zinc-600">
-              mountaincar.is
+            {COMPANY.brand} — {COMPANY.legalName} · kennitala {kennitalaLabel(COMPANY)} ·{" "}
+            {COMPANY.address} ·{" "}
+            <a href={COMPANY.web} className="underline hover:text-zinc-600">
+              {webLabel(COMPANY)}
             </a>{" "}
-            · rental@mountaincar.is · +354 888 8005
+            · {COMPANY.contactEmail} · {COMPANY.phone}
           </p>
         </div>
       </div>
@@ -279,7 +280,7 @@ function Wizard({
       {step === 0 && (
         <div className="space-y-4">
           <p className="text-sm text-zinc-600">
-            Rezerwujesz pojazd u Mountain Car Rental. Wybierzesz termin i podasz swoje
+            Rezerwujesz pojazd u {BRAND}. Wybierzesz termin i podasz swoje
             dane — zajmie to chwilę.
           </p>
           <div className="flex items-center gap-3 rounded-xl border border-zinc-200 p-4">

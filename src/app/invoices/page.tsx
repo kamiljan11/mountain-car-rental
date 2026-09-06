@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useData } from "@/components/DataProvider";
-import { COMPANIES } from "@/lib/contract";
+import { COMPANIES } from "@/lib/company";
 import {
   buildInvoice,
   makeInvoiceNumber,

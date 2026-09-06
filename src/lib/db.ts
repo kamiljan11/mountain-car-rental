@@ -31,7 +31,8 @@ import {
   termLabel,
   fxEquiv,
 } from "./invoice";
-import { COMPANIES, isk } from "./contract";
+import { isk } from "./contract";
+import { COMPANIES } from "./company";
 import { getFxRate } from "./fx";
 import { buildInvoicePdf } from "./invoice-pdf";
 import { fmtDate, todayISO } from "./dates";

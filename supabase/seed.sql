@@ -1,6 +1,10 @@
--- Mountain Car Rental — schema rental + seed z RentHelp (audyt pelny 2026-07-01).
--- Idempotentne (drop+recreate rental). 12 pojazdow (autorytatywna Flota), 75 klientow,
--- 33 rezerwacje + 15 blokad + 3 serwisy = 51 wpisow kalendarza, zero kolizji dat.
+-- Schema rental + dane WYLACZNIE syntetyczne, do lokalnej bazy na jeden raz.
+-- Ksztalt danych odwzorowuje audyt z 2026-07-01, ale klienci to "Klient Demo NN"
+-- z adresami @example.com — zadnych prawdziwych osob.
+-- 12 pojazdow, 75 klientow, 33 rezerwacje + 15 blokad + 3 serwisy = 51 wpisow kalendarza.
+--
+-- UWAGA: pierwsza instrukcja to `drop schema rental cascade`. Odpalasz to tylko na bazie,
+-- ktorej nie zal. Produkcja i kazda baza z realnymi danymi stawiana jest z supabase/migrations/.
 drop schema if exists rental cascade;
 create schema rental;
 grant usage on schema rental to anon, authenticated, service_role;

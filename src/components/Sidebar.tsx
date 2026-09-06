@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { NAV } from "@/lib/nav";
+import { BRAND } from "@/lib/company";
 import { useData } from "@/components/DataProvider";
 import InstallAppButton from "@/components/InstallAppButton";
 import { isHiddenVehicleName } from "@/lib/hiddenVehicles";
@@ -24,7 +25,7 @@ export default function Sidebar() {
     // wcześniej <aside> rósł z treścią i stopka schodziła pod widok.
     <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col bg-zinc-900 text-zinc-100">
       <div className="shrink-0 border-b border-zinc-800 px-5 py-5">
-        <div className="text-sm font-semibold tracking-tight">Mountain Car Rental</div>
+        <div className="text-sm font-semibold tracking-tight">{BRAND}</div>
         <div className="text-xs text-zinc-400">Rental Manager</div>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">

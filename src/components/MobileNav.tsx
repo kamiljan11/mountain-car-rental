@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, LogOut } from "lucide-react";
+import { BRAND } from "@/lib/company";
 import { NAV } from "@/lib/nav";
 import InstallAppButton from "@/components/InstallAppButton";
 
@@ -19,7 +20,7 @@ export default function MobileNav() {
   return (
     <div>
       <div className="flex items-center justify-between bg-zinc-900 px-4 py-3 text-zinc-100">
-        <div className="text-sm font-semibold tracking-tight">Mountain Car Rental</div>
+        <div className="text-sm font-semibold tracking-tight">{BRAND}</div>
         <button
           onClick={() => setOpen(true)}
           aria-label="Otwórz menu"
@@ -34,7 +35,7 @@ export default function MobileNav() {
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="absolute left-0 top-0 flex h-full w-72 max-w-[82%] flex-col bg-zinc-900 p-4 text-zinc-100">
             <div className="mb-3 flex items-center justify-between">
-              <span className="text-sm font-semibold">Mountain Car Rental</span>
+              <span className="text-sm font-semibold">{BRAND}</span>
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Zamknij menu"
