@@ -43,7 +43,9 @@ jobs:
         run: |
           set -euo pipefail
           if ! grep -q '"vitest"' package.json; then echo "skip=brak vitest w package.json" >> "$GITHUB_OUTPUT"; exit 0; fi
-          real_tests=$(git ls-files 'src/**/*.test.*' 'src/**/*.spec.*' 'supabase/functions/**/*.test.*' | grep -v -E '(^|/)example\.test\.' | wc -l)
+          # `grep -v` zwraca 1, gdy nic nie przepusci (np. jedyny test to szablonowy example.test.ts) — przy pipefail
+          # cala linia padala z exit 1 zamiast "skip" (rollout 2026-09-06, 6 z 13 repo). Stad `|| true` w grupie.
+          real_tests=$(git ls-files 'src/**/*.test.*' 'src/**/*.spec.*' 'supabase/functions/**/*.test.*' | { grep -v -E '(^|/)example\.test\.' || true; } | wc -l)
           if [ "$real_tests" -eq 0 ]; then echo "skip=brak prawdziwych testow (tylko szablon) — mutation testing niczego nie zmierzy; napisz testy, a bramka zacznie dzialac" >> "$GITHUB_OUTPUT"; exit 0; fi
           git fetch -q origin "$BASE_REF"
           changed=$(git diff --name-only --diff-filter=AM "origin/$BASE_REF...HEAD" -- 'src/**/*.ts' 'src/**/*.tsx' 'supabase/functions/**/*.ts' \
